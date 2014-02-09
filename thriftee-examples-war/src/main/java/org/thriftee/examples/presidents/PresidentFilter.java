@@ -28,7 +28,6 @@ import javax.persistence.criteria.Root;
 
 import org.thriftee.util.New;
 
-import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
 /**
@@ -37,7 +36,7 @@ import com.facebook.swift.codec.ThriftStruct;
  * @since 2.0
  * @author Jeff Johnston
  */
-@ThriftStruct
+ @ThriftStruct
 public class PresidentFilter implements CriteriaCommand {
     
 	private List<Filter> filters = new ArrayList<Filter>();
@@ -68,12 +67,10 @@ public class PresidentFilter implements CriteriaCommand {
         }
     }
     
-    @ThriftField(1)
     public List<Filter> getFilters() {
     	return filters;
     }
     
-    @ThriftField
     public void setFilters(List<Filter> filters) {
     	if (filters == null) {
     		throw new IllegalArgumentException("Filter list cannot be null");

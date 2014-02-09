@@ -18,6 +18,7 @@ public class ThriftCommand {
 		
 		PHP("PHP"),
 		JS("Javascript"),
+		HTML("HTML"),
 		;
 		
 		public final String option;
@@ -40,6 +41,8 @@ public class ThriftCommand {
 			public static final Flag PHP_OOP 		=	new Flag( PHP,	"oop", 			"Generate PHP with object oriented subclasses", 		false );
 			public static final Flag PHP_REST 		=	new Flag( PHP,	"rest", 		"Generate PHP REST processors", 						false );
 			public static final Flag PHP_NAMESPACE 	= 	new Flag( PHP,	"namespace", 	"Generate PHP namespaces as defined in PHP >= 5.3", 	false );
+			
+			public static final Flag HTML_STANDALONE =	new Flag( HTML,	"standalone",	"Self-contained mode, includes all CSS in the HTML files. Generates no style.css file, but HTML files will be larger.", false);
 			
 			private static final long serialVersionUID = -3504700206843791875L;
 

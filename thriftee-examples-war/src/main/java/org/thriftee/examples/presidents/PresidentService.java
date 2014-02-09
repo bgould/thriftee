@@ -28,6 +28,7 @@ import com.facebook.swift.service.ThriftService;
  * @since 2.0
  * @author Jeff Johnston
  */
+// TODO: need to fix thrift type dependency issue in Thrift generator; should add topographical sort
 @ThriftService
 public interface PresidentService {
 	

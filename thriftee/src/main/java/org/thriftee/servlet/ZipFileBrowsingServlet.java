@@ -129,7 +129,7 @@ public abstract class ZipFileBrowsingServlet extends FrameworkServlet {
 		}
 		
 		request.setAttribute("model", model);
-		request.getRequestDispatcher("/thriftee/directory_listing.jsp").include(request, response);
+		request.getRequestDispatcher("/WEB-INF/thriftee/jsp/directory_listing.jsp").include(request, response);
 	}
 	
 	protected void sendFile(HttpServletRequest request, HttpServletResponse response, ZipInputStream in, ZipEntry entry)

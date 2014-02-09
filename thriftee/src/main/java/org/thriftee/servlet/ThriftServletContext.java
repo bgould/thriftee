@@ -10,6 +10,7 @@ import javax.servlet.ServletContextListener;
 import org.thriftee.framework.Thrift;
 import org.thriftee.framework.ThriftConfig;
 import org.thriftee.framework.ThriftFactory;
+import org.thriftee.framework.WarFileScannotationConfigurator;
 
 public class ThriftServletContext {
 	
@@ -47,6 +48,7 @@ public class ThriftServletContext {
 											tempDir(tempDir).
 											thriftExecutable(readThriftExecutable(ctx)).
 											thriftLibDir(readThriftLibDir(ctx)).
+											scannotationConfigurator(new WarFileScannotationConfigurator(ctx)).
 											build();
 		Thrift svcs = new ThriftFactory().create(config);
 		ctx.setAttribute(THRIFT_SERVICES_ATTR, svcs);

@@ -54,7 +54,6 @@ public class PresidentSort implements CriteriaCommand {
     	this.sorts = sorts;
     }
     
-    @ThriftField
     public List<Sort> getSorts() {
     	return this.sorts;
     }

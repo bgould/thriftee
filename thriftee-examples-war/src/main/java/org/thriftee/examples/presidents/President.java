@@ -48,7 +48,6 @@ public class President implements Serializable {
         return id;
     }
 
-    @ThriftField
     public void setId(int id) {
         this.id = id;
     }
@@ -58,7 +57,6 @@ public class President implements Serializable {
         return name;
     }
 
-    @ThriftField
     public void setName(Name name) {
         this.name = name;
     }
@@ -81,7 +79,6 @@ public class President implements Serializable {
         return career;
     }
 
-    @ThriftField
     public void setCareer(String career) {
         this.career = career;
     }
@@ -104,7 +101,6 @@ public class President implements Serializable {
         return education;
     }
 
-    @ThriftField
     public void setEducation(String education) {
         this.education = education;
     }
@@ -114,7 +110,6 @@ public class President implements Serializable {
         return politicalParty;
     }
 
-    @ThriftField
     public void setPoliticalParty(String politicalParty) {
         this.politicalParty = politicalParty;
     }
@@ -124,7 +119,6 @@ public class President implements Serializable {
         return term;
     }
 
-    @ThriftField
     public void setTerm(String term) {
         this.term = term;
     }
@@ -134,7 +128,6 @@ public class President implements Serializable {
         return selected;
     }
 
-    @ThriftField
     public void setSelected(String selected) {
         this.selected = selected;
     }

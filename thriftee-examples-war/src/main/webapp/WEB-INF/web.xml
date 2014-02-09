@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" version="3.0">
   <display-name>services-war</display-name>
+  <!-- 
   <context-param>
   	<param-name>thrift.executable</param-name>
-  	<param-value>D:\tools\thrift\thrift-0.9.1.exe</param-value>
+  	<param-value>/home/</param-value>
   </context-param>
   <context-param>
   	<param-name>thrift.lib.dir</param-name>
   	<param-value>D:\tools\thrift\lib</param-value>
   </context-param>
+   -->
   <!-- 
   <security-constraint>
     <web-resource-collection>
@@ -21,6 +23,7 @@
     </auth-constraint>
   </security-constraint>
    -->
+   <!-- 
   <security-role>
     <role-name>AUTHENTICATED_USER</role-name>
   </security-role>
@@ -31,6 +34,7 @@
     <auth-method>BASIC</auth-method>
     <realm-name>fuame-realm</realm-name>
   </login-config>
+   -->
   <error-page>
     <error-code>500</error-code>
     <location>/error.jsp</location>

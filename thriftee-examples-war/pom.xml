@@ -16,6 +16,12 @@
 			<groupId>org.thriftee</groupId>
 			<artifactId>thriftee</artifactId>
 			<version>${project.parent.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>javax</groupId>
@@ -29,10 +35,28 @@
 			<version>4.11</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<artifactId>slf4j-api</artifactId>
+			<groupId>org.slf4j</groupId>
+			<version>1.7.5</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>thriftee-examples-war</finalName>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.openejb.maven</groupId>
+				<artifactId>tomee-maven-plugin</artifactId>
+				<version>1.0.1</version>
+				<configuration>
+					<tomeeVersion>1.5.0</tomeeVersion>
+					<libs>
+						<lib>org.eclipse.persistence:eclipselink:2.5.1</lib>
+						<lib>remove:openjpa</lib>
+					</libs>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>

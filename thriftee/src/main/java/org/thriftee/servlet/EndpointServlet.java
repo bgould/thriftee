@@ -89,7 +89,7 @@ public abstract class EndpointServlet extends FrameworkServlet {
 				);
 			}
 			req.setAttribute("model", model);
-			req.getRequestDispatcher("/WEB-INF/jsp/directory_listing.jsp").include(req, resp);
+			req.getRequestDispatcher("/WEB-INF/thriftee/jsp/directory_listing.jsp").include(req, resp);
 		} else if (processors.containsKey(pathInfo)) {
 			return;
 		}

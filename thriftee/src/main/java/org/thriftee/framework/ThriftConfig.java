@@ -13,11 +13,14 @@ public class ThriftConfig implements Serializable {
 	
 	private File thriftLibDir;
 	
-	private ThriftConfig(File tempDir, File thriftExecutable, File thriftLibDir) {
+	private ScannotationConfigurator scannotationConfigurator;
+	
+	private ThriftConfig(File tempDir, File thriftExecutable, File thriftLibDir, ScannotationConfigurator configurator) {
 		super();
 		this.tempDir = tempDir;
 		this.thriftExecutable = thriftExecutable;
 		this.thriftLibDir = thriftLibDir;
+		this.scannotationConfigurator = configurator;
 	}
 
 	public File tempDir() {
@@ -32,6 +35,10 @@ public class ThriftConfig implements Serializable {
 		return this.thriftLibDir;
 	}
 	
+	public ScannotationConfigurator scannotationConfigurator() {
+		return this.scannotationConfigurator;
+	}
+	
 	public static class Builder {
 		
 		private File tempDir;
@@ -39,6 +46,8 @@ public class ThriftConfig implements Serializable {
 		private File thriftExecutable;
 		
 		private File thriftLibDir;
+		
+		private ScannotationConfigurator scannotationConfigurator;
 		
 		public Builder() {
 		}
@@ -61,11 +70,19 @@ public class ThriftConfig implements Serializable {
 			return this;
 		}
 		
+		public Builder scannotationConfigurator(ScannotationConfigurator configurator) {
+			this.scannotationConfigurator = configurator;
+			return this;
+		}
+		
 		public ThriftConfig build() {
 			if (tempDir == null) {
 				throw new IllegalArgumentException("tempDir cannot be null");
 			}
-			return new ThriftConfig(tempDir, thriftExecutable, thriftLibDir);
+			if (scannotationConfigurator == null) {
+				throw new IllegalArgumentException("scannotationConfigurator cannot be null");
+			}
+			return new ThriftConfig(tempDir, thriftExecutable, thriftLibDir, scannotationConfigurator);
 		}
 		
 	}

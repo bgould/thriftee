@@ -2,14 +2,16 @@ package org.thriftee.framework;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import org.scannotation.AnnotationDB;
-import org.scannotation.ClasspathUrlFinder;
+import org.thriftee.util.New;
 
 import com.facebook.swift.codec.ThriftCodecManager;
+import com.facebook.swift.codec.ThriftEnum;
 import com.facebook.swift.codec.ThriftStruct;
 import com.facebook.swift.service.ThriftService;
 
@@ -67,6 +69,8 @@ public class Thrift {
 	
 	private final Set<Class<?>> thriftServices;
 	
+	private final Set<Class<?>> thriftEnums;
+	
 	private final File[] idlFiles;
 	
 	public Thrift(ThriftConfig config) {
@@ -74,44 +78,16 @@ public class Thrift {
 		this.tempDir = config.tempDir();
 		this.idlDir = new File(tempDir, "idl");
 		
-		AnnotationDB annotations = new AnnotationDB();
+		final AnnotationDB annotations = new AnnotationDB();
 		annotations.setScanClassAnnotations(true);
 		annotations.setScanFieldAnnotations(false);
 		annotations.setScanMethodAnnotations(false);
 		annotations.setScanParameterAnnotations(false);
 		try {
-			annotations.scanArchives(ClasspathUrlFinder.findClassBase(BaseSystemException.class));
-			//annotations.crossReferenceImplementedInterfaces();
-			{
-				Set<String> serviceNames = annotations.getAnnotationIndex().get(ThriftService.class.getName());
-				thriftServices = new HashSet<Class<?>>();
-				for (String serviceName : serviceNames) {
-					try {
-						Class<?> serviceClass = Class.forName(serviceName);
-						thriftServices.add(serviceClass);
-					} catch (ClassNotFoundException e) {
-						System.err.println(
-							"warning: discovered @ThriftService class via " +
-							"classpath scanning, but could not load: " + serviceName
-						);
-					}
-				}
-			}
-			{
-				Set<String> structNames = annotations.getAnnotationIndex().get(ThriftStruct.class.getName());
-				thriftStructs = new HashSet<Class<?>>();
-				for (String structName : structNames) {
-					try {
-						Class<?> serviceClass = Class.forName(structName);
-						thriftStructs.add(serviceClass);
-					} catch (ClassNotFoundException e) {
-						System.err.println(
-							"warning: discovered @ThriftStruct class via " +
-							"classpath scanning, but could not load: " + structName
-						);
-					}
-				}
-			}
+			config.scannotationConfigurator().configure(annotations);
+			thriftServices = searchFor(ThriftService.class, annotations);
+			thriftStructs = searchFor(ThriftStruct.class, annotations);
+			thriftEnums = searchFor(ThriftEnum.class, annotations);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -121,6 +97,7 @@ public class Thrift {
 		logger.info("[Thrift] Initializing Thrift Services ----");
 		logger.info("[Thrift] Services detected: " + thriftServices);
 		logger.info("[Thrift] Structs detected: " + thriftStructs);
+		logger.info("[Thrift] Enums detected: " + thriftEnums);
     	
 		if (	config.thriftLibDir() != null	&& 
 				config.thriftLibDir().exists()	&&
@@ -143,6 +120,7 @@ public class Thrift {
 		Set<Class<?>> allClasses = new HashSet<Class<?>>();
 		allClasses.addAll(thriftServices);
 		allClasses.addAll(thriftStructs);
+		allClasses.addAll(thriftEnums);
 				
     	logger.info("[Thrift] Exporting IDL files from Swift definitions");
 		try {
@@ -154,6 +132,23 @@ public class Thrift {
 		
 		logger.info("[Thrift] Thrift initialization completed");
 
+	}
+	
+	public static Set<Class<?>> searchFor(Class<? extends Annotation> annotation, AnnotationDB annotations) {
+		final Set<String> names = annotations.getAnnotationIndex().get(annotation.getName());
+		final Set<Class<?>> result = New.set();
+		for (String name : names) {
+			try {
+				final Class<?> clazz = Class.forName(name);
+				result.add(clazz);
+			} catch (ClassNotFoundException e) {
+				System.err.println(
+					"warning: discovered @" + annotation.getSimpleName() + " class via " +
+					"classpath scanning, but could not load: " + name
+				);
+			}
+		}
+		return result;
 	}
 	
 }

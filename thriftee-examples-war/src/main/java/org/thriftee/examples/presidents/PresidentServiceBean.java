@@ -6,13 +6,13 @@ import java.util.Map;
 import javax.ejb.Remote;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceUnit;
+import javax.persistence.PersistenceContext;
 
 @Stateless
 @Remote(PresidentService.class)
 public class PresidentServiceBean implements PresidentService {
 
-	@PersistenceUnit
+	@PersistenceContext
 	private EntityManager em;
 	
 	@Override
