@@ -24,11 +24,7 @@ public class FileUtil {
 				baos.write(buffer, 0, n);
 			}
 		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {}
-			}
+			forceClosed(in);
 		}
 		return baos.toString();
 	}
