@@ -137,15 +137,17 @@ public class Thrift {
 	public static Set<Class<?>> searchFor(Class<? extends Annotation> annotation, AnnotationDB annotations) {
 		final Set<String> names = annotations.getAnnotationIndex().get(annotation.getName());
 		final Set<Class<?>> result = New.set();
-		for (String name : names) {
-			try {
-				final Class<?> clazz = Class.forName(name);
-				result.add(clazz);
-			} catch (ClassNotFoundException e) {
-				System.err.println(
-					"warning: discovered @" + annotation.getSimpleName() + " class via " +
-					"classpath scanning, but could not load: " + name
-				);
+			if (names != null) {
+			for (String name : names) {
+				try {
+					final Class<?> clazz = Class.forName(name);
+					result.add(clazz);
+				} catch (ClassNotFoundException e) {
+					System.err.println(
+						"warning: discovered @" + annotation.getSimpleName() + " class via " +
+						"classpath scanning, but could not load: " + name
+					);
+				}
 			}
 		}
 		return result;
