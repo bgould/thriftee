@@ -5,11 +5,11 @@ import java.io.IOException;
 
 import javax.servlet.annotation.WebServlet;
 
-import org.thriftee.framework.ProcessIDL;
-import org.thriftee.framework.ThriftCommand;
-import org.thriftee.framework.ThriftStartupException;
-import org.thriftee.framework.ThriftCommand.Generate;
-import org.thriftee.framework.ThriftCommand.Generate.Flag;
+import org.thriftee.compiler.ProcessIDL;
+import org.thriftee.compiler.ThriftCommand;
+import org.thriftee.compiler.ThriftCommand.Generate;
+import org.thriftee.compiler.ThriftCommand.Generate.Flag;
+import org.thriftee.framework.ThriftEEStartupException;
 
 @WebServlet("/clients/php/*")
 public class PHPClientServlet extends ZipFileBrowsingServlet {
@@ -43,7 +43,7 @@ public class PHPClientServlet extends ZipFileBrowsingServlet {
 				phpClientLibrary.getAbsolutePath()
 			);
 		} catch (IOException e) {
-			throw new ThriftStartupException(
+			throw new ThriftEEStartupException(
 				"[JQueryClientServlet] Problem generating PHP library: " + e.getMessage()
 			);
 		}

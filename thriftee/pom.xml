@@ -19,27 +19,10 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.6</version>
-		</dependency>
-		<dependency>
 			<groupId>javax</groupId>
 			<artifactId>javaee-web-api</artifactId>
 			<version>6.0</version>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.facebook.swift</groupId>
-			<artifactId>swift-generator</artifactId>
-			<version>${swift.version}</version>
-			<exclusions>
-				<!-- guava 15.0 doesn't play nice with CDI, override with 16.0 instead -->
-				<exclusion>
-					<artifactId>guava</artifactId>
-					<groupId>com.google.guava</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.facebook.swift</groupId>
@@ -61,14 +44,20 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
+			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>16.0</version>
+			<version>${guava.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.thriftee</groupId>
+			<artifactId>thriftee-util</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!-- 
 			This dependency is only in here so that Eclipse doesn't complain 
 			about the tag handler missing 
@@ -79,6 +68,7 @@
 			<version>1.1.2</version>
 			<scope>provided</scope>
 		</dependency>
+
 	</dependencies>
 
 </project>

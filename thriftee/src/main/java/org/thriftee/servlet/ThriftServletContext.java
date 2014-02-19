@@ -7,10 +7,11 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.thriftee.framework.Thrift;
-import org.thriftee.framework.ThriftConfig;
-import org.thriftee.framework.ThriftFactory;
+import org.thriftee.framework.ThriftEE;
+import org.thriftee.framework.ThriftEEConfig;
+import org.thriftee.framework.ThriftEEFactory;
 import org.thriftee.framework.WarFileScannotationConfigurator;
+import org.thriftee.framework.ThriftEEConfig.Builder;
 
 public class ThriftServletContext {
 	
@@ -32,25 +33,25 @@ public class ThriftServletContext {
 		return ctx;
 	}
 	
-	public Thrift getThriftServices() {
+	public ThriftEE getThriftServices() {
 		return servicesFor(getServletContext());
 	}
 	
 	private static String THRIFT_SERVICES_ATTR = ThriftServletContext.class.getName();
 	
     public static void initialize(ServletContext ctx) {
-    	if (ctx.getAttribute(THRIFT_SERVICES_ATTR) instanceof Thrift) {
+    	if (ctx.getAttribute(THRIFT_SERVICES_ATTR) instanceof ThriftEE) {
     		throw new IllegalStateException(
 				"ThriftServices is already initialized for this context.");
     	}
     	File tempDir = (File) ctx.getAttribute(ServletContext.TEMPDIR);
-		ThriftConfig config = new ThriftConfig.Builder().
+		ThriftEEConfig config = new ThriftEEConfig.Builder().
 											tempDir(tempDir).
 											thriftExecutable(readThriftExecutable(ctx)).
 											thriftLibDir(readThriftLibDir(ctx)).
 											scannotationConfigurator(new WarFileScannotationConfigurator(ctx)).
 											build();
-		Thrift svcs = new ThriftFactory().create(config);
+		ThriftEE svcs = new ThriftEEFactory().create(config);
 		ctx.setAttribute(THRIFT_SERVICES_ATTR, svcs);
     }
     
@@ -73,14 +74,14 @@ public class ThriftServletContext {
     }
     
     public static void destroy(ServletContext ctx) {
-    	if (ctx.getAttribute(THRIFT_SERVICES_ATTR) instanceof Thrift) {
-    		throw new IllegalStateException(
-				"ThriftServices is already initialized for this context.");
-    	}
+//    	if (ctx.getAttribute(THRIFT_SERVICES_ATTR) instanceof ThriftEE) {
+//    		throw new IllegalStateException(
+//				"ThriftServices is already initialized for this context.");
+//    	}
     }
     
-    public static Thrift servicesFor(ServletContext ctx) {
-    	Thrift svcs = (Thrift) ctx.getAttribute(THRIFT_SERVICES_ATTR);
+    public static ThriftEE servicesFor(ServletContext ctx) {
+    	ThriftEE svcs = (ThriftEE) ctx.getAttribute(THRIFT_SERVICES_ATTR);
     	if (svcs == null) {
     		throw new IllegalStateException("ThriftServletContext has not been initialized.");
     	}

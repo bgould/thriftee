@@ -14,14 +14,13 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.thriftee</groupId>
+			<artifactId>thriftee-examples</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.thriftee</groupId>
 			<artifactId>thriftee</artifactId>
 			<version>${project.parent.version}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>slf4j-api</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>javax</groupId>
@@ -30,15 +29,26 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<artifactId>slf4j-api</artifactId>
+			<groupId>org.slf4j</groupId>
+			<version>${slf4j.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
+			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<artifactId>slf4j-api</artifactId>
-			<groupId>org.slf4j</groupId>
-			<version>1.7.5</version>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>eclipselink</artifactId>
+			<version>2.5.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>javax.persistence</artifactId>
+			<version>2.1.0</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
@@ -50,7 +60,7 @@
 				<artifactId>tomee-maven-plugin</artifactId>
 				<version>1.0.1</version>
 				<configuration>
-					<tomeeVersion>1.5.0</tomeeVersion>
+					<tomeeVersion>1.5.2</tomeeVersion>
 					<libs>
 						<lib>org.eclipse.persistence:eclipselink:2.5.1</lib>
 						<lib>remove:openjpa</lib>

@@ -1,0 +1,9 @@
+<tomee>
+	<Resource id="thrifeeExamples" type="DataSource">
+	JdbcDriver org.hsqldb.jdbcDriver    
+	JdbcUrl jdbc:hsqldb:mem:examples
+	UserName sa
+	Password     
+	JtaManaged true 
+	</Resource>
+</tomee>

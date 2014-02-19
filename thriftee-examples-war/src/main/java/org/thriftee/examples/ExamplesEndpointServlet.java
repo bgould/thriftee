@@ -5,6 +5,8 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 
 import org.thriftee.examples.presidents.PresidentService;
+import org.thriftee.examples.usergroup.service.GroupService;
+import org.thriftee.examples.usergroup.service.UserService;
 import org.thriftee.servlet.EndpointServlet;
 
 @WebServlet(
@@ -18,10 +20,18 @@ public class ExamplesEndpointServlet extends EndpointServlet {
 
 	@EJB 
 	private PresidentService presidentService;
+	
+	//@EJB
+	//private UserService userService;
+	
+	//@EJB
+	//private GroupService groupService;
 
 	@Override
 	public void init() throws ServletException {
 		addProcessor("PresidentService", presidentService);
+		//addProcessor("UserService", userService);
+		//addProcessor("GroupService", groupService);
 	}
 	
 }

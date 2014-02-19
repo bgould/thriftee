@@ -9,7 +9,9 @@
 	<modules>
 		<module>thriftee</module>
 		<module>thriftee-examples-war</module>
-	</modules>
+    <module>thriftee-util</module>
+    <module>thriftee-examples</module>
+  </modules>
 	<build>
 		<plugins>
 			<plugin>
@@ -24,8 +26,12 @@
 		</plugins>
 	</build>
 	<properties>
+		<guava.version>16.0</guava.version>
+		<junit.version>4.11</junit.version>
 		<thrift.version>0.9.1</thrift.version>
-		<swift.version>0.12.0-SNAPSHOT</swift.version>
+		<swift.version>0.11.0</swift.version>
 		<java.version>1.7</java.version>
+		<slf4j.version>1.7.5</slf4j.version>
+		<commons.lang.version>2.6</commons.lang.version>
 	</properties>
 </project>

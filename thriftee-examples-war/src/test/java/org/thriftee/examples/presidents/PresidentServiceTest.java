@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
-import org.thriftee.framework.ExportIDL;
+import org.thriftee.compiler.ExportIDL;
 
 public class PresidentServiceTest {
 

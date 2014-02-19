@@ -5,10 +5,10 @@ import java.io.IOException;
 
 import javax.servlet.annotation.WebServlet;
 
-import org.thriftee.framework.ProcessIDL;
-import org.thriftee.framework.ThriftCommand;
-import org.thriftee.framework.ThriftCommand.Generate;
-import org.thriftee.framework.ThriftStartupException;
+import org.thriftee.compiler.ProcessIDL;
+import org.thriftee.compiler.ThriftCommand;
+import org.thriftee.compiler.ThriftCommand.Generate;
+import org.thriftee.framework.ThriftEEStartupException;
 
 @WebServlet("/clients/html/*")
 public class HtmlClientServlet extends ZipFileBrowsingServlet {
@@ -30,7 +30,7 @@ public class HtmlClientServlet extends ZipFileBrowsingServlet {
 				htmlClientLibrary.getAbsolutePath()
 			);
 		} catch (IOException e) {
-			throw new ThriftStartupException(
+			throw new ThriftEEStartupException(
 				"[HtmlClientServlet] Problem generating HTML library: " + e.getMessage()
 			);
 		}

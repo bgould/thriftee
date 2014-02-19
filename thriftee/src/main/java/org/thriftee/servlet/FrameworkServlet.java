@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.thriftee.framework.Thrift;
+import org.thriftee.framework.ThriftEE;
 
 import com.facebook.swift.codec.ThriftCodecManager;
 
@@ -17,7 +17,7 @@ public abstract class FrameworkServlet extends HttpServlet {
 	
 	protected final Logger logger = Logger.getLogger(getClass().getName());
 	
-	protected Thrift thrift() {
+	protected ThriftEE thrift() {
 		return ThriftServletContext.servicesFor(getServletContext());
 	}
 	

@@ -17,7 +17,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.TProcessor;
+import org.apache.thrift.protocol.TJSONProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.TIOStreamTransport;
@@ -25,7 +26,7 @@ import org.apache.thrift.transport.TTransport;
 import org.thriftee.servlet.model.DirectoryListingModel;
 import org.thriftee.util.FileUtil;
 
-import com.facebook.nifty.core.RequestContext;
+import com.facebook.nifty.processor.NiftyProcessorAdapters;
 import com.facebook.swift.service.ThriftEventHandler;
 import com.facebook.swift.service.ThriftServiceProcessor;
 
@@ -114,7 +115,7 @@ public abstract class EndpointServlet extends FrameworkServlet {
 		TTransport inTransport = null;
 		TTransport outTransport = null;
 		try {
-			response.setContentType("application/x-thrift");
+			response.setContentType("application/json");
 			
 			InputStream in = request.getInputStream();
 			OutputStream out = response.getOutputStream();
@@ -125,10 +126,30 @@ public abstract class EndpointServlet extends FrameworkServlet {
 
 			TProtocol inProtocol = getInProtocolFactory().getProtocol(inTransport);
 			TProtocol outProtocol = getOutProtocolFactory().getProtocol(outTransport);
-			RequestContext ctx = new ServletRequestContext(request, inProtocol, outProtocol);
-
-			processor.process(inProtocol, outProtocol, ctx);
-			out.flush();
+			TProcessor tprocessor = NiftyProcessorAdapters.processorToTProcessor(processor);
+			//RequestContext ctx = new ServletRequestContext(request, inProtocol, outProtocol);
+			
+				boolean result = tprocessor.process(inProtocol, outProtocol);
+				
+			/*
+			ListenableFuture<Boolean> future = processor.process(inProtocol, outProtocol, ctx);
+			try {
+				Boolean result = future.get(30, TimeUnit.SECONDS);
+				if (!response.isCommitted() && !result) {
+					response.setStatus(500);
+				}
+				outProtocol.writeMessageEnd();
+				out.flush();
+			} catch (TimeoutException | InterruptedException e) {
+				throw new ServletException(e);
+			} catch (ExecutionException e) {
+				if (e.getCause() != null) {
+					throw new ServletException(e.getCause());
+				} else {
+					throw new ServletException(e);
+				}
+			}
+			*/
 		} catch (TException te) {
 			throw new ServletException(te);
 		} finally {
@@ -151,7 +172,7 @@ public abstract class EndpointServlet extends FrameworkServlet {
 	
 	protected TProtocolFactory getInProtocolFactory() {
 		if (protocolFactory == null) {
-			protocolFactory = new TBinaryProtocol.Factory();
+			protocolFactory = new TJSONProtocol.Factory();
 		}
 		return protocolFactory;
 	}
