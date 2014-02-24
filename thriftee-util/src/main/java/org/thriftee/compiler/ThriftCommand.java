@@ -19,6 +19,8 @@ public class ThriftCommand {
 		PHP("PHP"),
 		JS("Javascript"),
 		HTML("HTML"),
+		JAVA("Java"),
+		PYTHON("Python"),
 		;
 		
 		public final String option;
