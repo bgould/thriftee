@@ -5,9 +5,6 @@ import java.util.List;
 import org.thriftee.examples.usergroup.domain.Group;
 import org.thriftee.examples.usergroup.domain.User;
 
-
-
-
 import com.facebook.swift.service.ThriftMethod;
 import com.facebook.swift.service.ThriftService;
 
@@ -15,12 +12,12 @@ import com.facebook.swift.service.ThriftService;
 public interface GroupService {
 
 	@ThriftMethod
-	public Group find(String name);
+	public Group find(String name) throws UserGroupException;
 	
 	@ThriftMethod
-	public String addUserToGroup(Group group, User user);
+	public boolean addUserToGroup(Group group, User user) throws UserGroupException;
 	
 	@ThriftMethod
-	public List<String> groupNames(User user);
+	public List<String> groupNames(User user) throws UserGroupException;
 	
 }
