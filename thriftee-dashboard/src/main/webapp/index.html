@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ThriftEE Administration App</title>
+<!-- Bootstrap -->
+<link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+<link href="assets/thriftee/css/thriftee.css" rel="stylesheet" />
+<style type="text/css" media="screen">
+    #code-editor {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 400px;
+    }
+</style>
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse"
+                    data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span> <span
+                        class="icon-bar"></span> <span class="icon-bar"></span> <span
+                        class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">ThriftEE Administration Console</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#">Dashboard</a></li>
+                    <li><a href="#">Settings</a></li>
+                    <li><a href="#">Profile</a></li>
+                    <li><a href="#">Help</a></li>
+                </ul>
+                <form class="navbar-form navbar-right">
+                    <input type="text" class="form-control" placeholder="Search...">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-3 col-md-2 sidebar">
+                <h4>Services</h4>
+                <ul class="nav nav-sidebar">
+                    <li><a href="#">Services</a></li>
+                    <li><a href="#">Types</a></li>
+                    <li><a href="#">Clients</a></li>
+                    <li><a href="#">Export</a></li>
+                </ul>
+                <h4>Clients</h4>
+                <ul class="nav nav-sidebar">
+                    <li><a href="">Nav item again</a></li>
+                    <li><a href="">One more nav</a></li>
+                    <li><a href="">Another nav item</a></li>
+                </ul>
+            </div>
+            <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+                <h1 class="page-header">Dashboard</h1>
+                <div class="col-sm-10 col-md-10">
+                    <div id="code-editor">var transport = new Thrift.Transport("../endpoints/PresidentService"),
+    protocol = new Thrift.Protocol(transport),
+    client = new PresidentServiceClient(protocol);</div>
+                </div>
+                <div class="col-2">
+                    <div id="code-editor-sidebar">
+                        <select id="code-editor-change-theme"></select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/jquery/jquery-2.1.0.js"></script>
+    <script src="assets/handlebars/handlebars-v1.3.0.js"></script>
+    <script src="assets/emberjs/ember.js"></script>
+    <script src="assets/emberjs/ember-data.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/thriftee/js/thrift.js"></script>
+    <script src="assets/thriftee/js/thriftee.js"></script>
+    <!-- <script src="assets/thriftee/js/thriftee-protocols.js"></script>  -->
+
+	<script src="assets/ace/ace.js" data-ace-base="assets/ace" type="text/javascript" charset="utf-8"></script>
+    <script src="assets/thriftee/js/thriftee-ace.js"></script>
+	<script type="text/javascript" charset="utf-8">
+		require("thriftee/ace");
+	</script>
+
+    <script src="http://localhost:8080/thriftee-examples-war/clients/jquery/PresidentService.js"></script>
+    <script src="http://localhost:8080/thriftee-examples-war/clients/jquery/org_thriftee_examples_presidents_types.js"></script>
+
+</body>
+</html>

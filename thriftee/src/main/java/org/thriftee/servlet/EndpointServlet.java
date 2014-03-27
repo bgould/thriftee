@@ -115,7 +115,7 @@ public abstract class EndpointServlet extends FrameworkServlet {
 		TTransport inTransport = null;
 		TTransport outTransport = null;
 		try {
-			response.setContentType("application/json");
+			response.setContentType("application/thrift");
 			
 			InputStream in = request.getInputStream();
 			OutputStream out = response.getOutputStream();

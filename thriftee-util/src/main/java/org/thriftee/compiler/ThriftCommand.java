@@ -15,12 +15,109 @@ import org.thriftee.compiler.ThriftCommand.Generate.Flag;
 public class ThriftCommand {
 	
 	public static enum Generate {
-		
-		PHP("PHP"),
-		JS("Javascript"),
+		/*
+		Available generators (and options):
+			  as3 (AS3):
+			    bindable:          Add [bindable] metadata to all the struct classes.
+			  c_glib (C, using GLib):
+			  cocoa (Cocoa):
+			    log_unexpected:  Log every time an unexpected field ID or type is encountered.
+			    validate_required:
+			                     Throws exception if any required field is not set.
+			  cpp (C++):
+			    cob_style:       Generate "Continuation OBject"-style classes.
+			    no_client_completion:
+			                     Omit calls to completion__() in CobClient class.
+			    no_default_operators:
+			                     Omits generation of default operators ==, != and <
+			    templates:       Generate templatized reader/writer methods.
+			    pure_enums:      Generate pure enums instead of wrapper classes.
+			    dense:           Generate type specifications for the dense protocol.
+			    include_prefix:  Use full include paths in generated files.
+			  csharp (C#):
+			    async:           Adds Async support using Task.Run.
+			    asyncctp:        Adds Async CTP support using TaskEx.Run.
+			    wcf:             Adds bindings for WCF to generated classes.
+			    serial:          Add serialization support to generated classes.
+			    nullable:        Use nullable types for properties.
+			    hashcode:        Generate a hashcode and equals implementation for classes.
+			    union:           Use new union typing, which includes a static read function for union types.
+			  d (D):
+			  delphi (delphi):
+			    ansistr_binary:  Use AnsiString for binary datatype (default is TBytes).
+			    register_types:  Enable TypeRegistry, allows for creation of struct, union
+			                     and container instances by interface or TypeInfo()
+			    constprefix:     Name TConstants classes after IDL to reduce ambiguities
+			    events:          Enable and use processing events in the generated code.
+			  erl (Erlang):
+			  go (Go):
+			    package_prefix= Package prefix for generated files.
+			    thrift_import=  Override thrift package import path (default:git.apache.org/thrift.git/lib/go/thrift)
+			  gv (Graphviz):
+			    exceptions:      Whether to draw arrows from functions to exception.
+			  hs (Haskell):
+			  html (HTML):
+			    standalone:      Self-contained mode, includes all CSS in the HTML files.
+			                     Generates no style.css file, but HTML files will be larger.
+			  java (Java):
+			    beans:           Members will be private, and setter methods will return void.
+			    private-members: Members will be private, but setter methods will return 'this' like usual.
+			    nocamel:         Do not use CamelCase field accessors with beans.
+			    android_legacy:  Do not use java.io.IOException(throwable) (available for Android 2.3 and above).
+			    java5:           Generate Java 1.5 compliant code (includes android_legacy flag).
+			    sorted_containers:
+			                     Use TreeSet/TreeMap instead of HashSet/HashMap as a implementation of set/map.
+			  javame (Java ME):
+			  js (Javascript):
+			    jquery:          Generate jQuery compatible code.
+			    node:            Generate node.js compatible code.
+			  ocaml (OCaml):
+			  perl (Perl):
+			  php (PHP):
+			    inlined:         Generate PHP inlined files
+			    server:          Generate PHP server stubs
+			    oop:             Generate PHP with object oriented subclasses
+			    rest:            Generate PHP REST processors
+			  py (Python):
+			    new_style:       Generate new-style classes.
+			    twisted:         Generate Twisted-friendly RPC services.
+			    tornado:         Generate code for use with Tornado.
+			    utf8strings:     Encode/decode strings using utf8 in the generated code.
+			    slots:           Generate code using slots for instance members.
+			    dynamic:         Generate dynamic code, less code generated but slower.
+			    dynbase=CLS      Derive generated classes from class CLS instead of TBase.
+			    dynexc=CLS       Derive generated exceptions from CLS instead of TExceptionBase.
+			    dynimport='from foo.bar import CLS'
+			                     Add an import line to generated code to find the dynbase class.
+			  rb (Ruby):
+			    rubygems:        Add a "require 'rubygems'" line to the top of each generated file.
+			  st (Smalltalk):
+			  xsd (XSD):
+
+
+		 */
+		AS3("AS3"),
+		C_GLIB("C, using Glib"),
+		COCOA("Cocoa"),
+		CPP("C++"),
+		CSHARP("C#"),
+		D("D"),
+		DELPHI("delphi"),
+		ERL("Erlang"),
+		GO("Go"),
+		GV("Graphviz"),
+		HS("Haskell"),
 		HTML("HTML"),
 		JAVA("Java"),
-		PYTHON("Python"),
+		JAVAME("Java ME"),
+		JS("Javascript"),
+		OCAML("OCaml"),
+		PERL("Perl"),
+		PHP("PHP"),
+		PY("Python"),
+		RB("Ruby"),
+		ST("Smalltalk"),
+		XSD("XSD")
 		;
 		
 		public final String option;
@@ -34,17 +131,27 @@ public class ThriftCommand {
 
 		public static final class Flag extends org.apache.commons.lang.enums.Enum {
 			
-			public static final Flag JS_JQUERY		=	new Flag( JS,	"jquery",		"Generate jQuery compatible code",						false );
-			public static final Flag JS_NODE		=	new Flag( JS,	"node",			"Generate node.js compatible code",						false );
+			public static final Flag GV_EXCEPTIONS			=	new Flag( GV,	"exceptions",		"Whether to draw arrows from functions to exception.",								false );
 			
-			public static final Flag PHP_INLINED 	=	new Flag( PHP,	"inlined", 		"Generate PHP inlined files", 							false );
-			public static final Flag PHP_SERVER 	=	new Flag( PHP,	"server", 		"Generate PHP server stubs", 							false );
-			public static final Flag PHP_AUTOLOAD	= 	new Flag( PHP,	"autoload",		"Generate PHP with autoload", 							false );
-			public static final Flag PHP_OOP 		=	new Flag( PHP,	"oop", 			"Generate PHP with object oriented subclasses", 		false );
-			public static final Flag PHP_REST 		=	new Flag( PHP,	"rest", 		"Generate PHP REST processors", 						false );
-			public static final Flag PHP_NAMESPACE 	= 	new Flag( PHP,	"namespace", 	"Generate PHP namespaces as defined in PHP >= 5.3", 	false );
+			public static final Flag HTML_STANDALONE 		=	new Flag( HTML,	"standalone",		"Self-contained mode, includes all CSS in the HTML files. Generates no style.css file, but HTML files will be larger.", false);
 			
-			public static final Flag HTML_STANDALONE =	new Flag( HTML,	"standalone",	"Self-contained mode, includes all CSS in the HTML files. Generates no style.css file, but HTML files will be larger.", false);
+			public static final Flag JAVA_BEANS				=	new Flag( JAVA,	"beans",			"Members will be private, and setter methods will return void.",					false );
+			public static final Flag JAVA_PRIVATE_MEMBERS	=	new Flag( JAVA,	"private-members",	"Members will be private, but setter methods will return 'this' like usual.",		false );
+			public static final Flag JAVA_NOCAMEL			=	new Flag( JAVA,	"nocamel",			"Do not use CamelCase field accessors with beans.",									false );
+			public static final Flag JAVA_ANDROID_LEGACY	=	new Flag( JAVA,	"android_legacy",	"Do not use java.io.IOException(throwable) (available for Android 2.3 and above).",	false );
+			public static final Flag JAVA_JAVA5				=	new Flag( JAVA,	"java5",			"Generate Java 1.5 compliant code (includes android_legacy flag).",					false );
+			
+			public static final Flag JS_JQUERY				=	new Flag( JS,	"jquery",			"Generate jQuery compatible code",													false );
+			public static final Flag JS_NODE				=	new Flag( JS,	"node",				"Generate node.js compatible code",													false );
+			
+			public static final Flag PHP_INLINED 			=	new Flag( PHP,	"inlined", 			"Generate PHP inlined files", 														false );
+			public static final Flag PHP_SERVER 			=	new Flag( PHP,	"server", 			"Generate PHP server stubs", 														false );
+			public static final Flag PHP_AUTOLOAD			= 	new Flag( PHP,	"autoload",			"Generate PHP with autoload", 														false );
+			public static final Flag PHP_OOP 				=	new Flag( PHP,	"oop", 				"Generate PHP with object oriented subclasses", 									false );
+			public static final Flag PHP_REST 				=	new Flag( PHP,	"rest", 			"Generate PHP REST processors", 													false );
+			public static final Flag PHP_NAMESPACE 			= 	new Flag( PHP,	"namespace", 		"Generate PHP namespaces as defined in PHP >= 5.3", 								false );
+			
+			public static final Flag RB_RUBYGEMS 			= 	new Flag( RB,	"rubygems", 		"Add a \"require 'rubygems'\" line to the top of each generated file.", 			false );
 			
 			private static final long serialVersionUID = -3504700206843791875L;
 

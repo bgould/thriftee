@@ -34,6 +34,10 @@
 					<artifactId>guava</artifactId>
 					<groupId>com.google.guava</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>libthrift</artifactId>
+					<groupId>org.apache.thrift</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -56,6 +60,11 @@
 			<groupId>org.thriftee</groupId>
 			<artifactId>thriftee-util</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.thrift</groupId>
+			<artifactId>libthrift</artifactId>
+			<version>${thrift.version}</version>
 		</dependency>
 
 		<!-- 
