@@ -101,6 +101,8 @@ public abstract class EndpointServlet extends FrameworkServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 	
+		getServletContext().log("entering doPost()");
+		
 		String pathInfo = request.getPathInfo();
 		while (pathInfo != null && pathInfo.startsWith("/")) {
 			pathInfo = pathInfo.substring(1);
@@ -115,7 +117,7 @@ public abstract class EndpointServlet extends FrameworkServlet {
 		TTransport inTransport = null;
 		TTransport outTransport = null;
 		try {
-			response.setContentType("application/thrift");
+			response.setContentType("application/json");
 			
 			InputStream in = request.getInputStream();
 			OutputStream out = response.getOutputStream();
@@ -129,7 +131,9 @@ public abstract class EndpointServlet extends FrameworkServlet {
 			TProcessor tprocessor = NiftyProcessorAdapters.processorToTProcessor(processor);
 			//RequestContext ctx = new ServletRequestContext(request, inProtocol, outProtocol);
 			
-				boolean result = tprocessor.process(inProtocol, outProtocol);
+			boolean result = tprocessor.process(inProtocol, outProtocol);
+			out.flush();
+			
 				
 			/*
 			ListenableFuture<Boolean> future = processor.process(inProtocol, outProtocol, ctx);
