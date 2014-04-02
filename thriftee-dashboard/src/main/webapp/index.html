@@ -1,25 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ThriftEE Administration App</title>
-<!-- Bootstrap -->
-<link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-<link href="assets/thriftee/css/thriftee.css" rel="stylesheet" />
-<style type="text/css" media="screen">
-    #code-editor {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        height: 400px;
-    }
-</style>
-</head>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>ThriftEE Administration App</title>
+        <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="assets/css/thriftee/thriftee.css" rel="stylesheet" />
+    </head>
 <body>
+    
     <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
         <div class="container-fluid">
             <div class="navbar-header">
@@ -63,38 +53,64 @@
                 </ul>
             </div>
             <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-                <h1 class="page-header">Dashboard</h1>
-                <div class="col-sm-10 col-md-10">
-                    <div id="code-editor">var transport = new Thrift.Transport("../endpoints/PresidentService"),
-    protocol = new Thrift.Protocol(transport),
-    client = new PresidentServiceClient(protocol);</div>
+                <div class="row">
+                    <div class="col-md-12">
+
+                    </div>
                 </div>
-                <div class="col-2">
-                    <div id="code-editor-sidebar">
-                        <select id="code-editor-change-theme"></select>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h1 class="page-header">Dashboard</h1>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <nav class="navbar navbar-default navbar-ace-editor">
+                                    <div class="container-fluid">
+                                        <div class="navbar-form navbar-left">
+                                            <select id="code-editor-change-theme"></select>
+                                        </div>
+                                        <div class="navbar-form navbar-right">
+                                            <button href="#" class="btn btn-primary">Do it!</button>
+                                        </div>
+                                    </div>
+                                </nav>
+                                <div style="position: relative; height: 400px; width: 100%;">
+                                    <div id="code-editor">(function() {
+    var transport = new Thrift.TXHRTransport("http://localhost:8080/thriftee-examples-war/endpoints/PresidentService");
+    var protocol  = new Thrift.TJSONProtocol(transport);
+    var client    = new hello_svcClient(protocol);
+    var nameElement = document.getElementById("name_in");
+    var outputElement = document.getElementById("output");
+    document.getElementById("get_msg").addEventListener("click", function() {
+        client.get_message(nameElement.value, function(result) {
+            outputElement.innerHTML = result;
+        });
+    });
+})();</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="assets/jquery/jquery-2.1.0.js"></script>
+
+    <!--
     <script src="assets/handlebars/handlebars-v1.3.0.js"></script>
     <script src="assets/emberjs/ember.js"></script>
     <script src="assets/emberjs/ember-data.js"></script>
-    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-    <script src="assets/thriftee/js/thrift.js"></script>
-    <script src="assets/thriftee/js/thriftee.js"></script>
-    <!-- <script src="assets/thriftee/js/thriftee-protocols.js"></script>  -->
+    -->
+    <script data-main="assets/js/main.js" src="assets/js/require.js"></script>
 
-	<script src="assets/ace/ace.js" data-ace-base="assets/ace" type="text/javascript" charset="utf-8"></script>
-    <script src="assets/thriftee/js/thriftee-ace.js"></script>
-	<script type="text/javascript" charset="utf-8">
-		require("thriftee/ace");
-	</script>
-
-    <script src="http://localhost:8080/thriftee-examples-war/clients/jquery/PresidentService.js"></script>
-    <script src="http://localhost:8080/thriftee-examples-war/clients/jquery/org_thriftee_examples_presidents_types.js"></script>
+    <script src="assets/js/thriftee/thrift.js"></script>
+    <script src="/thriftee-examples-war/clients/jquery/PresidentService.js"></script>
+    <script src="/thriftee-examples-war/clients/jquery/org_thriftee_examples_presidents_types.js"></script>
+    <script type="text/javascript">
+    var transport = new Thrift.TXHRTransport("/thriftee-examples-war/endpoints/PresidentService");
+    var protocol  = new Thrift.TJSONProtocol(transport);
+    var client    = new PresidentServiceClient(protocol);
+    </script>
 
 </body>
 </html>
