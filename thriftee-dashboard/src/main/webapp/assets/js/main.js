@@ -26,6 +26,7 @@ define(['require', 'jquery', 'ace/ace', 'ace/ext/themelist', 'bootstrap'], funct
     editor.getSession().setMode("ace/mode/javascript");
 
     $(function () {
+		
         $('#code-editor-change-theme').each(function () {
             var $this = $(this);
             themelist.themes.forEach(function (x) {
@@ -38,6 +39,10 @@ define(['require', 'jquery', 'ace/ace', 'ace/ext/themelist', 'bootstrap'], funct
             var $this = $(this);
             editor.setTheme($("option:selected", $this).attr("value"));
         });
+        
+        $('#doit_button').click(function () {
+			eval(editor.getValue());
+		});
     });
 
 });
