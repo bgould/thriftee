@@ -2,32 +2,17 @@ package org.thriftee.servlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import org.apache.thrift.protocol.TJSONProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TProtocolFactory;
-import org.apache.thrift.transport.TMemoryBuffer;
-import org.junit.Assert;
 import org.junit.Test;
 import org.thriftee.compiler.ExportIDL;
 import org.thriftee.compiler.ProcessIDL;
 import org.thriftee.compiler.ThriftCommand;
 import org.thriftee.compiler.ThriftCommand.Generate;
-import org.thriftee.examples.usergroup.service.UserServiceImpl;
 import org.thriftee.util.ExportIDLTest;
-
-import com.facebook.nifty.core.RequestContext;
-import com.facebook.swift.codec.ThriftCodecManager;
-import com.facebook.swift.service.ThriftEventHandler;
-import com.facebook.swift.service.ThriftServiceProcessor;
-import com.google.common.util.concurrent.ListenableFuture;
 
 public class EndpointServletTest {
 
-	private final UserServiceImpl userService = new UserServiceImpl();
+	//private final UserServiceImpl userService = new UserServiceImpl();
 	
 //	private final GroupServiceImpl groupService = new GroupServiceImpl(userService);
 	

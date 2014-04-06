@@ -24,7 +24,7 @@ public class PresidentServiceBean implements PresidentService {
 	
 	@Override
 	public President getPresidentByUniqueId(int id) {
-		return em.createQuery("select p from President p where p.id = ?", President.class).setParameter(1, id).getSingleResult();
+		return em.createQuery("select p from President p where p.id = ?1", President.class).setParameter(1, id).getSingleResult();
 	}
 
 	@Override

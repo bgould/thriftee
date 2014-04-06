@@ -28,54 +28,51 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import com.facebook.swift.codec.ThriftField;
-import com.facebook.swift.codec.ThriftStruct;
 
 /**
  * Creates a command to wrap the Hibernate criteria API to filter.
- *
+ * 
  * @since 2.0
  * @author Jeff Johnston
  */
-//@ThriftStruct
+// @ThriftStruct
 public class PresidentFilter implements CriteriaCommand {
-    
-	private List<Filter> filters = new ArrayList<Filter>();
+
+    private List<Filter> filters = new ArrayList<Filter>();
 
     public void addFilter(String property, String value) {
         filters.add(new Filter(property, value));
     }
 
     public void execute(CriteriaBuilder cb, CriteriaQuery<?> criteria) {
-    	Root<President> president = criteria.from(President.class);
-    	List<Predicate> predicates = new LinkedList<Predicate>();
+        Root<President> president = criteria.from(President.class);
+        List<Predicate> predicates = new LinkedList<Predicate>();
         for (Filter filter : filters) {
-        	if (filter.getValue() != null) {
-        		String property = (String) filter.getProperty();
-        		String value = filter.getValue().toString();
-        		predicates.add(
-        			cb.like(
-						cb.upper(president.get(property).as(String.class)), 
-						cb.upper(cb.literal("%" + value + "%"))
-					)
-				);
-        	}
+            if (filter.getValue() != null) {
+                String property = (String) filter.getProperty();
+                String value = filter.getValue().toString();
+                predicates.add(cb.like(
+                    cb.upper(president.get(property).as(String.class)),
+                    cb.upper(cb.literal("%" + value + "%"))
+                ));
+            }
         }
         if (predicates.size() > 0) {
-        	Predicate[] predicateArray = predicates.toArray(new Predicate[predicates.size()]);
-        	criteria.where(predicateArray);
+            Predicate[] predicateArray = predicates.toArray(new Predicate[predicates.size()]);
+            criteria.where(predicateArray);
         }
     }
-    
+
     public List<Filter> getFilters() {
-    	return filters;
+        return filters;
     }
-    
+
     @ThriftField(1)
     public void setFilters(List<Filter> filters) {
-    	if (filters == null) {
-    		throw new IllegalArgumentException("Filter list cannot be null");
-    	}
-    	this.filters = filters;
+        if (filters == null) {
+            throw new IllegalArgumentException("Filter list cannot be null");
+        }
+        this.filters = filters;
     }
 
 }

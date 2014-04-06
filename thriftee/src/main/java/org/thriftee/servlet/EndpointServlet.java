@@ -1,6 +1,6 @@
 package org.thriftee.servlet;
 
-import java.io.File;
+import java.io.File; 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,10 +15,11 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TException;
-import org.apache.thrift.TProcessor;
-import org.apache.thrift.protocol.TJSONProtocol;
+import org.apache.thrift.TMultiplexedProcessor;
+import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.TIOStreamTransport;
@@ -33,10 +34,10 @@ import com.facebook.swift.service.ThriftServiceProcessor;
 public abstract class EndpointServlet extends FrameworkServlet {
 
 	private static final long serialVersionUID = -1548842313729559248L;
-
-//	private Map<String, Class<?>> processorMappings = new HashMap<String, Class<?>>();
 	
 	private Map<String, ThriftServiceProcessor> processors = new HashMap<String, ThriftServiceProcessor>();
+	
+	private TMultiplexedProcessor multiplex = new TMultiplexedProcessor();
 	
 	private TProtocolFactory protocolFactory;
 	
@@ -59,6 +60,7 @@ public abstract class EndpointServlet extends FrameworkServlet {
 		List<ThriftEventHandler> eventList = Collections.emptyList();
 		ThriftServiceProcessor proc = new ThriftServiceProcessor(codecManager(), eventList, svc);
 		this.processors.put(name, proc);
+		this.multiplex.registerProcessor(name, NiftyProcessorAdapters.processorToTProcessor(proc));
 	}
 
 	@Override
@@ -91,8 +93,30 @@ public abstract class EndpointServlet extends FrameworkServlet {
 			}
 			req.setAttribute("model", model);
 			req.getRequestDispatcher("/WEB-INF/thriftee/jsp/directory_listing.jsp").include(req, resp);
+		    /*
+		    StringBuilder json = new StringBuilder();
+            json.append("[{'services':{");
+            boolean first = true;
+            for (final String name : processors.keySet()) {
+                final ThriftServiceProcessor processor = processors.get(name);
+                if (!first) {
+                    json.append(",");
+                }
+                json.append("'")
+                    .append(StringEscapeUtils.escapeJavaScript(name))
+                    .append("':'")
+                    .append(StringEscapeUtils.escapeJavaScript(processor.getMethods().values().iterator().next().getQualifiedName()))
+                    .append("'");
+            }
+            json.append("}");
+            json.append("]");
+            resp.setContentType("text/javascript");
+            resp.getWriter().println(json);
+            resp.getWriter().flush();
+            resp.getWriter().close();
+            */
 		} else if (processors.containsKey(pathInfo)) {
-			return;
+			
 		}
 		
 	}
@@ -100,20 +124,7 @@ public abstract class EndpointServlet extends FrameworkServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-	
 		getServletContext().log("entering doPost()");
-		
-		String pathInfo = request.getPathInfo();
-		while (pathInfo != null && pathInfo.startsWith("/")) {
-			pathInfo = pathInfo.substring(1);
-		}
-		
-		ThriftServiceProcessor processor = processors.get(pathInfo);
-		if (processor == null) {
-			notFound(request, response);
-			return;
-		}
-		
 		TTransport inTransport = null;
 		TTransport outTransport = null;
 		try {
@@ -128,32 +139,12 @@ public abstract class EndpointServlet extends FrameworkServlet {
 
 			TProtocol inProtocol = getInProtocolFactory().getProtocol(inTransport);
 			TProtocol outProtocol = getOutProtocolFactory().getProtocol(outTransport);
-			TProcessor tprocessor = NiftyProcessorAdapters.processorToTProcessor(processor);
-			//RequestContext ctx = new ServletRequestContext(request, inProtocol, outProtocol);
 			
-			boolean result = tprocessor.process(inProtocol, outProtocol);
-			out.flush();
-			
-				
-			/*
-			ListenableFuture<Boolean> future = processor.process(inProtocol, outProtocol, ctx);
-			try {
-				Boolean result = future.get(30, TimeUnit.SECONDS);
-				if (!response.isCommitted() && !result) {
-					response.setStatus(500);
-				}
-				outProtocol.writeMessageEnd();
+			if (multiplex.process(inProtocol, outProtocol)) {
 				out.flush();
-			} catch (TimeoutException | InterruptedException e) {
-				throw new ServletException(e);
-			} catch (ExecutionException e) {
-				if (e.getCause() != null) {
-					throw new ServletException(e.getCause());
-				} else {
-					throw new ServletException(e);
-				}
+			} else {
+				throw new ServletException("multiplex.process() returned false");
 			}
-			*/
 		} catch (TException te) {
 			throw new ServletException(te);
 		} finally {
@@ -164,7 +155,6 @@ public abstract class EndpointServlet extends FrameworkServlet {
 				outTransport.close();
 			}
 		}
-		
 	}
 
 	protected ThriftServiceProcessor getProcessor(String processor) {
@@ -176,7 +166,7 @@ public abstract class EndpointServlet extends FrameworkServlet {
 	
 	protected TProtocolFactory getInProtocolFactory() {
 		if (protocolFactory == null) {
-			protocolFactory = new TJSONProtocol.Factory();
+			protocolFactory = new TBinaryProtocol.Factory();
 		}
 		return protocolFactory;
 	}

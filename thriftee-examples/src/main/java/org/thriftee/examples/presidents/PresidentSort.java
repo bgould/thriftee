@@ -28,7 +28,6 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 
 import com.facebook.swift.codec.ThriftField;
-import com.facebook.swift.codec.ThriftStruct;
 
 /**
  * Creates a command to wrap the Hibernate criteria API to sort.

@@ -1,8 +1,6 @@
 package org.thriftee.examples;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.List;
 
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
@@ -10,12 +8,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.thriftee.examples.presidents.President;
 import org.thriftee.examples.presidents.PresidentService;
 import org.thriftee.servlet.EndpointServlet;
 
 @WebServlet(
-	urlPatterns={"/endpoints/*"}, 
+	urlPatterns={"/services/endpoint/*"}, 
 	loadOnStartup=1,
 	name="Example Service Endpoints"
 )
@@ -34,6 +31,10 @@ public class ExamplesEndpointServlet extends EndpointServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		super.doGet(request, response);
+		
+		/*
 		
 		PrintWriter out = response.getWriter();
 		out.println("<!doctype html><html><head><title>Test Page</title></head><body>");
@@ -87,6 +88,7 @@ public class ExamplesEndpointServlet extends EndpointServlet {
 		out.println("</tbody></table>");
 		
 		out.println("</body></html>");
+		*/
 	}
 	
 	@Override
