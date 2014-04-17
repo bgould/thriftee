@@ -5,9 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ejb.Remote;
+import javax.ejb.Stateless;
+
 import org.thriftee.examples.usergroup.domain.Group;
 import org.thriftee.examples.usergroup.domain.User;
 
+@Stateless
+@Remote(GroupService.class)
 public class GroupServiceImpl implements GroupService {
 
 	private final Map<String, Group> testGroups = new HashMap<>();

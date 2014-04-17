@@ -19,7 +19,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.thriftee</groupId>
-			<artifactId>thriftee</artifactId>
+			<artifactId>thriftee-servlet</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
@@ -53,8 +53,20 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>thriftee-examples-war</finalName>
+		<finalName>thriftee-examples</finalName>
+		<outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory>
 		<plugins>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.openejb.maven</groupId>
 				<artifactId>tomee-maven-plugin</artifactId>

@@ -21,9 +21,14 @@ public class HtmlClientServlet extends ZipFileBrowsingServlet {
 		logger.info("[HtmlClientServlet] Generating HTML client library");
 		try {
 			ThriftCommand cmd = new ThriftCommand(Generate.HTML);
+			cmd.setRecurse(true);
 			//cmd.addFlag(Flag.HTML_STANDALONE);
 			htmlClientLibrary = new ProcessIDL().process(
-				thrift().idlFiles(), thrift().tempDir(), "html-client", cmd
+				//thrift().idlFiles(), thrift().tempDir(), "html-client", cmd
+				new File[] { new File(thrift().idlDir(), "thrift/global.thrift") }, 
+				thrift().tempDir(),
+				"html-client",
+				cmd
 			);
 			logger.info(
 				"[HtmlClientServlet] HTML client library created at : " + 

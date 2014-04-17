@@ -1,4 +1,4 @@
-package org.thriftee.framework;
+package org.thriftee.servlet;
 
 import java.io.IOException;
 
@@ -6,6 +6,7 @@ import javax.servlet.ServletContext;
 
 import org.scannotation.AnnotationDB;
 import org.scannotation.WarUrlFinder;
+import org.thriftee.framework.ScannotationConfigurator;
 
 public class WarFileScannotationConfigurator implements ScannotationConfigurator {
 

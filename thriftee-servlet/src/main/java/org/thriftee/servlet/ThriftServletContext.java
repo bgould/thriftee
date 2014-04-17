@@ -10,7 +10,6 @@ import javax.servlet.ServletContextListener;
 import org.thriftee.framework.ThriftEE;
 import org.thriftee.framework.ThriftEEConfig;
 import org.thriftee.framework.ThriftEEFactory;
-import org.thriftee.framework.WarFileScannotationConfigurator;
 
 public class ThriftServletContext {
 

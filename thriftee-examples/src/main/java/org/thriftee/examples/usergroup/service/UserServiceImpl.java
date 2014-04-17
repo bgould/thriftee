@@ -3,8 +3,13 @@ package org.thriftee.examples.usergroup.service;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ejb.Remote;
+import javax.ejb.Stateless;
+
 import org.thriftee.examples.usergroup.domain.User;
 
+@Stateless
+@Remote(UserService.class)
 public class UserServiceImpl implements UserService {
 
 	private final Map<String, User> testUsers = new HashMap<String, User>();

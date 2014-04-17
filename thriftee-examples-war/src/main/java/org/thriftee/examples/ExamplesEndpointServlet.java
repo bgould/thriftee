@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.thriftee.examples.presidents.PresidentService;
+import org.thriftee.examples.usergroup.service.GroupService;
+import org.thriftee.examples.usergroup.service.UserService;
 import org.thriftee.servlet.EndpointServlet;
 
 @WebServlet(
@@ -23,11 +25,11 @@ public class ExamplesEndpointServlet extends EndpointServlet {
 	@EJB 
 	private PresidentService presidentService;
 	
-	//@EJB
-	//private UserService userService;
+	@EJB
+	private UserService userService;
 	
-	//@EJB
-	//private GroupService groupService;
+	@EJB
+	private GroupService groupService;
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -94,8 +96,8 @@ public class ExamplesEndpointServlet extends EndpointServlet {
 	@Override
 	public void init() throws ServletException {
 		addProcessor("PresidentService", presidentService);
-		//addProcessor("UserService", userService);
-		//addProcessor("GroupService", groupService);
+		addProcessor("UserService", userService);
+		addProcessor("GroupService", groupService);
 	}
 	
 }

@@ -24,7 +24,7 @@ public class ProcessIDL {
 		cmd.setOutputLocation(outputDir);
 		for (File file : idlFiles) {
 			cmd.setThriftFile(file);
-			logger.info("generating PHP library from thrift IDL: " + cmd.commandString());
+			logger.info("processing thrift IDL: " + cmd.commandString());
 			ProcessBuilder pb = new ProcessBuilder(cmd.command());
 			pb.inheritIO();
 			Process process = pb.start();
