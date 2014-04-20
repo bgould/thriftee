@@ -3,13 +3,13 @@ package org.thriftee.servlet;
 import java.io.File;
 import java.io.IOException;
 
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 
 import org.thriftee.compiler.ProcessIDL;
 import org.thriftee.compiler.ThriftCommand;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
-import org.thriftee.framework.ThriftEEStartupException;
 
 @WebServlet("/clients/php/*")
 public class PHPClientServlet extends ZipFileBrowsingServlet {
@@ -18,7 +18,8 @@ public class PHPClientServlet extends ZipFileBrowsingServlet {
 
 	private File phpClientLibrary;
 	
-	public void init() {
+	@Override
+	public void init() throws ServletException {
 		logger.info("[PHPClientServlet] Generating PHP client library");
 		try {
 			final File[] extraDirs;
@@ -31,6 +32,9 @@ public class PHPClientServlet extends ZipFileBrowsingServlet {
 			ThriftCommand cmd = new ThriftCommand(Generate.PHP);
 			cmd.addFlag(Flag.PHP_NAMESPACE);
 			cmd.addFlag(Flag.PHP_OOP);
+			if (thrift().thriftExecutable() != null) {
+				cmd.setThriftCommand(thrift().thriftExecutable().getAbsolutePath());
+			}
 			phpClientLibrary = new ProcessIDL().process(
 				thrift().idlFiles(), 
 				thrift().tempDir(), 
@@ -39,12 +43,13 @@ public class PHPClientServlet extends ZipFileBrowsingServlet {
 				extraDirs
 			);
 			logger.info(
-				"[JQueryClientServlet] PHP client library created at : " + 
+				"[JQueryClientServlet] PHP client library created at : {}", 
 				phpClientLibrary.getAbsolutePath()
 			);
 		} catch (IOException e) {
-			throw new ThriftEEStartupException(
-				"[JQueryClientServlet] Problem generating PHP library: " + e.getMessage()
+			throw new ServletException(
+				"[JQueryClientServlet] Problem generating PHP library: " + 
+				e.getMessage(), e
 			);
 		}
 	}

@@ -7,10 +7,11 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.ServletException;
+
 import org.thriftee.compiler.ProcessIDL;
 import org.thriftee.compiler.ThriftCommand;
 import org.thriftee.compiler.ThriftCommand.Generate;
-import org.thriftee.framework.ThriftEEStartupException;
 
 public abstract class ClientServlet extends ZipFileBrowsingServlet {
 
@@ -20,7 +21,8 @@ public abstract class ClientServlet extends ZipFileBrowsingServlet {
 	
 	private Set<ThriftCommand.Generate> clientTypes = new LinkedHashSet<ThriftCommand.Generate>(); 
 	
-	public void init() {
+	@Override
+	public void init() throws ServletException {
 		logger.info("[ClientServlet] Generating client libraries");
 		try {
 			final File tempDir = new File(thrift().tempDir(), "clients");
@@ -32,16 +34,13 @@ public abstract class ClientServlet extends ZipFileBrowsingServlet {
 					new File[] { global }, tempDir, clientType.option, cmd
 				);
 				zipFiles.put(clientType.option, clientZip);
-				logger.info(
-					"[ClientServlet] `" + clientType.description +
+				logger.info("[ClientServlet] `" + clientType.description +
 					"` client library created at : " + 
 					clientZip.getAbsolutePath()
 				);
 			}
 		} catch (IOException e) {
-			throw new ThriftEEStartupException(
-				"[HtmlClientServlet] Problem generating HTML library: " + e.getMessage()
-			);
+			throw new ServletException(e);
 		}
 	}
 	

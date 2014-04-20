@@ -10,6 +10,7 @@ import javax.servlet.ServletContextListener;
 import org.thriftee.framework.ThriftEE;
 import org.thriftee.framework.ThriftEEConfig;
 import org.thriftee.framework.ThriftEEFactory;
+import org.thriftee.framework.ThriftStartupException;
 
 public class ThriftServletContext {
 
@@ -38,19 +39,30 @@ public class ThriftServletContext {
     private static String THRIFT_SERVICES_ATTR = ThriftServletContext.class.getName();
 
     public static void initialize(ServletContext ctx) {
-        if (ctx.getAttribute(THRIFT_SERVICES_ATTR) instanceof ThriftEE) {
+        
+    	if (ctx.getAttribute(THRIFT_SERVICES_ATTR) instanceof ThriftEE) {
             throw new IllegalStateException("ThriftServices is already initialized for this context.");
         }
-        File tempDir = (File) ctx.getAttribute(ServletContext.TEMPDIR);
-        ThriftEEConfig config = new ThriftEEConfig.Builder().tempDir(tempDir)
-                .thriftExecutable(readThriftExecutable(ctx)).thriftLibDir(readThriftLibDir(ctx))
-                .scannotationConfigurator(new WarFileScannotationConfigurator(ctx)).build();
-        ThriftEE svcs = new ThriftEEFactory().create(config);
-        ctx.setAttribute(THRIFT_SERVICES_ATTR, svcs);
+    	
+        final File tempDir = (File) ctx.getAttribute(ServletContext.TEMPDIR);
+        
+        final ThriftEEConfig config = new ThriftEEConfig.Builder()
+			.tempDir(tempDir)
+			.thriftExecutable(readThriftExecutable(ctx))
+			.thriftLibDir(readThriftLibDir(ctx))
+			.scannotationConfigurator(new WarFileScannotationConfigurator(ctx))
+			.build();
+        
+        try {
+        	final ThriftEE svcs = new ThriftEEFactory().create(config);
+        	ctx.setAttribute(THRIFT_SERVICES_ATTR, svcs);
+        } catch (ThriftStartupException e) {
+        	
+        }
     }
 
     private static File readThriftExecutable(ServletContext ctx) {
-        String executable = ctx.getInitParameter(THRIFT_EXECUTABLE_PARAM);
+        final String executable = ctx.getInitParameter(THRIFT_EXECUTABLE_PARAM);
         if (executable != null) {
             return new File(executable);
         } else {
@@ -59,7 +71,7 @@ public class ThriftServletContext {
     }
 
     private static File readThriftLibDir(ServletContext ctx) {
-        String libDir = ctx.getInitParameter(THRIFT_LIB_DIR_PARAM);
+        final String libDir = ctx.getInitParameter(THRIFT_LIB_DIR_PARAM);
         if (libDir != null) {
             return new File(libDir);
         } else {
@@ -75,7 +87,7 @@ public class ThriftServletContext {
     }
 
     public static ThriftEE servicesFor(ServletContext ctx) {
-        ThriftEE svcs = (ThriftEE) ctx.getAttribute(THRIFT_SERVICES_ATTR);
+        final ThriftEE svcs = (ThriftEE) ctx.getAttribute(THRIFT_SERVICES_ATTR);
         if (svcs == null) {
             throw new IllegalStateException("ThriftServletContext has not been initialized.");
         }

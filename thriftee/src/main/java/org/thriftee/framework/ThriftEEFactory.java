@@ -6,7 +6,7 @@ package org.thriftee.framework;
  */
 public class ThriftEEFactory {
 	
-	public ThriftEE create(ThriftEEConfig config) throws ThriftEEStartupException {
+	public ThriftEE create(ThriftEEConfig config) throws ThriftStartupException {
 		return new ThriftEE(config);
 	}
 	

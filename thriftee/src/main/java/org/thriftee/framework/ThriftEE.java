@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.scannotation.AnnotationDB;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.thriftee.compiler.ExportIDL;
+import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.util.New;
 
 import com.facebook.swift.codec.ThriftCodecManager;
@@ -19,7 +21,7 @@ import com.facebook.swift.service.ThriftService;
 
 public class ThriftEE {
 		
-	private final Logger logger = Logger.getLogger(getClass().getName());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	public ThriftCodecManager codecManager() {
 		return thriftCodecManager;
@@ -75,7 +77,7 @@ public class ThriftEE {
 	
 	private final File[] idlFiles;
 	
-	public ThriftEE(ThriftEEConfig config) {
+	public ThriftEE(ThriftEEConfig config) throws ThriftStartupException {
 		
 		this.tempDir = config.tempDir();
 		this.idlDir = new File(tempDir, "idl");
@@ -91,15 +93,15 @@ public class ThriftEE {
 			thriftStructs = searchFor(ThriftStruct.class, annotations);
 			thriftEnums = searchFor(ThriftEnum.class, annotations);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_002);
 		}
 		
 		thriftCodecManager = new ThriftCodecManager(new ReflectionThriftCodecFactory());
 		
-		logger.info("[Thrift] Initializing Thrift Services ----");
-		logger.info("[Thrift] Services detected: " + thriftServices);
-		logger.info("[Thrift] Structs detected: " + thriftStructs);
-		logger.info("[Thrift] Enums detected: " + thriftEnums);
+		logger.info("Initializing Thrift Services ----");
+		logger.info("Services detected:  {}", thriftServices);
+		logger.info("Structs detected:   {}", thriftStructs);
+		logger.info("Enums detected:     {}", thriftEnums);
     	
 		if (	config.thriftLibDir() != null	&& 
 				config.thriftLibDir().exists()	&&
@@ -108,7 +110,7 @@ public class ThriftEE {
 		} else {
 			this.thriftLibDir = null;
 		}
-		logger.info("[Thrift] Thrift library dir: " + thriftLibDir);
+		logger.info("Thrift library dir: {}", thriftLibDir);
 		
 		if (	config.thriftExecutable() != null	&& 
 				config.thriftExecutable().exists()	&&
@@ -117,22 +119,22 @@ public class ThriftEE {
 		} else {
 			this.thriftExecutable = null;
 		}
-		logger.info("[Thrift] Thrift executable: " + thriftExecutable);
+		logger.info("Using Thrift executable: {}", thriftExecutable);
 		
 		Set<Class<?>> allClasses = new HashSet<Class<?>>();
 		allClasses.addAll(thriftServices);
 		allClasses.addAll(thriftStructs);
 		allClasses.addAll(thriftEnums);
 				
-    	logger.info("[Thrift] Exporting IDL files from Swift definitions");
+    	logger.debug("Exporting IDL files from Swift definitions");
 		try {
 			ExportIDL exporter = new ExportIDL();
 			this.idlFiles = exporter.export(idlDir, allClasses);
 		} catch (IOException e) {
-			throw new ThriftEEStartupException("[Thrift] Problem writing IDL: " + e.getMessage(), e);
+			throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_001, e.getMessage());
 		}
 		
-		logger.info("[Thrift] Thrift initialization completed");
+		logger.info("Thrift initialization completed");
 
 	}
 	
@@ -145,9 +147,9 @@ public class ThriftEE {
 					final Class<?> clazz = Class.forName(name);
 					result.add(clazz);
 				} catch (ClassNotFoundException e) {
-					System.err.println(
-						"warning: discovered @" + annotation.getSimpleName() + " class via " +
-						"classpath scanning, but could not load: " + name
+					LoggerFactory.getLogger(ThriftEE.class).warn(
+						"warning: discovered @{} class via classpath scanning, but could not load: {}", 
+						annotation.getSimpleName() , name
 					);
 				}
 			}

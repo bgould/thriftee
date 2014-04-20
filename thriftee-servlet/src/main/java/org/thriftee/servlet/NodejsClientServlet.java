@@ -3,13 +3,13 @@ package org.thriftee.servlet;
 import java.io.File;
 import java.io.IOException;
 
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 
 import org.thriftee.compiler.ProcessIDL;
 import org.thriftee.compiler.ThriftCommand;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
-import org.thriftee.framework.ThriftEEStartupException;
 
 @WebServlet("/clients/nodejs/*")
 public class NodejsClientServlet extends ZipFileBrowsingServlet {
@@ -18,7 +18,8 @@ public class NodejsClientServlet extends ZipFileBrowsingServlet {
 
 	private File clientLibrary;
 	
-	public void init() {
+	@Override
+	public void init() throws ServletException {
 		logger.info("[NodejsClientServlet] Generating node.js client library");
 		try {
 			ThriftCommand cmd = new ThriftCommand(Generate.JS);
@@ -31,8 +32,9 @@ public class NodejsClientServlet extends ZipFileBrowsingServlet {
 				clientLibrary.getAbsolutePath()
 			);
 		} catch (IOException e) {
-			throw new ThriftEEStartupException(
-				"[NodejsClientServlet] Problem generating node.js library: " + e.getMessage()
+			throw new ServletException(
+				"[NodejsClientServlet] Problem generating node.js library: " + 
+				e.getMessage(), e
 			);
 		}
 	}
