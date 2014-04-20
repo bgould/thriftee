@@ -9,7 +9,6 @@
 	<modules>
 		<module>thriftee</module>
 		<module>thriftee-examples-war</module>
-    <module>thriftee-util</module>
     <module>thriftee-examples</module>
     <module>thriftee-dashboard</module>
     <module>thriftee-jaxrs</module>

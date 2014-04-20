@@ -28,6 +28,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import com.facebook.swift.codec.ThriftField;
+import com.facebook.swift.codec.ThriftStruct;
 
 /**
  * Creates a command to wrap the Hibernate criteria API to filter.
@@ -35,7 +36,7 @@ import com.facebook.swift.codec.ThriftField;
  * @since 2.0
  * @author Jeff Johnston
  */
-// @ThriftStruct
+@ThriftStruct
 public class PresidentFilter implements CriteriaCommand {
 
     private List<Filter> filters = new ArrayList<Filter>();

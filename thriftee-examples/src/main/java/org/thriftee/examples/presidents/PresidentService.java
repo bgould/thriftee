@@ -38,13 +38,13 @@ public interface PresidentService {
 	@ThriftMethod
 	public President getPresidentByUniqueId(int id);
 	
-	//@ThriftMethod
+	@ThriftMethod
     public int getPresidentsCountWithFilter(PresidentFilter filter);
 
-	//@ThriftMethod
+	@ThriftMethod
     public List<President> getPresidentsWithFilterAndSort(PresidentFilter filter, PresidentSort sort, int rowStart, int rowEnd);
    
-	//@ThriftMethod
+	@ThriftMethod
     public Map<String, President> getPresidentsByUniqueIds(String property, List<String> uniqueIds);
    
     public void save(President president);
