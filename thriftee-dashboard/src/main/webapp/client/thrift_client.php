@@ -3,11 +3,14 @@
 define ( 'THRIFT_SCHEME', 'http' );
 define ( 'THRIFT_HOST', 'localhost' );
 define ( 'THRIFT_PORT', 8080 );
-define ( 'THRIFT_PATH', '/thriftee-examples-war' );
+define ( 'THRIFT_PATH', '/thriftee-examples' );
 define ( 'THRIFT_PATH_SERVICES', THRIFT_PATH . '/services/endpoint' );
-define ( 'THRIFT_PATH_CLIENT', THRIFT_PATH . '/clients/php' );
+define ( 'THRIFT_PATH_CLIENT_PHP', THRIFT_PATH . '/clients/php' );
+define ( 'THRIFT_PATH_CLIENT_HTML', THRIFT_PATH . '/clients/html' );
 define ( 'THRIFT_SERVICES', serialize(array(
-	'PresidentService' => 'org\thriftee\examples\presidents',
+    'PresidentService'  =>  'org\thriftee\examples\presidents',
+    'UserService'       =>  'org\thriftee\examples\usergroup\service',
+    'GroupService'      =>  'org\thriftee\examples\usergroup\service',
 )));
 
 use Thrift\Protocol\TBinaryProtocol;
@@ -33,21 +36,14 @@ function _thrift_setup() {
         if (! file_exists ( $GEN_DIR )) {
             mkdir ( $GEN_DIR );
         }
-        $it = new RecursiveIteratorIterator ( new RecursiveDirectoryIterator ( $GEN_DIR ), RecursiveIteratorIterator::CHILD_FIRST );
-        foreach ( $it as $entry ) {
-            if ($entry->isDir ()) {
-                $basename = $entry->getBasename ();
-                if ($entry->getBasename () != '.' && $entry->getBasename () != '..') {
-                    echo 'Deleting dir: ' . $entry->getPathname () . "\n";
-                    rmdir ( $entry->getPathname () );
-                }
-            } else {
-                unlink ( $entry->getPathname () );
-            }
+        if (file_exists($GEN_DIR)) {
+            passthru("rm -rf $GEN_DIR/../gen-php/*");
+        } else {
+            die('Could not create directory for client: ' . $GEN_DIR);
         }
         $zip_file = $GEN_DIR . DIRECTORY_SEPARATOR . 'downloaded_client.zip';
         if ($file = fopen ( $zip_file, 'w' )) {
-            $url = THRIFT_SCHEME . '://' . THRIFT_HOST . ':' . THRIFT_PORT . THRIFT_PATH_CLIENT . '?download=zip';
+            $url = THRIFT_SCHEME . '://' . THRIFT_HOST . ':' . THRIFT_PORT . THRIFT_PATH_CLIENT_PHP . '?download=zip';
             echo "$url\n";
             $curl = curl_init ($url);
             curl_setopt ( $curl, CURLOPT_SSL_VERIFYPEER, false );
@@ -60,6 +56,16 @@ function _thrift_setup() {
                 die ( "Invalid response from $url: " . print_r($info, true) );
             }
             if (file_exists($zip_file)) {
+                //ob_start();
+                //$result = passthru("unzip -d $GEN_DIR $zip_file");
+                //$output = ob_get_clean();
+                /*
+                if ($result == 0) {
+                    file_put_contents ( $GEN_DIR . '/.client_downloaded', date ( 'c' ) );
+                } else {
+                    die ( 'Could not open downloaded zip file: ' . $zip_file );
+                }
+                */
                 $zip = new ZipArchive ();
                 if ($zip->open ( $zip_file ) ) {
                     if ($zip->extractTo ( $GEN_DIR )) {
@@ -85,7 +91,6 @@ function _thrift_setup() {
     $loader->registerNamespace( 'Thrift', $GEN_DIR );
     $services = unserialize(THRIFT_SERVICES);
     foreach ( $services as $service => $namespace ) {
-        echo "$namespace => $GEN_DIR\n";
         $loader->registerDefinition( $namespace, $GEN_DIR );
     }
     $loader->register();
@@ -105,12 +110,17 @@ function _thrift_setup() {
         $className = '\\' . $namespace . '\\' . $service . 'Client';
         $multiplex = new TMultiplexedProtocol($protocol, $service);
         $clients[$service] = new $className($multiplex);
+        $clients[$service]->_namespace = str_replace('\\', '_', $namespace);
     }
     $thrift->clients = (object) $clients;
     
     $transport->open();
 
     define('THRIFT_SETUP', true);
+}
+
+function _thrift_schema($service) {
+    
 }
 
 _thrift_setup();

@@ -1,38 +1,45 @@
 <?xml version="1.0"?>
 <project
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.thriftee</groupId>
-		<artifactId>thriftee-root</artifactId>
-		<version>0.1-SNAPSHOT</version>
-	</parent>
-	<artifactId>thriftee-dashboard</artifactId>
-	<packaging>war</packaging>
-	<name>thriftee-dashboard webapp</name>
-	<url>http://maven.apache.org</url>
-	<build>
-		<finalName>thriftee-dashboard</finalName>
-		<plugins>
-			<plugin>
-				<!-- assamble static content -->
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<descriptors>
-						<descriptor>src/main/assembly/static.xml</descriptor>
-					</descriptors>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.thriftee</groupId>
+        <artifactId>thriftee-root</artifactId>
+        <version>0.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>thriftee-dashboard</artifactId>
+    <packaging>war</packaging>
+    <name>thriftee-dashboard webapp</name>
+    <url>http://maven.apache.org</url>
+    <dependencies>
+        <dependency>
+            <groupId>net.sf.jfastcgi</groupId>
+            <artifactId>jfastcgi</artifactId>
+            <version>2.2</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <finalName>thriftee-dashboard</finalName>
+        <plugins>
+            <plugin>
+                <!-- assamble static content -->
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/static.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

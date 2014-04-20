@@ -66,7 +66,7 @@ public class ThriftServletContext {
         if (executable != null) {
             return new File(executable);
         } else {
-            return null;
+            return new File("/usr/local/src/bin/thrift");
         }
     }
 
@@ -75,7 +75,7 @@ public class ThriftServletContext {
         if (libDir != null) {
             return new File(libDir);
         } else {
-            return null;
+            return new File("/usr/local/src/thrift/lib");
         }
     }
 

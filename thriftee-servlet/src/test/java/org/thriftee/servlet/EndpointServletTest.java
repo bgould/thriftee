@@ -1,14 +1,9 @@
 package org.thriftee.servlet;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.junit.Test;
-import org.thriftee.compiler.ExportIDL;
-import org.thriftee.compiler.ProcessIDL;
-import org.thriftee.compiler.ThriftCommand;
-import org.thriftee.compiler.ThriftCommand.Generate;
-import org.thriftee.util.ExportIDLTest;
+//import org.thriftee.util.ExportIDLTest;
 
 public class EndpointServletTest {
 
@@ -22,8 +17,8 @@ public class EndpointServletTest {
 	
 //	@Test
 	public void testBinaryProtocol() throws Exception {
-		File temp = getTempDirForTest();
-		processIDL(temp);
+		//File temp = getTempDirForTest();
+		//processIDL(temp);
 		
 		/*
 		TProtocolFactory factory = new TJSONProtocol.Factory();
@@ -66,6 +61,7 @@ public class EndpointServletTest {
 		
 	}
 	
+	/*
 	public static void processIDL(File temp) throws IOException {
 		File[] idlFiles = exportIDL(temp);
 		ThriftCommand cmd = new ThriftCommand(Generate.JS);
@@ -73,7 +69,9 @@ public class EndpointServletTest {
 		ProcessIDL processor = new ProcessIDL();
 		processor.process(idlFiles, temp, "java-library", cmd);
 	}
+	*/
 	
+	/*
 	private static File[] exportIDL(File temp) {
 		try {
 			ExportIDL exporter = new ExportIDL();
@@ -82,6 +80,7 @@ public class EndpointServletTest {
 			throw new RuntimeException(e);
 		}
 	}
+	*/
 	
 	public static File getTempDirForTest() {
 		StackTraceElement stackTraceElement = Thread.currentThread().getStackTrace()[2];
