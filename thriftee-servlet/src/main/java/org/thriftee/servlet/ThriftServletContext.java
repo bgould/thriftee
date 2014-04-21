@@ -62,7 +62,10 @@ public class ThriftServletContext {
     }
 
     private static File readThriftExecutable(ServletContext ctx) {
-        final String executable = ctx.getInitParameter(THRIFT_EXECUTABLE_PARAM);
+        String executable = ctx.getInitParameter(THRIFT_EXECUTABLE_PARAM);
+        if (executable == null) {
+            executable = System.getProperty(THRIFT_EXECUTABLE_PARAM);
+        }
         if (executable != null) {
             return new File(executable);
         } else {
@@ -71,7 +74,10 @@ public class ThriftServletContext {
     }
 
     private static File readThriftLibDir(ServletContext ctx) {
-        final String libDir = ctx.getInitParameter(THRIFT_LIB_DIR_PARAM);
+        String libDir = ctx.getInitParameter(THRIFT_LIB_DIR_PARAM);
+        if (libDir == null) {
+            libDir = System.getProperty(THRIFT_LIB_DIR_PARAM);
+        }
         if (libDir != null) {
             return new File(libDir);
         } else {
