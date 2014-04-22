@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -17,9 +19,13 @@ public abstract class AbstractThriftEETest {
 
     private final File tempDirForClass;
     
-    private final ThriftEE thrift;
+    private static final Map<String, ThriftEE> thrifteeInstances = new HashMap<String, ThriftEE>();
     
     private static final Properties TEST_PROPERTIES;
+    
+    private static final File thriftLibDir;
+    
+    private static final File thriftExecutable;
     
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     
@@ -45,28 +51,48 @@ public abstract class AbstractThriftEETest {
         } else {
             TEST_PROPERTIES = new Properties();
         }
+        thriftLibDir = new File(TEST_PROPERTIES.getProperty(
+            "thrift.lib.dir", 
+            System.getProperty("thrift.lib.dir", "/usr/local/src/thrift/lib")
+        ));
+        thriftExecutable = new File(TEST_PROPERTIES.getProperty(
+            "thrift.executable", 
+            System.getProperty("thrift.executable", "/usr/local/bin/thrift")
+        ));
     }
+    
+    public static final File thriftLibDir() {
+        return thriftLibDir;
+    }
+    
+    public static final File thriftExecutable() {
+        return thriftExecutable;
+    }
+    
+    protected static ThriftEE loadThriftee(File tempDir) throws ThriftStartupException {
+        synchronized (thrifteeInstances) {
+            if (!thrifteeInstances.containsKey(tempDir.getAbsolutePath())) {
+                final ThriftEE thrift = new ThriftEE(
+                    (new ThriftEEConfig.Builder())
+                        .scannotationConfigurator(new TestScannotationConfigurator())
+                        .thriftLibDir(thriftLibDir)
+                        .thriftExecutable(thriftExecutable)
+                        .tempDir(tempDir)
+                        .build()
+                );
+                thrifteeInstances.put(tempDir.getAbsolutePath(), thrift);
+            }
+        }
+        return thrifteeInstances.get(tempDir.getAbsolutePath());
+    }
+    
+    private final ThriftEE thrift;
     
     public AbstractThriftEETest() throws ThriftStartupException {
         final String simpleName = getClass().getSimpleName();
         final File tempDir = new File("target/tests/" + simpleName);
         this.tempDirForClass = tempDir;
-        final String thriftLibDir = TEST_PROPERTIES.getProperty(
-            "thrift.lib.dir", 
-            System.getProperty("thrift.lib.dir", "/usr/local/src/thrift/lib")
-        );
-        final String thriftExecutable = TEST_PROPERTIES.getProperty(
-            "thrift.executable", 
-            System.getProperty("thrift.executable", "/usr/local/bin/thrift")
-        );
-        thrift = new ThriftEE(
-            (new ThriftEEConfig.Builder())
-                .scannotationConfigurator(new TestScannotationConfigurator())
-                .thriftLibDir(new File(thriftLibDir))
-                .thriftExecutable(new File(thriftExecutable))
-                .tempDir(tempDir)
-                .build()
-        );
+        this.thrift = loadThriftee(tempDir);
     }
     
     protected File getTempDirForTest() {
