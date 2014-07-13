@@ -96,6 +96,12 @@
             <version>${guava.version}</version>
         </dependency>
         <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>${commons.lang.version}</version>
+        </dependency>
+        <!--
+        <dependency>
             <groupId>org.thriftee</groupId>
             <artifactId>thriftee-util</artifactId>
             <version>${project.version}</version>
@@ -106,6 +112,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        -->
         <dependency>
             <groupId>org.apache.thrift</groupId>
             <artifactId>libthrift</artifactId>
