@@ -33,7 +33,7 @@ import com.facebook.swift.codec.ThriftStruct;
  */
 @ThriftStruct
 @Embeddable
-public class Name implements Serializable {
+public final class Name implements Serializable {
 
 	private static final long serialVersionUID = -7067244903481687841L;
 	private String firstName;

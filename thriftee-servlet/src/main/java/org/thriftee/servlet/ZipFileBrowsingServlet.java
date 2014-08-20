@@ -104,7 +104,7 @@ public abstract class ZipFileBrowsingServlet extends FrameworkServlet {
 		final SortedMap<String, String> files = model.getFiles();
 		model.setPathPrefix(pathPrefix);
 		model.setTitle(pathPrefix + matchedPath);
-		model.setServerLine("Fuame");
+		model.setServerLine("ThriftEE");
 		if (canDownload(request)) {
 			model.getDownloads().put(
 				response.encodeURL(pathPrefix + "?download=zip"), 

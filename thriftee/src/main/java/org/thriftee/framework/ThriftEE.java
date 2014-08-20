@@ -119,7 +119,7 @@ public class ThriftEE {
         }
 
         //thriftCodecManager = new ThriftCodecManager(new ReflectionThriftCodecFactory());
-        thriftCodecManager = new ThriftCodecManager(new CompilerThriftCodecFactory());
+        thriftCodecManager = new ThriftCodecManager(new CompilerThriftCodecFactory(false));
 
         logger.info("Initializing Thrift Services ----");
         logger.info("Services detected:  {}", thriftServices);

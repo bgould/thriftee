@@ -4,7 +4,7 @@ import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct
-public class User {
+public final class User {
 
 	private String uid;
 

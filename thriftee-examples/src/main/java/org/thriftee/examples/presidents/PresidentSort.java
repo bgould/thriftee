@@ -37,7 +37,7 @@ import com.facebook.swift.codec.ThriftStruct;
  * @author Jeff Johnston
  */
 @ThriftStruct
-public class PresidentSort implements CriteriaCommand {
+public final class PresidentSort implements CriteriaCommand {
     
 	private List<Sort> sorts = new ArrayList<Sort>();
 

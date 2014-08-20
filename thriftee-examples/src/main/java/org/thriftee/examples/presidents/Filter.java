@@ -7,7 +7,7 @@ import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct
-public class Filter implements Serializable {
+public final class Filter implements Serializable {
 
 	private static final long serialVersionUID = -247166099068174692L;
 
