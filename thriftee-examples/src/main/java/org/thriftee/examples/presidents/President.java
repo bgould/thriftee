@@ -35,7 +35,7 @@ import com.facebook.swift.codec.ThriftStruct;
  */
 @ThriftStruct
 @Entity
-public class President implements Serializable {
+public final class President implements Serializable {
 
 	private static final long serialVersionUID = 6994035590089522066L;
 

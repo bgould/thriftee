@@ -6,7 +6,7 @@ import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct
-public class Group {
+public final class Group {
 
 	private String name;
 	

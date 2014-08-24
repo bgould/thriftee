@@ -13,41 +13,40 @@ import org.thriftee.compiler.ThriftCommand.Generate;
 @WebServlet("/clients/html/*")
 public class HtmlClientServlet extends ZipFileBrowsingServlet {
 
-	private static final long serialVersionUID = -3518542031465043696L;
+    private static final long serialVersionUID = -3518542031465043696L;
 
-	private File htmlClientLibrary;
+    private File htmlClientLibrary;
 
-	@Override
-	public void init() throws ServletException {
-		logger.info("[HtmlClientServlet] Generating HTML client library");
-		try {
-			ThriftCommand cmd = new ThriftCommand(Generate.HTML);
-			cmd.setRecurse(true);
-			if (thrift().thriftExecutable() != null) {
-				cmd.setThriftCommand(thrift().thriftExecutable().getAbsolutePath());
-			}
-			//cmd.addFlag(Flag.HTML_STANDALONE);
-			htmlClientLibrary = new ProcessIDL().process(
-				//thrift().idlFiles(), thrift().tempDir(), "html-client", cmd
-				new File[] { new File(thrift().idlDir(), "thrift/global.thrift") }, 
-				thrift().tempDir(),
-				"html-client",
-				cmd
-			);
-			logger.info(
-				"[HtmlClientServlet] HTML client library created at : " + 
-				htmlClientLibrary.getAbsolutePath()
-			);
-		} catch (IOException e) {
-			throw new ServletException(
-				"[HtmlClientServlet] Problem generating HTML library: " + 
-				e.getMessage(), e
-			);
-		}
-	}
-	
-	@Override
-	protected File zipFile() {
-		return htmlClientLibrary;
-	}
+    @Override
+    public void init() throws ServletException {
+        logger.info("[HtmlClientServlet] Generating HTML client library");
+        try {
+            ThriftCommand cmd = new ThriftCommand(Generate.HTML);
+            cmd.setRecurse(true);
+            if (thrift().thriftExecutable() != null) {
+                cmd.setThriftCommand(thrift().thriftExecutable().getAbsolutePath());
+            }
+            //cmd.addFlag(Flag.HTML_STANDALONE);
+            htmlClientLibrary = new ProcessIDL().process(
+                new File[] { thrift().globalIdlFile() }, 
+                thrift().tempDir(),
+                "html-client",
+                cmd
+            );
+            logger.info(
+                "[HtmlClientServlet] HTML client library created at : " + 
+                htmlClientLibrary.getAbsolutePath()
+            );
+        } catch (IOException e) {
+            throw new ServletException(
+                "[HtmlClientServlet] Problem generating HTML library: " + 
+                e.getMessage(), e
+            );
+        }
+    }
+    
+    @Override
+    protected File zipFile() {
+        return htmlClientLibrary;
+    }
 }

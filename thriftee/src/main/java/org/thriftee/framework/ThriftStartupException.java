@@ -19,6 +19,8 @@ public class ThriftStartupException extends ThriftSystemException {
 		
 		STARTUP_001("A problem occurred writing the IDL for the annotated classes: %s"),
 		STARTUP_002("A problem occurred scanning the Swift annotations at startup: %s"),
+		STARTUP_003("A problem occurred parsing generated IDL at startup: %s"),
+		STARTUP_004("Generated IDL did not contain a global.thrift file"),
 		;
 
 		private final String _message;

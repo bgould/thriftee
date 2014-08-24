@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thriftee</groupId>
     <artifactId>thriftee-root</artifactId>
@@ -9,11 +9,11 @@
     <name>ThriftEE RPC Services</name>
     <modules>
         <module>thriftee</module>
-        <module>thriftee-servlet</module>
-        <module>thriftee-examples</module>
         <module>thriftee-examples-war</module>
+        <module>thriftee-examples</module>
         <module>thriftee-dashboard</module>
         <module>thriftee-jaxrs</module>
+        <module>thriftee-servlet</module>
     </modules>
     <build>
         <plugins>
@@ -32,7 +32,7 @@
         <guava.version>16.0</guava.version>
         <junit.version>4.11</junit.version>
         <thrift.version>1.0.0</thrift.version>
-        <swift.version>0.12.0</swift.version>
+        <swift.version>0.14.0-SNAPSHOT</swift.version>
         <java.version>1.7</java.version>
         <slf4j.version>1.7.5</slf4j.version>
         <commons.lang.version>2.6</commons.lang.version>
