@@ -1,7 +1,6 @@
 package org.thriftee.framework;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Date;
 
 import org.apache.thrift.protocol.TProtocol;
@@ -15,9 +14,8 @@ import org.thriftee.examples.presidents.President;
 import org.thriftee.tests.AbstractThriftEETest;
 
 import com.facebook.swift.codec.ThriftCodec;
-import com.facebook.swift.parser.model.Document;
-import com.facebook.swift.parser.visitor.DocumentVisitor;
-import com.facebook.swift.parser.visitor.Visitable;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class ThriftEETest extends AbstractThriftEETest {
 
@@ -27,13 +25,18 @@ public class ThriftEETest extends AbstractThriftEETest {
 
     @Test
     public void testParsedIDL() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        String json = mapper.writeValueAsString(thrift().parsedIDL());
+        LOG.debug(json);
+        /*
         for (final String filename : thrift().parsedIDL().keySet()) {
             final Document parsedIDL = thrift().parsedIDL().get(filename);
             LOG.debug("Creating visitor for {}", filename);
             final DocumentVisitor visitor = new DocumentVisitor() {
                 @Override
                 public void visit(Visitable paramVisitable) throws IOException {
-                    LOG.debug("visiting: {}", paramVisitable.getClass().getName());
+                    LOG.debug("visiting: {}", paramVisitable);
                 }
                 @Override
                 public void finish() throws IOException {
@@ -46,7 +49,23 @@ public class ThriftEETest extends AbstractThriftEETest {
             };
             LOG.debug("Visiting {}", filename);
             parsedIDL.visit(visitor);
+            
+            LOG.debug("Serializing to JSON...");
+            //String url = "http://freemusicarchive.org/api/get/albums.json?api_key=60BLHNQCAOUFPIBZ&limit=2";
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            String json = mapper.writeValueAsString(parsedIDL);
+            
+            
+            
+//            mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+//            Albums albums = mapper.readValue(new URL(url), Albums.class);
+//            Dataset[] datasets = albums.getDataset();
+//            for (Dataset dataset : datasets) {
+//                System.out.println(dataset.getAlbum_title());
+//            }
         }
+        */
     }
     
     @Test
