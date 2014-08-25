@@ -24,6 +24,7 @@ public class ThriftStartupException extends ThriftSystemException {
         STARTUP_005("Thrift library directory does not exist: %s"),
         STARTUP_006("Thrift library directory exists but appears invalid: %s"),
         STARTUP_007("Thrift executable specified, but does not exist: %s"),
+        STARTUP_008("Could not get Thrift version string from executable: %s"),
         ;
 
         private final String _message;

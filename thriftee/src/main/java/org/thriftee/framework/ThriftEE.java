@@ -15,6 +15,9 @@ import org.scannotation.AnnotationDB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.compiler.ExportIDL;
+import org.thriftee.compiler.ThriftCommand;
+import org.thriftee.compiler.ThriftCommandException;
+import org.thriftee.compiler.ThriftCommandRunner;
 import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.util.New;
 
@@ -54,6 +57,10 @@ public class ThriftEE {
         return this.thriftExecutable;
     }
 
+    public String thriftVersionString() {
+        return this.thriftVersionString;
+    }
+
     public File tempDir() {
         return this.tempDir;
     }
@@ -85,6 +92,8 @@ public class ThriftEE {
     private final File thriftExecutable;
 
     private final File thriftLibDir;
+
+    private final String thriftVersionString;
 
     private final ThriftCodecManager thriftCodecManager;
 
@@ -173,10 +182,17 @@ public class ThriftEE {
         if (config.thriftExecutable() != null && config.thriftExecutable().exists()
                 && config.thriftExecutable().canExecute()) {
             this.thriftExecutable = config.thriftExecutable();
+            try {
+                this.thriftVersionString = getVersionString();
+            } catch (ThriftCommandException e) {
+                throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_008, e.getMessage());
+            }
         } else {
             this.thriftExecutable = null;
+            this.thriftVersionString = null;
         }
         logger.info("Using Thrift executable: {}", thriftExecutable);
+        logger.info("Thrift version string: {}", thriftVersionString);
 
         Set<Class<?>> allClasses = new HashSet<Class<?>>();
         allClasses.addAll(thriftServices);
@@ -260,6 +276,13 @@ public class ThriftEE {
         } else {
             return new File(thriftLibDir, "php/lib/Thrift").exists();
         }
+    }
+    
+    private String getVersionString() {
+        ThriftCommand command = new ThriftCommand(null);
+        command.setThriftCommand(this.thriftExecutable().getAbsolutePath());
+        ThriftCommandRunner runner = ThriftCommandRunner.instanceFor(command);
+        return runner.executeVersion();
     }
 
 }
