@@ -21,6 +21,7 @@ import org.thriftee.util.New;
 import com.facebook.swift.codec.ThriftCodecManager;
 import com.facebook.swift.codec.ThriftEnum;
 import com.facebook.swift.codec.ThriftStruct;
+import com.facebook.swift.codec.ThriftUnion;
 import com.facebook.swift.codec.internal.compiler.CompilerThriftCodecFactory;
 import com.facebook.swift.parser.ThriftIdlParser;
 import com.facebook.swift.parser.model.Document;
@@ -92,6 +93,8 @@ public class ThriftEE {
     private final Set<Class<?>> thriftServices;
 
     private final Set<Class<?>> thriftEnums;
+    
+    private final Set<Class<?>> thriftUnions;
 
 //    private final File[] idlFiles;
     
@@ -113,6 +116,7 @@ public class ThriftEE {
             config.scannotationConfigurator().configure(annotations);
             thriftServices = searchFor(ThriftService.class, annotations);
             thriftStructs = searchFor(ThriftStruct.class, annotations);
+            thriftUnions = searchFor(ThriftUnion.class, annotations);
             thriftEnums = searchFor(ThriftEnum.class, annotations);
         } catch (IOException e) {
             throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_002);
@@ -124,16 +128,48 @@ public class ThriftEE {
         logger.info("Initializing Thrift Services ----");
         logger.info("Services detected:  {}", thriftServices);
         logger.info("Structs detected:   {}", thriftStructs);
+        logger.info("Unions detected:    {}", thriftUnions);
         logger.info("Enums detected:     {}", thriftEnums);
 
-        if (config.thriftLibDir() != null && config.thriftLibDir().exists()
-                && new File(config.thriftLibDir(), "php/lib/Thrift").exists()) {
-            this.thriftLibDir = config.thriftLibDir();
+        //------------------------------------------------------------------//
+        // Here we are checking the configured Thrift library directory to  //
+        // make sure that it actually contains code libraries for the       //
+        // various target languages.  In actuality, the support libraries   //
+        // are not strictly needed for using ThriftEE, however in almost    //
+        // all scenarios that I can think of the best way to make sure that //
+        // the same versions of the support library and the generated code  //
+        // are used is to export both.  Especially for dynamic languages    //
+        // like PHP, Python, Javascript, etc., it is very easy to           //
+        // distribute the support library as part of the generated client.  //
+        // For compiled languages like C++ and Java this is a bit less      //
+        // useful but I do not think that the requirement that it exist is  //
+        // too burdensome.  Can always change in the future if it proves to //
+        // be problematic.                                                  //
+        //------------------------------------------------------------------//
+        // TODO: consider adding option to specify if missing dir is an error
+        // TODO: consider making validation more robust 
+        if (config.thriftLibDir() != null) {
+            if (!config.thriftLibDir().exists()) {
+                throw new ThriftStartupException(
+                    ThriftStartupMessage.STARTUP_005, config.thriftLibDir());
+            } else if (!(validateThriftLibraryDir(config.thriftLibDir()))) {
+                throw new ThriftStartupException(
+                    ThriftStartupMessage.STARTUP_006, config.thriftLibDir());
+            } else {
+                this.thriftLibDir = config.thriftLibDir();
+            }
         } else {
             this.thriftLibDir = null;
         }
         logger.info("Thrift library dir: {}", thriftLibDir);
 
+        //------------------------------------------------------------------//
+        // Next we will validate the thrift executable and make note of the //
+        // version that it returns when called.                             //
+        //------------------------------------------------------------------//
+        // TODO: Throw an error if thrift executable does not work
+        // TODO: If the native executable does not exist or cannot be called, we should use NestedVM.
+        // TODO: Figure out a way to check the Thrift version against the version for the support libraries
         if (config.thriftExecutable() != null && config.thriftExecutable().exists()
                 && config.thriftExecutable().canExecute()) {
             this.thriftExecutable = config.thriftExecutable();
@@ -145,8 +181,14 @@ public class ThriftEE {
         Set<Class<?>> allClasses = new HashSet<Class<?>>();
         allClasses.addAll(thriftServices);
         allClasses.addAll(thriftStructs);
+        allClasses.addAll(thriftUnions);
         allClasses.addAll(thriftEnums);
 
+        //------------------------------------------------------------------//
+        // We can easily fail-fast here by running an export of the         //
+        // generated definitions.  If there are problems with the Thrift    //
+        // schema, the export process will choke.                           //
+        //------------------------------------------------------------------//
         logger.debug("Exporting IDL files from Swift definitions");
         final File[] idlFiles;
         try {
@@ -156,6 +198,13 @@ public class ThriftEE {
             throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_001, e.getMessage());
         }
 
+        //------------------------------------------------------------------//
+        // At this point we will parse the generated IDL and store the meta //
+        // model of the schema. Loosely typed clients or clients incapable  //
+        // of introspection can use the meta model as a sort of reflection. //
+        // ThriftEE specifically uses this to dynamically invoke services   //
+        // from the ThriftEE dashboard.                                     //
+        //------------------------------------------------------------------//
         logger.info("Thrift initialization completed");
         final Charset cs = Charset.forName("UTF-8");
         final Map<String, Document> _parsedIDL = new TreeMap<String, Document>();
@@ -203,6 +252,14 @@ public class ThriftEE {
             }
         }
         return Collections.unmodifiableSet(result);
+    }
+
+    public static boolean validateThriftLibraryDir(File thriftLibDir) {
+        if (thriftLibDir == null) {
+            return false;
+        } else {
+            return new File(thriftLibDir, "php/lib/Thrift").exists();
+        }
     }
 
 }

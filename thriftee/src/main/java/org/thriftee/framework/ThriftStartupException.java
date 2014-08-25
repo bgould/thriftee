@@ -21,6 +21,9 @@ public class ThriftStartupException extends ThriftSystemException {
         STARTUP_002("A problem occurred scanning the Swift annotations at startup: %s"),
         STARTUP_003("A problem occurred parsing generated IDL at startup: %s"),
         STARTUP_004("Generated IDL did not contain a global.thrift file"),
+        STARTUP_005("Thrift library directory does not exist: %s"),
+        STARTUP_006("Thrift library directory exists but appears invalid: %s"),
+        STARTUP_007("Thrift executable specified, but does not exist: %s"),
         ;
 
         private final String _message;
