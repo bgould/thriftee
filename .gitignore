@@ -7,6 +7,7 @@
 
 # Eclipse project files
 .project
-/.settings
-/target
-server
+.classpath
+.settings/
+target/
+server/
