@@ -10,7 +10,7 @@ import com.facebook.swift.codec.ThriftProtocolType;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct
-public final class EnumSchema extends BaseSchemaType<ModuleSchema> {
+public final class EnumSchema extends BaseSchemaType<ModuleSchema, EnumSchema> {
 
     private static final long serialVersionUID = -6204420892157052800L;
 
@@ -20,7 +20,7 @@ public final class EnumSchema extends BaseSchemaType<ModuleSchema> {
     
     public EnumSchema(ModuleSchema parent, String _name, Collection<EnumValueSchema.Builder> enumValues) 
             throws SchemaBuilderException {
-        super(ModuleSchema.class, parent, new ReferenceSchemaType(
+        super(ModuleSchema.class, EnumSchema.class, parent, new ReferenceSchemaType(
             ThriftProtocolType.ENUM, parent.getName(), _name
         ), null);
         this.module = parent;

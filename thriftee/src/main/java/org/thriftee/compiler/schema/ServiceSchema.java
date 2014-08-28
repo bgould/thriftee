@@ -10,7 +10,7 @@ import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct
-public final class ServiceSchema extends BaseSchema<ModuleSchema> {
+public final class ServiceSchema extends BaseSchema<ModuleSchema, ServiceSchema> {
     
     public static final int THRIFT_INDEX_NAME = 1;
     
@@ -33,7 +33,7 @@ public final class ServiceSchema extends BaseSchema<ModuleSchema> {
             String parentService, 
             Collection<MethodSchema.Builder> _methods
         ) throws SchemaBuilderException {
-        super(ModuleSchema.class, module, _name, _annotations);
+        super(ModuleSchema.class, ServiceSchema.class, module, _name, _annotations);
         this.parentService = parentService;
         this.methods = toMap(this, _methods);
     }

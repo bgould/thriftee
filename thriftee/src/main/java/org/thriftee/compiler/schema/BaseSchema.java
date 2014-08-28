@@ -6,27 +6,34 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-abstract class BaseSchema<P extends BaseSchema<?>> implements Serializable {
+abstract class BaseSchema<P extends BaseSchema<?, ?>, T extends BaseSchema<P, T>> implements Serializable {
 
     private static final long serialVersionUID = 2582644689032708659L;
 
     private final transient SchemaContext schemaContext;
 
-    private final transient Class<P> parentType;
+    protected final Class<P> parentType;
+    
+    protected final Class<T> thisType;
     
     private final String name;
     
     private final P parent;
     
+    protected final T $this;
+    
     private final Map<String, ThriftAnnotation> annotations;
 
     protected BaseSchema(
-            Class<P> parentClass, 
+            Class<P> parentClass,
+            Class<T> thisClass,
             P parent, 
             String _name, 
             Collection<ThriftAnnotation> _annotations) throws SchemaBuilderException {
         this.parentType = parentClass;
+        this.thisType = thisClass;
         this.parent = parent;
+        this.$this = thisClass.cast(this);
         if (this.parentType.equals(getClass())) {
             this.schemaContext = null;
         } else {
@@ -70,7 +77,7 @@ abstract class BaseSchema<P extends BaseSchema<?>> implements Serializable {
         return this.annotations;
     }
 
-    protected static <P extends BaseSchema<?>, T extends BaseSchema<P>> Map<String, T> 
+    protected static <P extends BaseSchema<?, P>, T extends BaseSchema<P, T>> Map<String, T> 
             toMap(P parent, Collection<? extends AbstractSchemaBuilder<P, T, ?, ?>> collection) 
                 throws SchemaBuilderException {
         final Map<String, T> result = new LinkedHashMap<String, T>();

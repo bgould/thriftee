@@ -10,7 +10,7 @@ import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct
-public final class MethodSchema extends BaseSchema<ServiceSchema> {
+public final class MethodSchema extends BaseSchema<ServiceSchema, MethodSchema> {
     
     public static final int THRIFT_INDEX_NAME = 1;
     
@@ -30,9 +30,9 @@ public final class MethodSchema extends BaseSchema<ServiceSchema> {
 
     private final ThriftSchemaType returnType;
 
-    private final Map<String, ArgumentSchema> arguments;
+    private final Map<String, MethodArgumentSchema> arguments;
 
-    private final Map<String, ArgumentSchema> exceptions;
+    private final Map<String, MethodThrowsSchema> exceptions;
 
     protected MethodSchema(
             ServiceSchema _parent, 
@@ -40,9 +40,9 @@ public final class MethodSchema extends BaseSchema<ServiceSchema> {
             Collection<ThriftAnnotation> _annotations,
             boolean _oneway,
             ISchemaType _returnType, 
-            Collection<ArgumentSchema.Builder> _arguments,
-            Collection<ArgumentSchema.Builder> _exceptions) throws SchemaBuilderException {
-        super(ServiceSchema.class, _parent, _name, _annotations);
+            Collection<MethodArgumentSchema.Builder> _arguments,
+            Collection<MethodThrowsSchema.Builder> _exceptions) throws SchemaBuilderException {
+        super(ServiceSchema.class, MethodSchema.class, _parent, _name, _annotations);
         this.oneway = _oneway;
         this.returnType = ThriftSchemaType.wrap(_returnType);
         this.arguments = toMap(this, _arguments);
@@ -72,12 +72,12 @@ public final class MethodSchema extends BaseSchema<ServiceSchema> {
     }
 
     @ThriftField(THRIFT_INDEX_ARGUMENTS)
-    public Map<String, ArgumentSchema> getArguments() {
+    public Map<String, MethodArgumentSchema> getArguments() {
         return arguments;
     }
 
     @ThriftField(THRIFT_INDEX_EXCEPTIONS)
-    public Map<String, ArgumentSchema> getExceptions() {
+    public Map<String, MethodThrowsSchema> getExceptions() {
         return exceptions;
     }
 
@@ -91,9 +91,9 @@ public final class MethodSchema extends BaseSchema<ServiceSchema> {
 
         private boolean oneway;
         
-        private List<ArgumentSchema.Builder> arguments = New.linkedList();
+        private List<MethodArgumentSchema.Builder> arguments = New.linkedList();
         
-        private List<ArgumentSchema.Builder> exceptions = New.linkedList();
+        private List<MethodThrowsSchema.Builder> exceptions = New.linkedList();
         
         public Builder oneway(boolean _oneway) {
             this.oneway = _oneway;
@@ -109,14 +109,14 @@ public final class MethodSchema extends BaseSchema<ServiceSchema> {
             return this;
         }
         
-        public ArgumentSchema.Builder addArgument(String _name) {
-            ArgumentSchema.Builder result = new ArgumentSchema.Builder(this).name(_name);
+        public MethodArgumentSchema.Builder addArgument(String _name) {
+            MethodArgumentSchema.Builder result = new MethodArgumentSchema.Builder(this).name(_name);
             this.arguments.add(result);
             return result;
         }
         
-        public ArgumentSchema.Builder addException(String _name) {
-            ArgumentSchema.Builder result = new ArgumentSchema.Builder(this).name(_name);
+        public MethodThrowsSchema.Builder addThrows(String _name) {
+            MethodThrowsSchema.Builder result = new MethodThrowsSchema.Builder(this).name(_name);
             this.exceptions.add(result);
             return result;
         }

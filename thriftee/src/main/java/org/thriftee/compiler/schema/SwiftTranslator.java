@@ -2,6 +2,9 @@ package org.thriftee.compiler.schema;
 
 import java.util.List;
 
+import org.thriftee.compiler.schema.AbstractFieldSchema.AbstractFieldBuilder;
+import org.thriftee.compiler.schema.AbstractStructSchema.AbstractStructSchemaBuilder;
+
 import com.facebook.swift.codec.ThriftProtocolType;
 import com.facebook.swift.parser.model.BaseType;
 import com.facebook.swift.parser.model.Definition;
@@ -37,7 +40,7 @@ public class SwiftTranslator {
             } else if (definition instanceof IntegerEnum) {
                 translate(val, (IntegerEnum) definition);
             } else if (definition instanceof ThriftException) {
-                //translate(val, (ThriftException) definition);
+                translate(val, (ThriftException) definition);
             } else {
                 throw new SchemaBuilderException(
                     SchemaBuilderException.Messages.SCHEMA_102, 
@@ -47,7 +50,17 @@ public class SwiftTranslator {
         }
         return val;
     }
-
+    
+    public static ExceptionSchema.Builder translate(final ModuleSchema.Builder parentBuilder, final ThriftException _exception) {
+        final ExceptionSchema.Builder val = parentBuilder.addException(_exception.getName());
+        final List<ThriftField> fields = _exception.getFields();
+        for (int i = 0, c = fields.size(); i < c; i++) {
+            final ThriftField field = fields.get(i);
+            translateField(val, field);
+        }
+        return val;
+    }
+    
     public static UnionSchema.Builder translate(final ModuleSchema.Builder parentBuilder, final Union _union) {
         final UnionSchema.Builder val = parentBuilder.addUnion(_union.getName());
         final List<ThriftField> fields = _union.getFields();
@@ -113,11 +126,18 @@ public class SwiftTranslator {
         final List<ThriftField> exceptions = _method.getThrowsFields(); 
         for (int i = 0, c = exceptions.size(); i < c; i++) {
             ThriftField field = exceptions.get(i);
-            translateException(val, field);
+            translateThrows(val, field);
         }
         return val;
     }
     
+    public static <B extends AbstractFieldBuilder<?, ?, PB, B>, PB extends AbstractStructSchemaBuilder<?, ?, ?, B, PB>> B translateField(PB parentBuilder, ThriftField _field) {
+        B field = parentBuilder.addField(_field.getName());
+        _translate(field, _field);
+        return field;
+    }
+    
+    /*
     public static StructFieldSchema.Builder translateField(StructSchema.Builder parentBuilder, ThriftField _field) {
         StructFieldSchema.Builder field = parentBuilder.addField(_field.getName());
         _translate(field, _field);
@@ -129,17 +149,18 @@ public class SwiftTranslator {
         _translate(field, _field);
         return field;
     }
-        
-    public static ArgumentSchema.Builder translateArgument(MethodSchema.Builder parentBuilder, ThriftField field) {
-        ArgumentSchema.Builder arg = parentBuilder.addArgument(field.getName());
-        _translate(arg, field);
-        return arg;
-    }
+    */
     
-    public static ArgumentSchema.Builder translateException(MethodSchema.Builder parentBuilder, ThriftField field) {
-        ArgumentSchema.Builder exc = parentBuilder.addException(field.getName());
+    public static MethodThrowsSchema.Builder translateThrows(MethodSchema.Builder parentBuilder, ThriftField field) {
+        MethodThrowsSchema.Builder exc = parentBuilder.addThrows(field.getName());
         _translate(exc, field);
         return exc;
+    }
+        
+    public static MethodArgumentSchema.Builder translateArgument(MethodSchema.Builder parentBuilder, ThriftField field) {
+        MethodArgumentSchema.Builder arg = parentBuilder.addArgument(field.getName());
+        _translate(arg, field);
+        return arg;
     }
     
     private static <T extends AbstractFieldSchema.AbstractFieldBuilder<?, ?, ?, ?>> T _translate(T arg, ThriftField field) {

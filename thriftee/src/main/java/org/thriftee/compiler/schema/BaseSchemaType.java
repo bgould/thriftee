@@ -2,7 +2,7 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
-public abstract class BaseSchemaType<P extends BaseSchema<?>> extends BaseSchema<P> implements ISchemaType {
+abstract class BaseSchemaType<P extends BaseSchema<?, ?>, T extends BaseSchema<P, T>> extends BaseSchema<P, T> implements ISchemaType {
 
     private static final long serialVersionUID = -4797781153586878306L;
     
@@ -12,8 +12,19 @@ public abstract class BaseSchemaType<P extends BaseSchema<?>> extends BaseSchema
         return this.reference;
     }
 
-    protected BaseSchemaType(Class<P> parentClass, P parent, ReferenceSchemaType _reference, Collection<ThriftAnnotation> _annotations) throws SchemaBuilderException {
-        super(parentClass, parent, _reference.getTypeName(), (Collection<ThriftAnnotation>) _annotations);
+    protected BaseSchemaType(
+            Class<P> parentClass, 
+            Class<T> thisClass, 
+            P parent, 
+            ReferenceSchemaType _reference, 
+            Collection<ThriftAnnotation> _annotations) throws SchemaBuilderException {
+        super(
+            parentClass, 
+            thisClass,
+            parent, 
+            _reference.getTypeName(), 
+            (Collection<ThriftAnnotation>) _annotations
+        );
         this.reference = _reference;
     }
 

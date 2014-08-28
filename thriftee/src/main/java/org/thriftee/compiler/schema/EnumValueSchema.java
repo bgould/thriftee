@@ -4,7 +4,7 @@ import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct
-public final class EnumValueSchema extends BaseSchema<EnumSchema> {
+public final class EnumValueSchema extends BaseSchema<EnumSchema, EnumValueSchema> {
     
     public static final int THRIFT_INDEX_NAME = 1;
     
@@ -17,7 +17,7 @@ public final class EnumValueSchema extends BaseSchema<EnumSchema> {
     private final long effectiveValue;
 
     private EnumValueSchema(EnumSchema _parent, String _name, Long _explicitValue) throws SchemaBuilderException {
-        super(EnumSchema.class, _parent, _name, null);
+        super(EnumSchema.class, EnumValueSchema.class, _parent, _name, null);
         this.explicitValue = _explicitValue;
         // TODO: need to set effectiveValue for enum value schema
         this.effectiveValue = 0;

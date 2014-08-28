@@ -19,7 +19,7 @@ import org.thriftee.util.Strings;
  * @param <P> parent of parent builder to return when end() is called
  * @param <B> the canonical builder type
  */
-abstract class AbstractSchemaBuilder<P extends BaseSchema<?>, T extends BaseSchema<P>, PB extends AbstractSchemaBuilder<?, P, ?, ?>, B extends AbstractSchemaBuilder<P, T, PB, B>> {
+abstract class AbstractSchemaBuilder<P extends BaseSchema<?, P>, T extends BaseSchema<P, T>, PB extends AbstractSchemaBuilder<?, P, ?, ?>, B extends AbstractSchemaBuilder<P, T, PB, B>> {
     
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     

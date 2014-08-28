@@ -2,22 +2,22 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
-import com.facebook.swift.codec.ThriftUnion;
+import com.facebook.swift.codec.ThriftStruct;
 
-@ThriftUnion
-public final class UnionSchema extends AbstractStructSchema<ModuleSchema, UnionSchema, UnionFieldSchema, UnionFieldSchema.Builder> {
+@ThriftStruct
+public final class ExceptionSchema extends AbstractStructSchema<ModuleSchema, ExceptionSchema, ExceptionFieldSchema, ExceptionFieldSchema.Builder> {
     
     private static final long serialVersionUID = 9173725847653740446L;
     
-    private UnionSchema(
+    private ExceptionSchema(
             ModuleSchema parent, 
             String _name, 
-            Collection<UnionFieldSchema.Builder> _fields, 
+            Collection<ExceptionFieldSchema.Builder> _fields, 
             Collection<ThriftAnnotation> _annotations
         ) throws SchemaBuilderException {
         super(
             ModuleSchema.class, 
-            UnionSchema.class,
+            ExceptionSchema.class,
             parent, 
             _name,
             _fields,
@@ -27,23 +27,23 @@ public final class UnionSchema extends AbstractStructSchema<ModuleSchema, UnionS
     
     static final class Builder extends AbstractStructSchema.AbstractStructSchemaBuilder<
         ModuleSchema, 
-        UnionSchema, 
+        ExceptionSchema, 
         ModuleSchema.Builder, 
-        UnionFieldSchema.Builder, 
-        UnionSchema.Builder> {
+        ExceptionFieldSchema.Builder, 
+        ExceptionSchema.Builder> {
 
         protected Builder(ModuleSchema.Builder parentBuilder) {
             super(parentBuilder, Builder.class);
         }
 
         @Override
-        protected UnionFieldSchema.Builder _createFieldBuilder() {
-            return new UnionFieldSchema.Builder(this);
+        protected ExceptionFieldSchema.Builder _createFieldBuilder() {
+            return new ExceptionFieldSchema.Builder(this);
         }
 
         @Override
-        protected UnionSchema _createStruct(ModuleSchema _parent) throws SchemaBuilderException {
-            return new UnionSchema(_parent, getName(), _getFields(), getAnnotations());
+        protected ExceptionSchema _createStruct(ModuleSchema _parent) throws SchemaBuilderException {
+            return new ExceptionSchema(_parent, getName(), _getFields(), getAnnotations());
         }
 
     }

@@ -10,7 +10,7 @@ import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct
-public final class ThriftSchema extends BaseSchema<ThriftSchema> {
+public final class ThriftSchema extends BaseSchema<ThriftSchema, ThriftSchema> {
 
     public static final int THRIFT_INDEX_NAME = 1;
     
@@ -23,7 +23,7 @@ public final class ThriftSchema extends BaseSchema<ThriftSchema> {
     private final SchemaContext schemaContext;
 
     public ThriftSchema(String _name, Collection<ModuleSchema.Builder> _modules) throws SchemaBuilderException {
-        super(ThriftSchema.class, null, _name, null);
+        super(ThriftSchema.class, ThriftSchema.class, null, _name, null);
         this.modules = toMap(this, _modules);
         this.schemaContext = new SchemaContext();
     }

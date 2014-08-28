@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import org.thriftee.compiler.schema.SchemaBuilderException.Messages;
 
-public abstract class AbstractFieldSchema<P extends BaseSchema<?>> extends BaseSchema<P> {
+abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends BaseSchema<P, T>> extends BaseSchema<P, T> {
 
     private final Long identifier;
 
@@ -16,13 +16,14 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?>> extends BaseS
 
     protected AbstractFieldSchema(
             Class<P> parentClass,
+            Class<T> thisClass,
             P _parent, 
             String _name, 
             Collection<ThriftAnnotation> _annotations,
             ISchemaType _type, 
             Boolean _required, 
             Long _identifier) throws SchemaBuilderException {
-        super(parentClass, _parent, _name, _annotations);
+        super(parentClass, thisClass, _parent, _name, _annotations);
         this.type = _type;
         this.required = _required;
         this.identifier = _identifier;
@@ -46,8 +47,12 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?>> extends BaseS
         REQUIRED, OPTIONAL, NONE;
     }
 
-    public static abstract class AbstractFieldBuilder<P extends BaseSchema<?>, T extends BaseSchema<P>, PB extends AbstractSchemaBuilder<?, P, ?, ?>, B extends AbstractFieldBuilder<P, T, PB, B>> 
-            extends AbstractSchemaBuilder<P, T, PB, B> {
+    static abstract class AbstractFieldBuilder<
+        P extends BaseSchema<?, P>, 
+        T extends BaseSchema<P, T>, 
+        PB extends AbstractSchemaBuilder<?, P, ?, ?>, 
+        B extends AbstractFieldBuilder<P, T, PB, B>
+    > extends AbstractSchemaBuilder<P, T, PB, B> {
 
         private Boolean required;
         
