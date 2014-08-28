@@ -28,6 +28,8 @@ public class PrimitiveTypeSchema extends AbstractSchemaType {
     
     public static final PrimitiveTypeSchema STRING  = new PrimitiveTypeSchema(ThriftProtocolType.STRING);
     
+    public static final PrimitiveTypeSchema BINARY  = new PrimitiveTypeSchema(ThriftProtocolType.BINARY);
+    
     protected PrimitiveTypeSchema(ThriftProtocolType _protocolType) {
         super(_protocolType);
     }

@@ -1,13 +1,26 @@
 package org.thriftee.compiler.schema;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
-import org.thriftee.compiler.schema.SchemaBuilderException.Messages;
 import org.thriftee.util.New;
-import org.thriftee.util.Strings;
 
-public class ModuleSchema extends BaseSchema<ThriftSchema> {
+import com.facebook.swift.codec.ThriftField;
+import com.facebook.swift.codec.ThriftStruct;
+
+@ThriftStruct
+public final class ModuleSchema extends BaseSchema<ThriftSchema> {
+    
+    public static final int THRIFT_INDEX_NAME = 1;
+    
+    public static final int THRIFT_INDEX_SERVICES = THRIFT_INDEX_NAME + 1;
+    
+    public static final int THRIFT_INDEX_STRUCTS = THRIFT_INDEX_SERVICES + 1;
+    
+    public static final int THRIFT_INDEX_UNIONS = THRIFT_INDEX_STRUCTS + 1;
+    
+    public static final int THRIFT_INDEX_ENUMS = THRIFT_INDEX_UNIONS + 1;
 
     private static final long serialVersionUID = 1973580748761800425L;
 
@@ -15,69 +28,104 @@ public class ModuleSchema extends BaseSchema<ThriftSchema> {
     
     private final Map<String, StructSchema> structs;
     
+    private final Map<String, UnionSchema> unions;
+    
     private final Map<String, EnumSchema> enums;
     
     public ModuleSchema(
             ThriftSchema _parent,
             String _name, 
             Collection<ServiceSchema.Builder> _services, 
-            Collection<StructSchema.Builder> _structs, 
+            Collection<StructSchema.Builder> _structs,
+            Collection<UnionSchema.Builder> _unions,
             Collection<EnumSchema.Builder> _enums) throws SchemaBuilderException {
-        super(ThriftSchema.class, _parent, _name);
+        super(ThriftSchema.class, _parent, _name, null);
         this.services = toMap(this, _services);
         this.structs = toMap(this, _structs);
+        this.unions = toMap(this, _unions);
         this.enums = toMap(this, _enums);
     }
     
+    @ThriftField(THRIFT_INDEX_NAME)
+    public String getName() {
+        return super.getName();
+    }
+    
+    @ThriftField(THRIFT_INDEX_SERVICES)
     public Map<String, ServiceSchema> getServices() {
         return services;
     }
 
+    @ThriftField(THRIFT_INDEX_STRUCTS)
     public Map<String, StructSchema> getStructs() {
         return structs;
     }
+    
+    @ThriftField(THRIFT_INDEX_UNIONS)
+    public Map<String, UnionSchema> getUnions() {
+        return unions;
+    }
 
+    @ThriftField(THRIFT_INDEX_ENUMS)
     public Map<String, EnumSchema> getEnums() {
         return enums;
     }
     
-    public static class Builder extends AbstractSchemaBuilder<ThriftSchema, ModuleSchema, ThriftSchema.Builder> {
+    public static final class Builder extends AbstractSchemaBuilder<ThriftSchema, ModuleSchema, ThriftSchema.Builder, ModuleSchema.Builder> {
 
-        private final Map<String, ServiceSchema.Builder> services = New.map();
+        private final List<ServiceSchema.Builder> services = New.linkedList();
         
-        private final Map<String, StructSchema.Builder> structs = New.map();
+        private final List<StructSchema.Builder> structs = New.linkedList();
         
-        private final Map<String, EnumSchema.Builder> enums = New.map();
+        private final List<UnionSchema.Builder> unions = New.linkedList();
+        
+        private final List<EnumSchema.Builder> enums = New.linkedList();
         
         Builder(ThriftSchema.Builder parentBuilder) {
-            super(parentBuilder);
+            super(parentBuilder, ModuleSchema.Builder.class);
         }
-
-        private String name;
         
-        public Builder name(String _name) {
-            this.name = _name;
-            return this;
+        public ServiceSchema.Builder addService(final String _name) {
+            ServiceSchema.Builder result = new ServiceSchema.Builder(this);
+            this.services.add(result);
+            return result.name(_name);
+        }
+        
+        public StructSchema.Builder addStruct(final String _name) {
+            StructSchema.Builder result = new StructSchema.Builder(this);
+            this.structs.add(result);
+            return result.name(_name);
+        }
+        
+        public UnionSchema.Builder addUnion(final String _name) {
+            UnionSchema.Builder result = new UnionSchema.Builder(this);
+            this.unions.add(result);
+            return result.name(_name);
+        }
+        
+        public EnumSchema.Builder addEnum(final String _name) {
+            EnumSchema.Builder result = new EnumSchema.Builder(this);
+            this.enums.add(result);
+            return result.name(_name);
         }
         
         @Override
         protected ModuleSchema _build(ThriftSchema parent) throws SchemaBuilderException {
-            if (Strings.isBlank(name)) {
-                throw new SchemaBuilderException(Messages.SCHEMA_001, "enum value");
-            }
+            super._validate();
             final ModuleSchema result = new ModuleSchema(
                 parent, 
-                name, 
-                services.values(),
-                structs.values(),
-                enums.values()
+                getName(), 
+                services,
+                structs,
+                unions,
+                enums
             );
             return result;
         }
 
         @Override
         protected String[] toStringFields() {
-            return new String[] { "name", "services", "structs", "enums" };
+            return new String[] { "name", "annotations", "services", "structs", "unions", "enums" };
         }
         
     }

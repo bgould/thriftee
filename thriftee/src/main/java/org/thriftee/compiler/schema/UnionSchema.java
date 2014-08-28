@@ -8,10 +8,10 @@ import org.thriftee.util.New;
 
 import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftProtocolType;
-import com.facebook.swift.codec.ThriftStruct;
+import com.facebook.swift.codec.ThriftUnion;
 
-@ThriftStruct
-public final class StructSchema extends BaseSchemaType<ModuleSchema> {
+@ThriftUnion
+public final class UnionSchema extends BaseSchemaType<ModuleSchema> {
 
     public static final int THRIFT_INDEX_NAME = 1;
     
@@ -21,12 +21,12 @@ public final class StructSchema extends BaseSchemaType<ModuleSchema> {
     
     private static final long serialVersionUID = 9173725847653740446L;
     
-    private final Map<String, StructFieldSchema> fields;
+    private final Map<String, UnionFieldSchema> fields;
     
-    private StructSchema(
+    private UnionSchema(
             ModuleSchema parent, 
             String _name, 
-            Collection<StructFieldSchema.Builder> _fields, 
+            Collection<UnionFieldSchema.Builder> _fields, 
             Collection<ThriftAnnotation> _annotations
         ) throws SchemaBuilderException {
         super(
@@ -51,7 +51,7 @@ public final class StructSchema extends BaseSchemaType<ModuleSchema> {
     }
 
     @ThriftField(THRIFT_INDEX_FIELDS)
-    public Map<String, StructFieldSchema> getFields() {
+    public Map<String, UnionFieldSchema> getFields() {
         return this.fields;
     }
     
@@ -74,24 +74,24 @@ public final class StructSchema extends BaseSchemaType<ModuleSchema> {
         return getName();
     }
 
-    public static final class Builder extends AbstractSchemaBuilder<ModuleSchema, StructSchema, ModuleSchema.Builder, StructSchema.Builder> {
+    public static final class Builder extends AbstractSchemaBuilder<ModuleSchema, UnionSchema, ModuleSchema.Builder, UnionSchema.Builder> {
 
         Builder(ModuleSchema.Builder parentBuilder) {
             super(parentBuilder, Builder.class);
         }
         
-        private final List<StructFieldSchema.Builder> fields = New.linkedList();
+        private final List<UnionFieldSchema.Builder> fields = New.linkedList();
         
-        public StructFieldSchema.Builder addField(String _name) {
-            StructFieldSchema.Builder result = new StructFieldSchema.Builder(this);
+        public UnionFieldSchema.Builder addField(String _name) {
+            UnionFieldSchema.Builder result = new UnionFieldSchema.Builder(this);
             this.fields.add(result);
             return result.name(_name);
         }
 
         @Override
-        protected StructSchema _build(ModuleSchema _parent) throws SchemaBuilderException {
+        protected UnionSchema _build(ModuleSchema _parent) throws SchemaBuilderException {
             super._validate();
-            StructSchema result = new StructSchema(_parent, getName(), this.fields, getAnnotations());
+            UnionSchema result = new UnionSchema(_parent, getName(), this.fields, getAnnotations());
             return result;
         }
 

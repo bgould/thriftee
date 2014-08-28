@@ -3,38 +3,84 @@ package org.thriftee.compiler.schema;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thriftee.compiler.schema.SchemaBuilderException.Messages;
+import org.thriftee.util.Strings;
 
 /**
  * @param <S> type of parent schema object for the result of this builder
  * @param <T> type of schema object this builder produces
  * @param <P> parent of parent builder to return when end() is called
+ * @param <B> the canonical builder type
  */
-abstract class AbstractSchemaBuilder<P extends BaseSchema<?>, T extends BaseSchema<P>, PB extends AbstractSchemaBuilder<?, P, ?>> {
+abstract class AbstractSchemaBuilder<P extends BaseSchema<?>, T extends BaseSchema<P>, PB extends AbstractSchemaBuilder<?, P, ?, ?>, B extends AbstractSchemaBuilder<P, T, PB, B>> {
     
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     
     private final PB parentBuilder;
+    
+    private String name;
+    
+    private final List<ThriftAnnotation> annotations = new ArrayList<ThriftAnnotation>();
 
     protected abstract T _build(P parent) throws SchemaBuilderException;
     
     protected abstract String[] toStringFields();
     
-    AbstractSchemaBuilder(PB parentBuilder) {
+    protected final Class<B> $thisClass;
+    
+    protected final B $this;
+    
+    AbstractSchemaBuilder(final PB _parentBuilder, Class<B> thisClass) {
         super();
-        this.parentBuilder = parentBuilder;
+        this.parentBuilder = _parentBuilder;
+        this.$thisClass = thisClass;
+        this.$this = thisClass.cast(this);
     }
 
     protected PB getParentBuilder() {
         return this.parentBuilder;
     }
     
+    public final B name(final String _name) {
+        this.name = _name;
+        return $this;
+    }
+    
+    public final B addAnnotation(final String _name, final String _value) {
+        final ThriftAnnotation _annotation = new ThriftAnnotation(_name, _value);
+        this.annotations.add(_annotation);
+        return $this;
+    }
+    
     public PB end() {
         return getParentBuilder();
+    }
+    
+    protected String getName() {
+        return this.name;
+    }
+    
+    protected Collection<ThriftAnnotation> getAnnotations() {
+        return Collections.unmodifiableCollection(this.annotations);
+    }
+    
+    protected void _validate() throws SchemaBuilderException {
+        if (Strings.isBlank(name)) {
+            throw new SchemaBuilderException(Messages.SCHEMA_001, $thisClass.getSimpleName());
+        }
+        final HashSet<String> annotationNames = new HashSet<String>();
+        for (ThriftAnnotation annotation : getAnnotations()) {
+            if (annotationNames.contains(annotation.getName())) {
+                throw new SchemaBuilderException(Messages.SCHEMA_003, "annotations", annotation.getName());
+            }
+        }
     }
     
     private static final ConcurrentHashMap<Class<?>, ToStringFields<?>> fieldMap = 
@@ -46,7 +92,7 @@ abstract class AbstractSchemaBuilder<P extends BaseSchema<?>, T extends BaseSche
     }
     
     @SuppressWarnings("unchecked")
-    private static <T extends AbstractSchemaBuilder<?, ?, ?>> ToStringFields<T> fieldsFor(T obj) {
+    private static <T extends AbstractSchemaBuilder<?, ?, ?, ?>> ToStringFields<T> fieldsFor(T obj) {
         final Class<T> type = (Class<T>) obj.getClass();
         if (!fieldMap.containsKey(type)) {
             ToStringFields<T> fields = new ToStringFields<T>(type, obj.toStringFields());

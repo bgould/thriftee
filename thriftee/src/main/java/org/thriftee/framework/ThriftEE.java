@@ -2,14 +2,10 @@ package org.thriftee.framework;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import org.scannotation.AnnotationDB;
 import org.slf4j.Logger;
@@ -18,6 +14,9 @@ import org.thriftee.compiler.ExportIDL;
 import org.thriftee.compiler.ThriftCommand;
 import org.thriftee.compiler.ThriftCommandException;
 import org.thriftee.compiler.ThriftCommandRunner;
+import org.thriftee.compiler.schema.SchemaBuilder;
+import org.thriftee.compiler.schema.SchemaBuilderException;
+import org.thriftee.compiler.schema.ThriftSchema;
 import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.util.New;
 
@@ -26,13 +25,8 @@ import com.facebook.swift.codec.ThriftEnum;
 import com.facebook.swift.codec.ThriftStruct;
 import com.facebook.swift.codec.ThriftUnion;
 import com.facebook.swift.codec.internal.compiler.CompilerThriftCodecFactory;
-import com.facebook.swift.parser.ThriftIdlParser;
-import com.facebook.swift.parser.model.Document;
 import com.facebook.swift.service.ThriftService;
-import com.google.common.io.Files;
-import com.google.common.io.InputSupplier;
 
-@SuppressWarnings("deprecation")
 public class ThriftEE {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -69,17 +63,21 @@ public class ThriftEE {
         return this.idlDir;
     }
 
-//    public File[] idlFiles() {
-//        File[] newArr = new File[idlFiles == null ? 0 : idlFiles.length];
-//        if (newArr.length > 0) {
-//            System.arraycopy(idlFiles, 0, newArr, 0, idlFiles.length);
-//        }
-//        return newArr;
-//    }
-    
-    public Map<String, Document> parsedIDL() {
-        return this.parsedIDL;
+    public File[] idlFiles() {
+        File[] newArr = new File[idlFiles == null ? 0 : idlFiles.length];
+        if (newArr.length > 0) {
+            System.arraycopy(idlFiles, 0, newArr, 0, idlFiles.length);
+        }
+        return newArr;
     }
+    
+    public ThriftSchema schema() {
+        return this.schema;
+    }
+    
+//    public Map<String, Document> parsedIDL() {
+//        return this.parsedIDL;
+//    }
     
     public File globalIdlFile() {
         return this.globalIdlFile;
@@ -105,11 +103,13 @@ public class ThriftEE {
     
     private final Set<Class<?>> thriftUnions;
 
-//    private final File[] idlFiles;
+    private final File[] idlFiles;
     
     private final File globalIdlFile;
     
-    private final Map<String, Document> parsedIDL;
+    // private final Map<String, Document> parsedIDL;
+    
+    private final ThriftSchema schema;
 
     public ThriftEE(ThriftEEConfig config) throws ThriftStartupException {
 
@@ -176,7 +176,6 @@ public class ThriftEE {
         // Next we will validate the thrift executable and make note of the //
         // version that it returns when called.                             //
         //------------------------------------------------------------------//
-        // TODO: Throw an error if thrift executable does not work
         // TODO: If the native executable does not exist or cannot be called, we should use NestedVM.
         // TODO: Figure out a way to check the Thrift version against the version for the support libraries
         if (config.thriftExecutable() != null && config.thriftExecutable().exists()
@@ -213,6 +212,7 @@ public class ThriftEE {
         } catch (IOException e) {
             throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_001, e.getMessage());
         }
+        this.idlFiles = idlFiles;
 
         //------------------------------------------------------------------//
         // At this point we will parse the generated IDL and store the meta //
@@ -222,31 +222,25 @@ public class ThriftEE {
         // from the ThriftEE dashboard.                                     //
         //------------------------------------------------------------------//
         logger.info("Thrift initialization completed");
-        final Charset cs = Charset.forName("UTF-8");
-        final Map<String, Document> _parsedIDL = new TreeMap<String, Document>();
+        
         File globalFile = null;
-        for (int i = 0, c = idlFiles.length; i < c; i++) {
+        for (int i = 0, c = idlFiles.length; globalFile == null && i < c; i++) {
             final File idlFile = idlFiles[i];
             if ("global.thrift".equals(idlFile.getName())) {
                 globalFile = idlFile;
-            } else {
-                logger.debug("Parsing generated IDL: {}", idlFile.getName());
-                try {
-                    final InputSupplier<InputStreamReader> input = Files.newReaderSupplier(idlFile, cs);
-                    final Document document = ThriftIdlParser.parseThriftIdl(input);
-                    _parsedIDL.put(idlFile.getName(), document);
-                } catch (IOException e) {
-                    throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_003, e.getMessage());
-                }
-                logger.debug("Parsing {} complete.", idlFile.getName());
             }
         }
+
         if (globalFile == null) {
             throw new ThriftStartupException(ThriftStartupMessage.STARTUP_004); 
         } else {
             this.globalIdlFile = globalFile;
-            this.parsedIDL = Collections.unmodifiableMap(_parsedIDL);
-            logger.debug("Parsed IDL: " + this.parsedIDL);
+            try {
+                SchemaBuilder schemaBuilder = new SchemaBuilder();
+                this.schema = schemaBuilder.buildSchema(this);
+            } catch (SchemaBuilderException e) {
+                throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_003, e.getMessage());
+            }
         }
     }
 

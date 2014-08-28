@@ -88,11 +88,15 @@ public abstract class AbstractThriftEETest {
     
     private final ThriftEE thrift;
     
-    public AbstractThriftEETest() throws ThriftStartupException {
-        final String simpleName = getClass().getSimpleName();
-        final File tempDir = new File("target/tests/" + simpleName);
-        this.tempDirForClass = tempDir;
-        this.thrift = loadThriftee(tempDir);
+    public AbstractThriftEETest() {
+        try {
+            final String simpleName = getClass().getSimpleName();
+            final File tempDir = new File("target/tests/" + simpleName);
+            this.tempDirForClass = tempDir;
+            this.thrift = loadThriftee(tempDir);
+        } catch (ThriftStartupException e) {
+            throw new RuntimeException(e);
+        }
     }
     
     protected File getTempDirForTest() {

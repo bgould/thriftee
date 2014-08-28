@@ -14,8 +14,6 @@ import org.thriftee.examples.presidents.President;
 import org.thriftee.tests.AbstractThriftEETest;
 
 import com.facebook.swift.codec.ThriftCodec;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class ThriftEETest extends AbstractThriftEETest {
 
@@ -25,10 +23,10 @@ public class ThriftEETest extends AbstractThriftEETest {
 
     @Test
     public void testParsedIDL() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        String json = mapper.writeValueAsString(thrift().parsedIDL());
-        LOG.debug(json);
+//        ObjectMapper mapper = new ObjectMapper();
+//        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+//        String json = mapper.writeValueAsString(thrift().schema());
+//        LOG.debug(json);
         /*
         for (final String filename : thrift().parsedIDL().keySet()) {
             final Document parsedIDL = thrift().parsedIDL().get(filename);
