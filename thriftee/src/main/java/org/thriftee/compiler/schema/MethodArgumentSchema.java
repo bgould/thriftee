@@ -2,8 +2,13 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
+import org.thriftee.compiler.schema.MethodArgumentSchema.Builder;
 
-public class MethodArgumentSchema extends AbstractFieldSchema<MethodSchema, MethodArgumentSchema> {
+import com.facebook.swift.codec.ThriftConstructor;
+import com.facebook.swift.codec.ThriftStruct;
+
+@ThriftStruct(builder=Builder.class)
+public final class MethodArgumentSchema extends AbstractFieldSchema<MethodSchema, MethodArgumentSchema> {
 
     protected MethodArgumentSchema(
             MethodSchema _parent, 
@@ -32,6 +37,11 @@ public class MethodArgumentSchema extends AbstractFieldSchema<MethodSchema, Meth
             MethodSchema.Builder, 
             MethodArgumentSchema.Builder
         > {
+        
+        public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
+            this(null);
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
+        }
 
         protected Builder(MethodSchema.Builder parentBuilder) {
             super(parentBuilder, Builder.class);
@@ -52,6 +62,12 @@ public class MethodArgumentSchema extends AbstractFieldSchema<MethodSchema, Meth
                 isRequired(), 
                 getIdentifier()
             );
+        }
+
+        @Override
+        @ThriftConstructor
+        public MethodArgumentSchema build() throws SchemaBuilderException {
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
         }
 
     }

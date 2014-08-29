@@ -16,6 +16,11 @@ public final class ThriftAnnotation implements Serializable {
     
     private final String value;
     
+    public ThriftAnnotation() throws NoArgConstructorOnlyExistsForSwiftValidationException {
+        this(null, null);
+        throw new NoArgConstructorOnlyExistsForSwiftValidationException();
+    }
+    
     public ThriftAnnotation(final String _name, final String _value) {
         this.name = _name;
         this.value = _value;

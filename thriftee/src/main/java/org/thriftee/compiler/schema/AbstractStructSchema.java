@@ -69,7 +69,7 @@ abstract class AbstractStructSchema<P extends BaseSchema<?, ?>, T extends BaseSc
 
     @Override
     @ThriftField(THRIFT_INDEX_NAME)
-    String getName() {
+    public String getName() {
         return super.getName();
     }
 

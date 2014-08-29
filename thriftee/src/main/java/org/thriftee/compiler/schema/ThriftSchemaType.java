@@ -22,6 +22,11 @@ public final class ThriftSchemaType implements ISchemaType {
         return new ThriftSchemaType(_schemaType);
     }
     
+    public ThriftSchemaType() throws NoArgConstructorOnlyExistsForSwiftValidationException {
+        this(null);
+        throw new NoArgConstructorOnlyExistsForSwiftValidationException();
+    }
+    
     private ThriftSchemaType(ISchemaType _schemaType) {
         this.schemaType = _schemaType;
     }

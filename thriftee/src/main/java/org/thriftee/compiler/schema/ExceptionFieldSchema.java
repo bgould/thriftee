@@ -2,9 +2,12 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
+import org.thriftee.compiler.schema.ExceptionSchema.Builder;
+
+import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftStruct;
 
-@ThriftStruct
+@ThriftStruct(builder=Builder.class)
 public final class ExceptionFieldSchema extends AbstractFieldSchema<ExceptionSchema, ExceptionFieldSchema> {
 
     private ExceptionFieldSchema(
@@ -30,6 +33,11 @@ public final class ExceptionFieldSchema extends AbstractFieldSchema<ExceptionSch
 
     public static class Builder extends AbstractFieldSchema.AbstractFieldBuilder<ExceptionSchema, ExceptionFieldSchema, ExceptionSchema.Builder, ExceptionFieldSchema.Builder>  {
 
+        public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
+            this(null);
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
+        }
+        
         Builder(ExceptionSchema.Builder parentBuilder) {
             super(parentBuilder, Builder.class);
         }
@@ -42,6 +50,12 @@ public final class ExceptionFieldSchema extends AbstractFieldSchema<ExceptionSch
         @Override
         protected ExceptionFieldSchema _buildInstance(ExceptionSchema _parent) throws SchemaBuilderException {
             return new ExceptionFieldSchema(_parent, getName(), getAnnotations(), getType(), isRequired(), getIdentifier());
+        }
+
+        @Override
+        @ThriftConstructor
+        public ExceptionFieldSchema build() throws SchemaBuilderException {
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
         }
 
     }

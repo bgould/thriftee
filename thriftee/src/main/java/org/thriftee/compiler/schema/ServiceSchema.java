@@ -4,12 +4,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.thriftee.compiler.schema.ServiceSchema.Builder;
 import org.thriftee.util.New;
 
+import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
-@ThriftStruct
+@ThriftStruct(builder=Builder.class)
 public final class ServiceSchema extends BaseSchema<ModuleSchema, ServiceSchema> {
     
     public static final int THRIFT_INDEX_NAME = 1;
@@ -72,6 +74,11 @@ public final class ServiceSchema extends BaseSchema<ModuleSchema, ServiceSchema>
         
         private List<MethodSchema.Builder> methods = New.linkedList();
         
+        public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
+            this(null);
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
+        }
+        
         Builder(final ModuleSchema.Builder parentBuilder) {
             super(parentBuilder, ServiceSchema.Builder.class);
         }
@@ -103,6 +110,12 @@ public final class ServiceSchema extends BaseSchema<ModuleSchema, ServiceSchema>
         @Override
         protected String[] toStringFields() {
             return new String[] { "name", "annotations", "parentService", "methods", };
+        }
+
+        @Override
+        @ThriftConstructor
+        public ServiceSchema build() throws SchemaBuilderException {
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
         }
         
     }

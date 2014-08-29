@@ -63,6 +63,8 @@ abstract class AbstractSchemaBuilder<P extends BaseSchema<?, P>, T extends BaseS
         return getParentBuilder();
     }
     
+    public abstract T build() throws SchemaBuilderException;
+    
     protected String getName() {
         return this.name;
     }

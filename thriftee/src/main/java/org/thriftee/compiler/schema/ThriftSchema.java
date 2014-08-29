@@ -4,12 +4,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.thriftee.compiler.schema.ThriftSchema.Builder;
 import org.thriftee.util.New;
 
+import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
-@ThriftStruct
+@ThriftStruct(builder=Builder.class)
 public final class ThriftSchema extends BaseSchema<ThriftSchema, ThriftSchema> {
 
     public static final int THRIFT_INDEX_NAME = 1;
@@ -45,7 +47,7 @@ public final class ThriftSchema extends BaseSchema<ThriftSchema, ThriftSchema> {
 
     public static final class Builder extends AbstractSchemaBuilder<ThriftSchema, ThriftSchema, ThriftSchema.Builder, ThriftSchema.Builder> {
 
-        Builder() {
+        public Builder() {
             super(null, ThriftSchema.Builder.class);
         }
         
@@ -68,6 +70,8 @@ public final class ThriftSchema extends BaseSchema<ThriftSchema, ThriftSchema> {
             return new String[] { "name", "modules" };
         }
         
+        @Override
+        @ThriftConstructor
         public ThriftSchema build() throws SchemaBuilderException {
             return this._build(null);
         }

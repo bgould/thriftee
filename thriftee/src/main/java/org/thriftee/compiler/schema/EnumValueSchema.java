@@ -1,9 +1,12 @@
 package org.thriftee.compiler.schema;
 
+import org.thriftee.compiler.schema.EnumSchema.Builder;
+
+import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
-@ThriftStruct
+@ThriftStruct(builder=Builder.class)
 public final class EnumValueSchema extends BaseSchema<EnumSchema, EnumValueSchema> {
     
     public static final int THRIFT_INDEX_NAME = 1;
@@ -67,6 +70,12 @@ public final class EnumValueSchema extends BaseSchema<EnumSchema, EnumValueSchem
         @Override
         protected String[] toStringFields() {
             return new String[] { "name", "explicitValue" };
+        }
+        
+        @Override
+        @ThriftConstructor
+        public EnumValueSchema build() throws SchemaBuilderException {
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
         }
         
     }

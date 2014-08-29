@@ -1,10 +1,15 @@
 package org.thriftee.compiler.schema;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import org.apache.thrift.protocol.TSimpleJSONProtocol;
+import org.apache.thrift.transport.TMemoryBuffer;
 import org.junit.Test;
 import org.thriftee.framework.ThriftStartupException;
 import org.thriftee.tests.AbstractThriftEETest;
 
-import static org.junit.Assert.*;
+import com.facebook.swift.codec.ThriftCodec;
 
 public class SchemaBuilderTest extends AbstractThriftEETest {
 
@@ -13,7 +18,7 @@ public class SchemaBuilderTest extends AbstractThriftEETest {
     }
 
     @Test
-    public void testExampleSchema() {
+    public void testExampleSchema() throws Exception {
         
         ThriftSchema schema = thrift().schema();
         assertNotNull("schema must not be null", schema);
@@ -36,7 +41,12 @@ public class SchemaBuilderTest extends AbstractThriftEETest {
         LOG.debug("president struct protocol type: {}", presidentStruct.getProtocolType());
         LOG.debug("fields on president struct: {}", presidentStruct.getFields());
         
+        TMemoryBuffer transport = new TMemoryBuffer(1024 * 10);
+        TSimpleJSONProtocol protocol = new TSimpleJSONProtocol(transport);
+        ThriftCodec<ThriftSchema> codec = thrift().codecManager().getCodec(ThriftSchema.class);
+        codec.write(schema, protocol);
         
+        LOG.debug(transport.toString("UTF-8"));
         
     }
     

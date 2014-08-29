@@ -2,9 +2,12 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
+import org.thriftee.compiler.schema.StructFieldSchema.Builder;
+
+import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftStruct;
 
-@ThriftStruct
+@ThriftStruct(builder=Builder.class)
 public final class StructFieldSchema extends AbstractFieldSchema<StructSchema, StructFieldSchema> {
 
     private StructFieldSchema(
@@ -30,6 +33,11 @@ public final class StructFieldSchema extends AbstractFieldSchema<StructSchema, S
 
     public static class Builder extends AbstractFieldSchema.AbstractFieldBuilder<StructSchema, StructFieldSchema, StructSchema.Builder, StructFieldSchema.Builder>  {
 
+        public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
+            this(null);
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
+        }
+        
         Builder(StructSchema.Builder parentBuilder) {
             super(parentBuilder, Builder.class);
         }
@@ -42,6 +50,12 @@ public final class StructFieldSchema extends AbstractFieldSchema<StructSchema, S
         @Override
         protected StructFieldSchema _buildInstance(StructSchema _parent) throws SchemaBuilderException {
             return new StructFieldSchema(_parent, getName(), getAnnotations(), getType(), isRequired(), getIdentifier());
+        }
+
+        @Override
+        @ThriftConstructor
+        public StructFieldSchema build() throws SchemaBuilderException {
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
         }
 
     }

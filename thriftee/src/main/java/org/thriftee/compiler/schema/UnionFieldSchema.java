@@ -2,9 +2,11 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
+import org.thriftee.compiler.schema.UnionFieldSchema.Builder;
+
 import com.facebook.swift.codec.ThriftUnion;
 
-@ThriftUnion
+@ThriftUnion(builder=Builder.class)
 public final class UnionFieldSchema extends AbstractFieldSchema<UnionSchema, UnionFieldSchema> {
 
     private UnionFieldSchema(
@@ -34,6 +36,11 @@ public final class UnionFieldSchema extends AbstractFieldSchema<UnionSchema, Uni
             UnionSchema.Builder,
             UnionFieldSchema.Builder 
         >  {
+        
+        public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
+            this(null);
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
+        }
 
         Builder(UnionSchema.Builder parentBuilder) {
             super(parentBuilder, Builder.class);
@@ -57,6 +64,11 @@ public final class UnionFieldSchema extends AbstractFieldSchema<UnionSchema, Uni
             );
         }
 
+        @Override
+        public UnionFieldSchema build() throws SchemaBuilderException {
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
+        }
+        
     }
     
 }

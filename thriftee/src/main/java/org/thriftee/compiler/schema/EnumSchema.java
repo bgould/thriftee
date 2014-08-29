@@ -4,12 +4,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.thriftee.compiler.schema.EnumSchema.Builder;
 import org.thriftee.util.New;
 
+import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftProtocolType;
 import com.facebook.swift.codec.ThriftStruct;
 
-@ThriftStruct
+@ThriftStruct(builder=Builder.class)
 public final class EnumSchema extends BaseSchemaType<ModuleSchema, EnumSchema> {
 
     private static final long serialVersionUID = -6204420892157052800L;
@@ -17,7 +19,7 @@ public final class EnumSchema extends BaseSchemaType<ModuleSchema, EnumSchema> {
     private final ModuleSchema module;
     
     private final Map<String, EnumValueSchema> enumValues;
-    
+
     public EnumSchema(ModuleSchema parent, String _name, Collection<EnumValueSchema.Builder> enumValues) 
             throws SchemaBuilderException {
         super(ModuleSchema.class, EnumSchema.class, parent, new ReferenceSchemaType(
@@ -50,6 +52,11 @@ public final class EnumSchema extends BaseSchemaType<ModuleSchema, EnumSchema> {
     
     public static class Builder extends AbstractSchemaBuilder<ModuleSchema, EnumSchema, ModuleSchema.Builder, Builder> {
 
+        public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
+            this(null);
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
+        }
+        
         Builder(ModuleSchema.Builder parentBuilder) {
             super(parentBuilder, Builder.class);
         }
@@ -71,6 +78,12 @@ public final class EnumSchema extends BaseSchemaType<ModuleSchema, EnumSchema> {
         @Override
         protected String[] toStringFields() {
             return new String[] { "name", "enumValues" };
+        }
+
+        @Override
+        @ThriftConstructor
+        public EnumSchema build() throws SchemaBuilderException {
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
         }
         
     }

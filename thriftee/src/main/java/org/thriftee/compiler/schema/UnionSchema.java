@@ -2,9 +2,12 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
-import com.facebook.swift.codec.ThriftUnion;
+import org.thriftee.compiler.schema.UnionSchema.Builder;
 
-@ThriftUnion
+import com.facebook.swift.codec.ThriftConstructor;
+import com.facebook.swift.codec.ThriftStruct;
+
+@ThriftStruct(builder=Builder.class)
 public final class UnionSchema extends AbstractStructSchema<ModuleSchema, UnionSchema, UnionFieldSchema, UnionFieldSchema.Builder> {
     
     private static final long serialVersionUID = 9173725847653740446L;
@@ -31,6 +34,11 @@ public final class UnionSchema extends AbstractStructSchema<ModuleSchema, UnionS
         ModuleSchema.Builder, 
         UnionFieldSchema.Builder, 
         UnionSchema.Builder> {
+        
+        public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
+            this(null);
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
+        }
 
         protected Builder(ModuleSchema.Builder parentBuilder) {
             super(parentBuilder, Builder.class);
@@ -44,6 +52,12 @@ public final class UnionSchema extends AbstractStructSchema<ModuleSchema, UnionS
         @Override
         protected UnionSchema _createStruct(ModuleSchema _parent) throws SchemaBuilderException {
             return new UnionSchema(_parent, getName(), _getFields(), getAnnotations());
+        }
+
+        @Override
+        @ThriftConstructor
+        public UnionSchema build() throws SchemaBuilderException {
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
         }
 
     }
