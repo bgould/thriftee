@@ -19,7 +19,7 @@ import com.facebook.swift.codec.ThriftProtocolType;
  * @param <F> The type for the fields of this schema
  * @param <FB> The type for the builder for the fields
  */
-abstract class AbstractStructSchema<P extends BaseSchema<?, ?>, T extends BaseSchema<P, T>, F extends AbstractFieldSchema<T, F>, FB extends AbstractFieldBuilder<T, F, ?, ?>> extends BaseSchemaType<P, T> {
+public abstract class AbstractStructSchema<P extends BaseSchema<?, ?>, T extends BaseSchema<P, T>, F extends AbstractFieldSchema<T, F>, FB extends AbstractFieldBuilder<T, F, ?, ?>> extends BaseSchemaType<P, T> {
 
     private static final long serialVersionUID = -7411640934657605126L;
 
@@ -84,7 +84,7 @@ abstract class AbstractStructSchema<P extends BaseSchema<?, ?>, T extends BaseSc
         return this.fields;
     }
 
-    static abstract class AbstractStructSchemaBuilder<
+    public static abstract class AbstractStructSchemaBuilder<
             P extends BaseSchema<?, P>, 
             T extends BaseSchema<P, T>, 
             PB extends AbstractSchemaBuilder<?, P, ?, ?>,

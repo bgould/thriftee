@@ -28,7 +28,7 @@ public final class UnionSchema extends AbstractStructSchema<ModuleSchema, UnionS
         );
     }
     
-    static final class Builder extends AbstractStructSchema.AbstractStructSchemaBuilder<
+    public static final class Builder extends AbstractStructSchema.AbstractStructSchemaBuilder<
         ModuleSchema, 
         UnionSchema, 
         ModuleSchema.Builder, 

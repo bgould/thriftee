@@ -4,13 +4,26 @@ import java.util.Collection;
 
 import org.thriftee.compiler.schema.SchemaBuilderException.Messages;
 
-abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends BaseSchema<P, T>> extends BaseSchema<P, T> {
+import com.facebook.swift.codec.ThriftEnum;
+import com.facebook.swift.codec.ThriftField;
 
-    private final Long identifier;
+public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends BaseSchema<P, T>> extends BaseSchema<P, T> {
+
+    public static final int THRIFT_INDEX_NAME = 1;
+    
+    public static final int THRIFT_INDEX_IDENTIFIER = THRIFT_INDEX_NAME + 1;
+    
+    public static final int THRIFT_INDEX_TYPE = THRIFT_INDEX_IDENTIFIER + 1;
+    
+    public static final int THRIFT_INDEX_REQUIRED = THRIFT_INDEX_TYPE + 1;
+    
+    public static final int THRIFT_INDEX_ANNOTATIONS = THRIFT_INDEX_REQUIRED + 1;
+    
+    private final Integer identifier;
 
     private final ISchemaType type;
 
-    private final Boolean required;
+    private final Requiredness requiredness;
 
     //private final ConstantValue defaultValue;
 
@@ -21,40 +34,61 @@ abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends BaseSch
             String _name, 
             Collection<ThriftAnnotation> _annotations,
             ISchemaType _type, 
-            Boolean _required, 
+            Requiredness _requiredness, 
             Long _identifier) throws SchemaBuilderException {
         super(parentClass, thisClass, _parent, _name, _annotations);
         this.type = _type;
-        this.required = _required;
-        this.identifier = _identifier;
+        this.requiredness = _requiredness;
+        this.identifier = verifyAndConvertToInteger(_identifier);
+    }
+    
+    private final Integer verifyAndConvertToInteger(Long _identifier) {
+        if (_identifier == null) {
+            return null;
+        }
+        if (_identifier.longValue() > Integer.MAX_VALUE || _identifier.longValue() < Integer.MIN_VALUE) {
+            throw new IllegalArgumentException(
+                "Loss of precision would have occurred on conversion from long to int.");
+        } else {
+            return _identifier.intValue();
+        }
+    }
+    
+    @ThriftField(THRIFT_INDEX_NAME)
+    public String getName() {
+        return super.getName();
     }
 
-    public Long getIdentifier() {
+    @ThriftField(THRIFT_INDEX_IDENTIFIER)
+    public Integer getIdentifier() {
         return identifier;
     }
 
-    public ISchemaType getType() {
-        return type;
+    @ThriftField(THRIFT_INDEX_TYPE)
+    public ThriftSchemaType getType() {
+        return ThriftSchemaType.wrap(type);
     }
 
-    public Boolean getRequired() {
-        return required;
+    @ThriftField(THRIFT_INDEX_REQUIRED)
+    public Requiredness getRequiredness() {
+        return requiredness;
     }
 
     private static final long serialVersionUID = 4332069454537397041L;
     
-    public static enum Required {
+    @ThriftEnum
+    public static enum Requiredness {
         REQUIRED, OPTIONAL, NONE;
     }
 
-    static abstract class AbstractFieldBuilder<
+    public static abstract class AbstractFieldBuilder<
         P extends BaseSchema<?, P>, 
         T extends BaseSchema<P, T>, 
         PB extends AbstractSchemaBuilder<?, P, ?, ?>, 
         B extends AbstractFieldBuilder<P, T, PB, B>
     > extends AbstractSchemaBuilder<P, T, PB, B> {
 
-        private Boolean required;
+        private Requiredness required;
         
         private ISchemaType type;
         
@@ -69,8 +103,13 @@ abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends BaseSch
             return $this;
         }
 
-        public final B required(Boolean required) {
+        public final B requiredness(Requiredness required) {
             this.required = required;
+            return $this;
+        }
+        
+        public final B identifier(Integer _identifier) {
+            this.identifier = _identifier.longValue();
             return $this;
         }
         
@@ -83,7 +122,7 @@ abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends BaseSch
             return this.type;
         }
         
-        protected final Boolean isRequired() {
+        protected final Requiredness getRequiredness() {
             return this.required;
         }
         

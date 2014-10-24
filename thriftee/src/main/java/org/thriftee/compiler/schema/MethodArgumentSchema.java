@@ -15,7 +15,7 @@ public final class MethodArgumentSchema extends AbstractFieldSchema<MethodSchema
             String _name, 
             Collection<ThriftAnnotation> _annotations,
             ISchemaType _type, 
-            Boolean _required, 
+            Requiredness _required, 
             Long _identifier) throws SchemaBuilderException {
         super(
             MethodSchema.class, 
@@ -59,7 +59,7 @@ public final class MethodArgumentSchema extends AbstractFieldSchema<MethodSchema
                 getName(), 
                 getAnnotations(), 
                 getType(), 
-                isRequired(), 
+                getRequiredness(), 
                 getIdentifier()
             );
         }

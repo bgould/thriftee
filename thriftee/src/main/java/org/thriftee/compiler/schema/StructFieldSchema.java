@@ -15,7 +15,7 @@ public final class StructFieldSchema extends AbstractFieldSchema<StructSchema, S
             String _name, 
             Collection<ThriftAnnotation> _annotations,
             ISchemaType _type,
-            Boolean _required, 
+            Requiredness _required, 
             Long _identifier) throws SchemaBuilderException {
         super(
             StructSchema.class, 
@@ -31,7 +31,11 @@ public final class StructFieldSchema extends AbstractFieldSchema<StructSchema, S
 
     private static final long serialVersionUID = 1432035891017906486L;
 
-    public static class Builder extends AbstractFieldSchema.AbstractFieldBuilder<StructSchema, StructFieldSchema, StructSchema.Builder, StructFieldSchema.Builder>  {
+    public static class Builder extends AbstractFieldSchema.AbstractFieldBuilder<
+            StructSchema, 
+            StructFieldSchema, 
+            StructSchema.Builder, 
+            StructFieldSchema.Builder>  {
 
         public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
             this(null);
@@ -49,7 +53,7 @@ public final class StructFieldSchema extends AbstractFieldSchema<StructSchema, S
 
         @Override
         protected StructFieldSchema _buildInstance(StructSchema _parent) throws SchemaBuilderException {
-            return new StructFieldSchema(_parent, getName(), getAnnotations(), getType(), isRequired(), getIdentifier());
+            return new StructFieldSchema(_parent, getName(), getAnnotations(), getType(), getRequiredness(), getIdentifier());
         }
 
         @Override

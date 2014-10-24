@@ -63,7 +63,7 @@ public final class MethodSchema extends BaseSchema<ServiceSchema, MethodSchema> 
         return super.getAnnotations();
     }
 
-    @ThriftField(THRIFT_INDEX_ONEWAY)
+    @ThriftField(value=THRIFT_INDEX_ONEWAY, name="onewayMethod")
     public boolean isOneway() {
         return oneway;
     }

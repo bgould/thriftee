@@ -1,6 +1,6 @@
 package org.thriftee.compiler.schema;
 
-import org.thriftee.compiler.schema.EnumSchema.Builder;
+import org.thriftee.compiler.schema.EnumValueSchema.Builder;
 
 import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftField;
@@ -50,6 +50,11 @@ public final class EnumValueSchema extends BaseSchema<EnumSchema, EnumValueSchem
     public static final class Builder extends AbstractSchemaBuilder<EnumSchema, EnumValueSchema, EnumSchema.Builder, EnumValueSchema.Builder> {
         
         private Long explicitValue = null;
+        
+        public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
+            this(null);
+            throw new NoArgConstructorOnlyExistsForSwiftValidationException();
+        }
         
         Builder(EnumSchema.Builder parent) {
             super(parent, Builder.class);

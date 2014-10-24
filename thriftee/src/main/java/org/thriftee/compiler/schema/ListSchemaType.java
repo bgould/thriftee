@@ -4,7 +4,7 @@ import com.facebook.swift.codec.ThriftProtocolType;
 
 public class ListSchemaType extends ContainerSchemaType {
 
-    protected ListSchemaType(ISchemaType valueType) {
+    public ListSchemaType(ISchemaType valueType) {
         super(valueType);
     }
 

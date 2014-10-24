@@ -28,7 +28,7 @@ public final class StructSchema extends AbstractStructSchema<ModuleSchema, Struc
         );
     }
     
-    static final class Builder extends AbstractStructSchema.AbstractStructSchemaBuilder<
+    public static final class Builder extends AbstractStructSchema.AbstractStructSchemaBuilder<
         ModuleSchema, 
         StructSchema, 
         ModuleSchema.Builder, 

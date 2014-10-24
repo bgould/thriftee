@@ -32,6 +32,8 @@ public class PHPClientServlet extends ZipFileBrowsingServlet {
             ThriftCommand cmd = new ThriftCommand(Generate.PHP);
             cmd.addFlag(Flag.PHP_NAMESPACE);
             cmd.addFlag(Flag.PHP_OOP);
+            cmd.setRecurse(true);
+            cmd.setVerbose(true);
             if (thrift().thriftExecutable() != null) {
                 cmd.setThriftCommand(thrift().thriftExecutable().getAbsolutePath());
             }

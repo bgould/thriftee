@@ -8,15 +8,18 @@ import org.thriftee.compiler.schema.EnumSchema.Builder;
 import org.thriftee.util.New;
 
 import com.facebook.swift.codec.ThriftConstructor;
+import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftProtocolType;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct(builder=Builder.class)
 public final class EnumSchema extends BaseSchemaType<ModuleSchema, EnumSchema> {
 
+    public static final int THRIFT_INDEX_NAME = 1;
+    
+    public static final int THRIFT_INDEX_VALUES = THRIFT_INDEX_NAME + 1;
+    
     private static final long serialVersionUID = -6204420892157052800L;
-
-    private final ModuleSchema module;
     
     private final Map<String, EnumValueSchema> enumValues;
 
@@ -25,24 +28,28 @@ public final class EnumSchema extends BaseSchemaType<ModuleSchema, EnumSchema> {
         super(ModuleSchema.class, EnumSchema.class, parent, new ReferenceSchemaType(
             ThriftProtocolType.ENUM, parent.getName(), _name
         ), null);
-        this.module = parent;
         this.enumValues = toMap(this, enumValues);
     }
     
+    @ThriftField(THRIFT_INDEX_VALUES)
     public Map<String, EnumValueSchema> getEnumValues() {
         return this.enumValues;
     }
     
-    public ModuleSchema getModule() {
-        return this.module;
-    }
-    
+    @Override
     public String getModuleName() {
-        return this.getModule().getName();
+        return this.getParent().getName();
     }
     
+    @Override
     public String getTypeName() {
         return this.getName();
+    }
+    
+    @Override
+    @ThriftField(THRIFT_INDEX_NAME)
+    public String getName() {
+        return super.getName();
     }
     
     @Override

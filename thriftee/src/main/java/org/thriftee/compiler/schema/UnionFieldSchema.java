@@ -4,9 +4,10 @@ import java.util.Collection;
 
 import org.thriftee.compiler.schema.UnionFieldSchema.Builder;
 
-import com.facebook.swift.codec.ThriftUnion;
+import com.facebook.swift.codec.ThriftConstructor;
+import com.facebook.swift.codec.ThriftStruct;
 
-@ThriftUnion(builder=Builder.class)
+@ThriftStruct(builder=Builder.class)
 public final class UnionFieldSchema extends AbstractFieldSchema<UnionSchema, UnionFieldSchema> {
 
     private UnionFieldSchema(
@@ -14,7 +15,7 @@ public final class UnionFieldSchema extends AbstractFieldSchema<UnionSchema, Uni
             String _name, 
             Collection<ThriftAnnotation> _annotations,
             ISchemaType _type,
-            Boolean _required, 
+            Requiredness _required, 
             Long _identifier) throws SchemaBuilderException {
         super(
             UnionSchema.class, 
@@ -59,12 +60,13 @@ public final class UnionFieldSchema extends AbstractFieldSchema<UnionSchema, Uni
                 getName(), 
                 getAnnotations(), 
                 getType(), 
-                isRequired(), 
+                getRequiredness(), 
                 getIdentifier()
             );
         }
 
         @Override
+        @ThriftConstructor
         public UnionFieldSchema build() throws SchemaBuilderException {
             throw new NoArgConstructorOnlyExistsForSwiftValidationException();
         }

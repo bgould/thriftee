@@ -2,7 +2,7 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
-import org.thriftee.compiler.schema.ExceptionSchema.Builder;
+import org.thriftee.compiler.schema.ExceptionFieldSchema.Builder;
 
 import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftStruct;
@@ -15,7 +15,7 @@ public final class ExceptionFieldSchema extends AbstractFieldSchema<ExceptionSch
             String _name, 
             Collection<ThriftAnnotation> _annotations,
             ISchemaType _type,
-            Boolean _required, 
+            Requiredness _required, 
             Long _identifier) throws SchemaBuilderException {
         super(
             ExceptionSchema.class, 
@@ -44,12 +44,12 @@ public final class ExceptionFieldSchema extends AbstractFieldSchema<ExceptionSch
 
         @Override
         protected String _fieldTypeName() {
-            return "field";
+            return "exception field";
         }
 
         @Override
         protected ExceptionFieldSchema _buildInstance(ExceptionSchema _parent) throws SchemaBuilderException {
-            return new ExceptionFieldSchema(_parent, getName(), getAnnotations(), getType(), isRequired(), getIdentifier());
+            return new ExceptionFieldSchema(_parent, getName(), getAnnotations(), getType(), getRequiredness(), getIdentifier());
         }
 
         @Override

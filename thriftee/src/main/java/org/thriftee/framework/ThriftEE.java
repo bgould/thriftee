@@ -18,13 +18,16 @@ import org.thriftee.compiler.schema.SchemaBuilder;
 import org.thriftee.compiler.schema.SchemaBuilderException;
 import org.thriftee.compiler.schema.ThriftSchema;
 import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
+import org.thriftee.provider.swift.SwiftSchemaBuilder;
 import org.thriftee.util.New;
 
 import com.facebook.swift.codec.ThriftCodecManager;
 import com.facebook.swift.codec.ThriftEnum;
 import com.facebook.swift.codec.ThriftStruct;
 import com.facebook.swift.codec.ThriftUnion;
-import com.facebook.swift.codec.internal.compiler.CompilerThriftCodecFactory;
+import com.facebook.swift.codec.internal.coercion.DefaultJavaCoercions;
+//import com.facebook.swift.codec.internal.compiler.CompilerThriftCodecFactory;
+import com.facebook.swift.codec.internal.reflection.ReflectionThriftCodecFactory;
 import com.facebook.swift.service.ThriftService;
 
 public class ThriftEE {
@@ -131,8 +134,9 @@ public class ThriftEE {
             throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_002);
         }
 
-        //thriftCodecManager = new ThriftCodecManager(new ReflectionThriftCodecFactory());
-        thriftCodecManager = new ThriftCodecManager(new CompilerThriftCodecFactory(false));
+        thriftCodecManager = new ThriftCodecManager(new ReflectionThriftCodecFactory());
+        //thriftCodecManager = new ThriftCodecManager(new CompilerThriftCodecFactory(false));
+        thriftCodecManager.getCatalog().addDefaultCoercions(DefaultJavaCoercions.class);
 
         logger.info("Initializing Thrift Services ----");
         logger.info("Services detected:  {}", thriftServices);
@@ -236,7 +240,7 @@ public class ThriftEE {
         } else {
             this.globalIdlFile = globalFile;
             try {
-                SchemaBuilder schemaBuilder = new SchemaBuilder();
+                SchemaBuilder schemaBuilder = new SwiftSchemaBuilder();
                 this.schema = schemaBuilder.buildSchema(this);
             } catch (SchemaBuilderException e) {
                 throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_003, e.getMessage());
