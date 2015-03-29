@@ -2,7 +2,6 @@ package org.thriftee.provider.swift;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Map;
 
@@ -16,10 +15,9 @@ import org.thriftee.util.New;
 
 import com.facebook.swift.parser.ThriftIdlParser;
 import com.facebook.swift.parser.model.Document;
+import com.google.common.io.CharSource;
 import com.google.common.io.Files;
-import com.google.common.io.InputSupplier;
 
-@SuppressWarnings("deprecation")
 public class SwiftSchemaBuilder implements SchemaBuilder {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -38,7 +36,7 @@ public class SwiftSchemaBuilder implements SchemaBuilder {
         for (File idlFile : thrift.idlFiles()) {
             logger.debug("Parsing generated IDL: {}", idlFile.getName());
             try {
-                final InputSupplier<InputStreamReader> input = Files.newReaderSupplier(idlFile, cs);
+                final CharSource input = Files.asCharSource(idlFile, cs);
                 final Document document = ThriftIdlParser.parseThriftIdl(input);
                 documents.put(idlFile.getName(), document);
             } catch (IOException e) {
