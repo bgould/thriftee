@@ -5,7 +5,7 @@
     <parent>
         <artifactId>thriftee-root</artifactId>
         <groupId>org.thriftee</groupId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.2-SNAPSHOT</version>
     </parent>
     <artifactId>thriftee</artifactId>
     <name>thriftee</name>

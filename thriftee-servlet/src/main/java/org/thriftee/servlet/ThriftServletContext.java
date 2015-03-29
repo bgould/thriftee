@@ -57,7 +57,7 @@ public class ThriftServletContext {
         	final ThriftEE svcs = new ThriftEEFactory().create(config);
         	ctx.setAttribute(THRIFT_SERVICES_ATTR, svcs);
         } catch (ThriftStartupException e) {
-        	
+            e.printStackTrace();    	
         }
     }
 
