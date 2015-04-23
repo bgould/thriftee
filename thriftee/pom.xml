@@ -22,10 +22,6 @@
                     <groupId>com.google.guava</groupId>
                 </exclusion>
                 <exclusion>
-                    <artifactId>libthrift</artifactId>
-                    <groupId>org.apache.thrift</groupId>
-                </exclusion>
-                <exclusion>
                     <artifactId>slf4j-api</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
@@ -95,6 +91,7 @@
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>org.apache.thrift</groupId>
             <artifactId>libthrift</artifactId>
@@ -105,7 +102,8 @@
                     <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
+          </dependency>
+        -->
         <dependency>
             <groupId>org.thriftee</groupId>
             <artifactId>thriftee-examples</artifactId>

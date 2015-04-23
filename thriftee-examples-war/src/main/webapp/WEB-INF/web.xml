@@ -4,10 +4,6 @@
     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
     version="3.0">
     <display-name>thriftee-examples-war</display-name>
-    <context-param>
-        <param-name>thrift.lib.dir</param-name>
-        <param-value>D:\projects\thrift\lib</param-value>
-    </context-param>
     <!-- <security-constraint> <web-resource-collection> <web-resource-name>Secured 
         Services</web-resource-name> <url-pattern>/*</url-pattern> </web-resource-collection> 
         <auth-constraint> <role-name>AUTHENTICATED_USER</role-name> <role-name>UNAUTHENTICATED</role-name> 
