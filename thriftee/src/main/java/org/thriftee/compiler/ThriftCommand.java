@@ -111,6 +111,7 @@ public class ThriftCommand {
         JAVA("Java"),
         JAVAME("Java ME"),
         JS("Javascript"),
+        JSON("JSON"),
         OCAML("OCaml"),
         PERL("Perl"),
         PHP("PHP"),

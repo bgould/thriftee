@@ -9,9 +9,8 @@ import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thriftee.provider.swift.Generator;
 import org.thriftee.util.FileUtil;
-
-import com.facebook.swift.generator.swift2thrift.Generator;
 
 /**
  * Generates IDL code for a set of a Swift-annotated classes for use in by the regular Thrift compiler.

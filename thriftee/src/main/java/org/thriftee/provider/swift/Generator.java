@@ -1,7 +1,9 @@
-package com.facebook.swift.generator.swift2thrift;
+package org.thriftee.provider.swift;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +13,9 @@ import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.facebook.swift.generator.swift2thrift.Swift2ThriftGenerator;
+import com.facebook.swift.generator.swift2thrift.Swift2ThriftGeneratorConfig;
 
 public class Generator {
 
@@ -37,13 +42,29 @@ public class Generator {
         }
         tempDir = _tempDir;
     }
+    
+    // TODO: this is an ugly hack that needs an upstream fix to be removed
+    private static Swift2ThriftGenerator forConfig(Swift2ThriftGeneratorConfig config) {
+        try {
+            final Constructor<Swift2ThriftGenerator> ctor = 
+                Swift2ThriftGenerator.class.getDeclaredConstructor(new Class[] {
+                    Swift2ThriftGeneratorConfig.class
+                });
+            ctor.setAccessible(true);
+            return ctor.newInstance(config);
+        } catch (NoSuchMethodException|IllegalAccessException|InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e.getCause());
+        }
+    }
 
     public File generate() throws IOException {
         init();
         for (Map.Entry<String, Set<Class<?>>> pkg : packageMap.entrySet()) {
             File outputFile = new File(tempDir, makeThriftFilename(pkg.getKey()));
             Swift2ThriftGeneratorConfig config = createConfig(outputFile, pkg.getKey());
-            Swift2ThriftGenerator generator = new Swift2ThriftGenerator(config);
+            Swift2ThriftGenerator generator = forConfig(config);
             List<String> classNames = new ArrayList<String>(pkg.getValue().size());
             for (Class<?> klass : pkg.getValue()) {
                 classNames.add(klass.getName());
@@ -74,8 +95,8 @@ public class Generator {
             set.add(klass);
             includeMap.put(klass.getName(), makeThriftFilename(packageName));
         }
-        LOG.info("[Generator] final include map: " + includeMap);
-        LOG.info("[Generator] final package map: " + packageMap);
+        LOG.debug("[Generator] final include map: " + includeMap);
+        LOG.debug("[Generator] final package map: " + packageMap);
     }
 
     private Swift2ThriftGeneratorConfig createConfig(File _outputFile, String _packageName) {
