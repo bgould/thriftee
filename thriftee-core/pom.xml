@@ -10,8 +10,8 @@
     <version>0.2-SNAPSHOT</version>
   </parent>
 
-  <artifactId>thriftee</artifactId>
-  <name>thriftee</name>
+  <artifactId>thriftee-core</artifactId>
+  <name>thriftee-core</name>
 
   <dependencies>
  
@@ -40,6 +40,18 @@
       <groupId>com.facebook.swift</groupId>
       <artifactId>swift-generator</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.restlet.jee</groupId>
+      <artifactId>org.restlet</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.restlet.jee</groupId>
+      <artifactId>org.restlet.ext.servlet</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.restlet.jee</groupId>
+      <artifactId>org.restlet.ext.freemarker</artifactId>
+    </dependency>
 
     <!-- test scoped dependencies -->
     <dependency>
@@ -57,11 +69,17 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
  
   <build>
     <plugins>
+<!--
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
@@ -73,7 +91,6 @@
           </execution>
         </executions>
       </plugin>
-<!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
