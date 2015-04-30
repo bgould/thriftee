@@ -9,7 +9,7 @@
   <version>0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   
-  <name>ThriftEE RPC Services</name>
+  <name>thriftee-root</name>
   
   <modules>
     <module>thriftee-core</module>
@@ -18,20 +18,6 @@
     <module>thriftee-servlet</module>
   </modules>
   
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.1</version>
-        <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
   <repositories>
     <repository>
       <id>maven-restlet</id>
@@ -42,6 +28,16 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
         <artifactId>thriftee-core</artifactId>
@@ -76,6 +72,17 @@
         <groupId>com.facebook.swift</groupId>
         <artifactId>swift-annotations</artifactId>
         <version>${swift.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>libthrift</artifactId>
+        <version>${thrift.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.facebook.swift</groupId>
@@ -153,12 +160,6 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>${slf4j.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
         <groupId>javax.servlet</groupId>
         <artifactId>javax.servlet-api</artifactId>
         <version>3.0.1</version>
@@ -172,9 +173,85 @@
     <swift.version>0.16.0-SNAPSHOT</swift.version>
     <junit.version>4.11</junit.version>
     <slf4j.version>1.7.5</slf4j.version>
+    <tomee.version>1.7.1</tomee.version>
     <thrift.version>0.9.2</thrift.version>
     <restlet.version>2.3.1</restlet.version>
     <commons.lang.version>2.6</commons.lang.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+
+  <profiles>
+    <profile>
+      <id>ram-tmp-dir</id>
+      <activation>
+        <file><exists>/var/ramdisk/maven-targets</exists></file>
+      </activation>
+      <properties>
+        <build.tmp>/var/ramdisk/maven-targets/${project.name}</build.tmp>
+        <build.dir>${build.tmp}</build.dir>
+        <build.outputDir>${build.tmp}/classes</build.outputDir>
+        <build.testOutputDir>${build.tmp}/test-classes</build.testOutputDir>
+      </properties>
+    </profile>
+    <profile>
+      <id>no-ram-tmp-dir</id>
+      <activation>
+        <file><missing>/var/ramdisk/maven-targets</missing></file>
+      </activation>
+      <properties>
+        <build.tmp>target</build.tmp>
+        <build.dir>${build.tmp}</build.dir>
+        <build.outputDir>${build.tmp}/classes</build.outputDir>
+        <build.testOutputDir>${build.tmp}/test-classes</build.testOutputDir>
+      </properties>
+    </profile>
+  </profiles>
+
+  <build>
+    <directory>${build.dir}</directory>
+    <outputDirectory>${build.outputDir}</outputDirectory>
+    <testOutputDirectory>${build.testOutputDir}</testOutputDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.1</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.18.1</version>
+        <configuration>
+          <systemProperties>
+            <property>
+              <name>thriftee.build.dir</name>
+              <value>${build.dir}</value>
+            </property>
+          </systemProperties>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.openejb.maven</groupId>
+        <artifactId>tomee-maven-plugin</artifactId>
+        <version>${tomee.version}</version>
+        <configuration>
+          <tomeeVersion>${tomee.version}</tomeeVersion>
+          <removeTomeeWebapp>true</removeTomeeWebapp>
+          <removeDefaultWebapps>true</removeDefaultWebapps>
+          <webapps>
+            <webapp>org.thriftee:thriftee-examples-war:${project.version}?name=examples</webapp>
+          </webapps>
+          <libs>
+            <lib>org.eclipse.persistence:eclipselink:2.5.1</lib>
+            <lib>remove:openjpa</lib>
+          </libs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

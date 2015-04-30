@@ -9,7 +9,7 @@ import org.scannotation.AnnotationDB;
  * {@link org.scannotation.AnnotationDB} in order to search for runtime
  * annotations.
  * 
- * @author y12784
+ * @author bcg 
  */
 public interface ScannotationConfigurator {
 

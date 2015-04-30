@@ -31,7 +31,8 @@ public class ExportIDLTest {
         StackTraceElement stackTraceElement = Thread.currentThread().getStackTrace()[2];
         String className = stackTraceElement.getClassName();
         String simpleName = className.substring(className.lastIndexOf('.') + 1);
-        File tempDir = new File("target/tests/" + simpleName);
+        String prefix = System.getProperty("thriftee.build.dir", "target");
+        File tempDir = new File(prefix + "/tests/" + simpleName);
         File retval = new File(tempDir, stackTraceElement.getMethodName());
         return retval;
     }

@@ -10,7 +10,7 @@
   </parent>
   <artifactId>thriftee-examples-war</artifactId>
   <packaging>war</packaging>
-  <name>thriftee-examples-war Example Webapp for ThriftEE</name>
+  <name>thriftee-examples-war</name>
   <dependencies>
     <dependency>
       <groupId>org.thriftee</groupId>
@@ -21,23 +21,12 @@
       <artifactId>thriftee-servlet</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>eclipselink</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -70,7 +59,7 @@
       <plugin>
         <groupId>org.apache.openejb.maven</groupId>
         <artifactId>tomee-maven-plugin</artifactId>
-        <version>1.0.1</version>
+        <version>1.7.1</version>
         <configuration>
           <tomeeVersion>1.7.1</tomeeVersion>
           <removeTomeeWebapp>true</removeTomeeWebapp>

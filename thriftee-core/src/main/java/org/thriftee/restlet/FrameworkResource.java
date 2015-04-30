@@ -35,7 +35,10 @@ public abstract class FrameworkResource extends ServerResource {
     final Map<String, Object> model = new HashMap<>();
     model.put("data", data);
     model.put("title", "Debug Template");
-    model.put("resource", this);
+    model.put("restlet", this);
+    model.put("context", getContext());
+    model.put("request", getRequest());
+    model.put("response", getResponse());
     return getTemplate("debug", model, mediaType); 
   }
   

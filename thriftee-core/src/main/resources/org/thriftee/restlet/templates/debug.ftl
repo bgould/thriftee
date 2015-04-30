@@ -3,8 +3,10 @@
 <h2>${title}</h2>
 
 <pre>
-Resource Name: 
-Resource Ref:  
+Root URI: ${restlet.reference!"<null>"}
+Root Ref: ${restlet.rootRef!"<null>"}
+Base Ref: ${restlet.reference.baseRef!"<null>"}
+Leftover: ${restlet.reference.remainingPart!"<null>"}
 </pre>
 
 <#include "_footer.ftl">

@@ -2,9 +2,7 @@
 <project
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
   xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>org.thriftee</groupId>
     <artifactId>thriftee-root</artifactId>
@@ -13,20 +11,17 @@
 
   <artifactId>thriftee-servlet</artifactId>
   <name>thriftee-servlet</name>
-  <url>http://maven.apache.org</url>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
 
   <dependencies>
     <dependency>
-      <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-core</artifactId>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>org.thriftee</groupId>
+      <artifactId>thriftee-core</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -54,86 +49,10 @@
                 </goals>
                 <configuration>
                   <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
-                  <artifactSet>
-                    <excludes>
-                      <exclude>io.airlift:configuration</exclude>
-                      <exclude>io.airlift:units</exclude>
-                      <exclude>io.airlift:stats</exclude>
-                      <exclude>io.netty:netty</exclude>
-                      <exclude>slf4j-api:org.slf4j</exclude>
-                      <exclude>com.google.*:guice-*</exclude>
-                      <exclude>org.weakref:jmxutils</exclude>
-                      <exclude>javax.inject:javax.inject</exclude>
-                      <exclude>com.facebook.nifty:nifty-client</exclude>
-                      <exclude>com.facebook.swift:swift-annotations</exclude>
-                      <exclude>org.apache.httpcomponents:*</exclude>
-                      <exclude>*:annotations</exclude>
-                    </excludes>
-                  </artifactSet>
                   <relocations>
                     <relocation>
-                      <pattern>com.google</pattern>
-                      <shadedPattern>thriftee.shaded.com.google</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>com.thoughtworks</pattern>
-                      <shadedPattern>thriftee.shaded.com.thoughtworks</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>io.airlift</pattern>
-                      <shadedPattern>thriftee.shaded.io.airlift</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>javassist</pattern>
-                      <shadedPattern>thriftee.shaded.thriftee.javassist</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.apache.commons</pattern>
-                      <shadedPattern>thriftee.shaded.org.apache.commons</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.antlr</pattern>
-                      <shadedPattern>thriftee.shaded.org.antlr</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.objectweb</pattern>
-                      <shadedPattern>thriftee.shaded.org.objectweb</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.stringtemplate</pattern>
-                      <shadedPattern>thriftee.shaded.org.stringtemplate</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.scannotation</pattern>
-                      <shadedPattern>thriftee.shaded.org.scannotation</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.json</pattern>
-                      <shadedPattern>thriftee.shaded.org.json</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.restlet</pattern>
-                      <shadedPattern>thriftee.shaded.org.restlet</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.freemarker</pattern>
-                      <shadedPattern>thriftee.shaded.org.freemarker</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>com.facebook</pattern>
-                      <shadedPattern>org.thriftee.swift</shadedPattern>
-                      <excludes>
-                        <exclude>com.facebook.swift.codec.ThriftConstructor</exclude>
-                        <exclude>com.facebook.swift.codec.ThriftEnum</exclude>
-                        <exclude>com.facebook.swift.codec.ThriftEnumValue</exclude>
-                        <exclude>com.facebook.swift.codec.ThriftField</exclude>
-                        <exclude>com.facebook.swift.codec.ThriftField$Requiredness</exclude>
-                        <exclude>com.facebook.swift.codec.ThriftStruct</exclude>
-                        <exclude>com.facebook.swift.codec.ThriftUnion</exclude>
-                        <exclude>com.facebook.swift.service.ThriftException</exclude>
-                        <exclude>com.facebook.swift.service.ThriftMethod</exclude>
-                        <exclude>com.facebook.swift.service.ThriftService</exclude>
-                      </excludes>
+                      <pattern>org.slf4j</pattern>
+                      <shadedPattern>org.thriftee.logging</shadedPattern>
                     </relocation>
                   </relocations>
                 </configuration>

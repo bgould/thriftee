@@ -27,7 +27,6 @@ import javax.ejb.Startup;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,91 +36,89 @@ import org.slf4j.LoggerFactory;
 @Startup
 @Singleton
 public class PresidentServicePopulator {
+   
+  private final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+  
+  private final Logger LOG = LoggerFactory.getLogger(getClass()); 
+  
+  @PersistenceContext
+  private EntityManager em;
+ 
+  private final URL presidents = getClass().getResource("presidents.csv");
+ 
+  @PostConstruct
+  public void afterPropertiesSet() throws Exception {
+  
+    Long count = em.createQuery(
+        "select count(p) from President p", Long.class
+    ).getSingleResult();
     
-	private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    
-	private final Logger LOG = LoggerFactory.getLogger(getClass()); 
-	
-	@PersistenceContext
-    private EntityManager em;
-    
-    private final URL presidents = getClass().getResource("presidents.csv");
-    
-    @PostConstruct
-    public void afterPropertiesSet() throws Exception {
-    	
-    	Long count = em.createQuery("select count(p) from President p", Long.class).getSingleResult();
-    	if (count > 0) {
-    		LOG.info("skipping PresidentService population; existing records found: " + count);
-    		return;
-    	}
-    	
-    	LOG.info("Loading default data into PresidentService");
-    	
-        int id = 0;
+    if (count > 0) {
+      LOG.info("existing President records found (skipping load): " + count);
+      return;
+    }
 
-        InputStream input = null;
-        
-        try {
-        	input = presidents.openStream();
-	        BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-	        for (String line = null; (line = reader.readLine()) != null; ) {
-	        	
-	            id++;
-	            line = StringUtils.substringAfter(line, "\"");
-	            String[] data =  line.split("\",\"");
-	
-	            President president = new President();
-	            president.setId(id);
-	
-	            Name name = new Name();
-	            name.setFirstName(data[0]);
-	            name.setLastName(data[1]);
-	            name.setNickName(data[2]);
-	            president.setName(name);
-	            
-	            president.setTerm(data[3]);
-	            president.setBorn(simpleDateFormat.parse(data[4]));
-	            
-	            String died = data[5];
-	            if (StringUtils.isNotEmpty(died) && !died.equals("null")) {
-	                president.setDied(simpleDateFormat.parse(died));
-	            }
-	            
-	            president.setEducation(data[6]);
-	            president.setCareer(data[7]);
-	            president.setPoliticalParty(data[8]);
-	            
-	            if (LOG.isDebugEnabled()) {
-	            	LOG.debug("Inserting president record: " + president.getName().getFullName());
-	            }
-	            em.persist(president);
-	        }
-        } finally {
-        	if (input != null) {
-        		try {
-        			input.close();
-        		} catch (Exception e) {}
-        	}
-        }
-    }
+    LOG.info("Loading default data into PresidentService");
+ 
+    int id = 0;
+
+    InputStream input = null;
     
-    /*
-    public void createPresidentTable() {
-        jdbcTemplate.execute("CREATE TABLE president ( " 
-                + " id    INTEGER NOT NULL PRIMARY KEY, " 
-                + " first_name      VARCHAR(50) NOT NULL, " 
-                + " last_name       VARCHAR(50) NOT NULL, "
-                + " nick_name       VARCHAR(50) NOT NULL, " 
-                + " term            VARCHAR(50) NOT NULL, " 
-                + " born            DATE NOT NULL," 
-                + " died            DATE NULL, "
-                + " education       VARCHAR(100) NULL, " 
-                + " career          VARCHAR(100) NOT NULL, " 
-                + " political_party VARCHAR(100) NOT NULL, " 
-                + " selected VARCHAR(1) NULL " 
-                + " )");
+    try {
+      input = presidents.openStream();
+      BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+      for (String line = null; (line = reader.readLine()) != null; ) {
+        id++;
+        line = line.substring(line.indexOf("\"") + 1);
+        String[] data =  line.split("\",\"");
+        President president = new President();
+        president.setId(id);
+        Name name = new Name();
+        name.setFirstName(data[0]);
+        name.setLastName(data[1]);
+        name.setNickName(data[2]);
+        president.setName(name);
+        president.setTerm(data[3]);
+        president.setBorn(df.parse(data[4]));
+        String died = data[5] == null ? "" : data[5].trim();
+        if (!"".equals(died.trim()) && !died.equals("null")) {
+          president.setDied(df.parse(died));
+        }
+        president.setEducation(data[6]);
+        president.setCareer(data[7]);
+        president.setPoliticalParty(data[8]);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Inserting prez: " + president.getName().getFullName());
+        }
+        em.persist(president);
+      }
+    } finally {
+      if (input != null) {
+        try {
+          input.close();
+        } catch (Exception e) {}
+      }
     }
-    */
+  }
+ 
+  /*
+  public void createPresidentTable() {
+    jdbcTemplate.execute(
+        "CREATE TABLE president ( " 
+      + " id              INTEGER NOT NULL PRIMARY KEY, " 
+      + " first_name      VARCHAR(50) NOT NULL, " 
+      + " last_name       VARCHAR(50) NOT NULL, "
+      + " nick_name       VARCHAR(50) NOT NULL, " 
+      + " term            VARCHAR(50) NOT NULL, " 
+      + " born            DATE NOT NULL," 
+      + " died            DATE NULL, "
+      + " education       VARCHAR(100) NULL, " 
+      + " career          VARCHAR(100) NOT NULL, " 
+      + " political_party VARCHAR(100) NOT NULL, " 
+      + " selected        VARCHAR(1) NULL " 
+      + ")"
+    );
+  }
+  */
 
 }
