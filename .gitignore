@@ -1,4 +1,6 @@
 dependency-reduced-pom.xml
+target
+var
 
 *.class
 
