@@ -4,8 +4,11 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebInitParam;
 import javax.servlet.annotation.WebServlet;
 
+import org.restlet.Application;
+import org.restlet.Component;
 import org.restlet.data.Protocol;
 import org.restlet.ext.servlet.ServerServlet;
+import org.thriftee.restlet.FrameworkResource;
 
 /*
  * @author bcg
@@ -27,7 +30,22 @@ public class ThriftEEServlet extends ServerServlet {
   @Override
   public void init() throws ServletException {
     super.init();
-    getComponent().getClients().add(Protocol.CLAP);
+  }
+
+  @Override
+  protected void init(Component component) {
+    super.init(component);
+    component.getClients().add(Protocol.CLAP);
+    component.getClients().add(Protocol.ZIP);
+  }
+
+  @Override
+  protected void init(Application app) {
+    super.init(app);
+    app.getContext().getAttributes().put(
+      FrameworkResource._attr2, 
+      ThriftServletContext.servicesFor(getServletContext())
+    );
   }
 
 }

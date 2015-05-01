@@ -1,22 +1,12 @@
-<!doctype html>
-<html>
-  <head>
-    <title>${fn:escapeXml(model.title)}</title>
-  </head>
-  <body>
-    <h2>${fn:escapeXml(model.title)}</h2>
-    <hr noshade>
-    <ul>
-      <c:forEach items="${model.files}" var="file">
-        <li>
-          <a href="${fn:escapeXml(file.key)}">${fn:escapeXml(file.value)}</a>
-        </li>
-      </c:forEach>
-    </ul>
-    <hr noshade>
-    <c:forEach items="${model.downloads}" var="download">
-      <a href="${fn:escapeXml(download.key)}">${fn:escapeXml(download.value)}</a>  |  
-    </c:forEach>  
-    <em>${fn:escapeXml(model.serverLine)}</em>
-  </body>
-</html>
+<h2>${directory.title}</h2>
+<hr />
+<ul>
+  <#list directory.files.entrySet() as file>
+  <li><a href="${directory.baseRef}/${file.key}">${file.value}</a></li>
+  </#list>
+</ul>
+<hr />
+<#list directory.downloads.entrySet() as download>
+  <a href="${download.key}">${download.value}</a>
+</#list>  
+<em>${directory.serverLine!"ThriftEE"}</em>

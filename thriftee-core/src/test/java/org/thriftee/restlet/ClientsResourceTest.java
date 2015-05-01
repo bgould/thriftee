@@ -10,12 +10,13 @@ public class ClientsResourceTest extends ResourceTestBase {
   @Test
   public void testGet() {
 
-    this.handleGet("/");
+    assertEquals(4, thrift().clientTypeAliases().size());
+    this.handleGet("/clients");
     assertEquals(200, rsp().getStatus().getCode());
 
     final String text = rsp().getEntityAsText();
     LOG.debug("response text:\n{}", rsp().getEntityAsText());
-    assertTrue(text.indexOf("API Index Page") > -1);
+    assertTrue(text.indexOf("Available Thrift Clients") > -1);
 
   }
 

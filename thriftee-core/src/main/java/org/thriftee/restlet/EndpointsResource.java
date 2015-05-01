@@ -1,6 +1,6 @@
 package org.thriftee.restlet;
 
-public class EndpointsResource extends FrameworkResource {
+public class EndpointsResource extends DebugResource {
 
 
 

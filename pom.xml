@@ -35,6 +35,11 @@
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
         <artifactId>jcl-over-slf4j</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
@@ -243,7 +248,9 @@
           <removeTomeeWebapp>true</removeTomeeWebapp>
           <removeDefaultWebapps>true</removeDefaultWebapps>
           <webapps>
-            <webapp>org.thriftee:thriftee-examples-war:${project.version}?name=examples</webapp>
+            <webapp>
+              org.thriftee:thriftee-examples-war:${project.version}?name=ex
+            </webapp>
           </webapps>
           <libs>
             <lib>org.eclipse.persistence:eclipselink:2.5.1</lib>

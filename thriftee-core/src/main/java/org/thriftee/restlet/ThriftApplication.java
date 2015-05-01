@@ -26,10 +26,15 @@ public class ThriftApplication extends Application {
     router.attach("/", IndexResource.class);
     router.attach("/debug", DebugResource.class);
     router.attach("/clients", ClientsResource.class);
+    router.attach("/clients/", ClientsResource.class);
     router.attach("/clients/{typeAlias}", ClientsResource.class);
+    router.attach("/clients/{typeAlias}/", ClientsResource.class);
     router.attach("/services", EndpointsResource.class);
     router.attach("/services/endpoint", EndpointsResource.class);
     router.attach("/services/endpoint/{svcName}", EndpointsResource.class);
+    //router.attach("/clients/{typeAlias}/", ClientsResource.class);
+    //router.attach("/services/", EndpointsResource.class);
+    //router.attach("/services/endpoint/{svcName}/", EndpointsResource.class);
     return router;
   }
 

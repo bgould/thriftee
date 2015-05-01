@@ -17,9 +17,9 @@ public abstract class FrameworkServlet extends HttpServlet {
 	private static final long serialVersionUID = -6811436561035251834L;
 	
 	protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
-	
+
 	protected ThriftEE thrift() {
-		return ThriftServletContext.servicesFor(getServletContext());
+    return ThriftServletContext.servicesFor(getServletContext());
 	}
 	
 	protected ThriftCodecManager codecManager() {

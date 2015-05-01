@@ -8,17 +8,45 @@ import org.restlet.ext.freemarker.TemplateRepresentation;
 import org.restlet.resource.ServerResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thriftee.framework.ThriftEE;
 
+import com.facebook.swift.codec.ThriftCodecManager;
+
+import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.Configuration;
+import freemarker.template.ObjectWrapper;
 
 public abstract class FrameworkResource extends ServerResource {
 
-  private Logger LOG = LoggerFactory.getLogger(getClass());
+  protected final Logger LOG = LoggerFactory.getLogger(getClass());
+  
+  static final String _attr = "org.restlet.ext.servlet.ServletContext";
+
+  public static final String _attr2 = "org.thriftee.app.attr";
+
+  protected ThriftEE thrift() {
+    return (ThriftEE) getContext().getAttributes().get(_attr2);
+    /*
+    final Object servletContext = getContext().getAttributes().get(_attr);
+		if (servletContext != null) {
+      return ThriftServletContext.servicesFor((ServletContext) servletContext);
+    } else {
+      return (ThriftEE) getContext().getAttributes().get(_attr2);
+    }
+    */
+	}
+	
+	protected ThriftCodecManager codecManager() {
+		return thrift().codecManager();
+	}
 
   private static final String prefix = "/org/thriftee/restlet/templates";
 
   private static final Configuration cfg = new Configuration();
   static {
+    BeansWrapper beansWrapper = (BeansWrapper) ObjectWrapper.BEANS_WRAPPER;
+    beansWrapper.setExposeFields(true);
+    cfg.setObjectWrapper(beansWrapper);
     cfg.setClassForTemplateLoading(FrameworkResource.class, prefix);
   }
   
