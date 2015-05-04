@@ -35,6 +35,7 @@ public class ThriftEEServlet extends ServerServlet {
   @Override
   protected void init(Component component) {
     super.init(component);
+    component.getClients().add(Protocol.FILE);
     component.getClients().add(Protocol.CLAP);
     component.getClients().add(Protocol.ZIP);
   }

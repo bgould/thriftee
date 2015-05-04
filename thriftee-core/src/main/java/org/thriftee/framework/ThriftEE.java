@@ -12,6 +12,7 @@ import org.scannotation.AnnotationDB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.compiler.ExportIDL;
+import org.thriftee.compiler.ProcessIDL;
 import org.thriftee.compiler.ThriftCommand;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommandException;
@@ -79,7 +80,27 @@ public class ThriftEE {
     }
     return newArr;
   }
-  
+
+  public File clientLibraryDir(final String name) {
+    final String prefix = clientLibraryPrefix(name);
+    final File dir = new File(tempDir(), prefix);
+    if (!dir.exists() || !dir.isDirectory()) {
+      throw new IllegalStateException(
+        "client dir does not exist: " + dir.getAbsolutePath());
+    }
+    return dir;
+  }
+
+  public File clientLibraryZip(final String name) {
+    final String prefix = clientLibraryPrefix(name);
+    final File zip = new File(tempDir(), prefix + ".zip");
+    if (!zip.exists() || !zip.isFile()) {
+      throw new IllegalStateException(
+        "client zip file does not exist: " + zip.getAbsolutePath());
+    }
+    return zip;
+  }
+
   public ThriftSchema schema() {
     return this.schema;
   }
@@ -265,6 +286,12 @@ public class ThriftEE {
             e, ThriftStartupMessage.STARTUP_003, e.getMessage());
       }
     }
+
+    logger.info("Exporting configured clients");
+    for (final ClientTypeAlias alias : clientTypeAliases().values()) {
+      generateClientLibrary(alias);
+    }
+
   }
 
   public static Set<Class<?>> searchFor(
@@ -302,6 +329,48 @@ public class ThriftEE {
     command.setThriftCommand(this.thriftExecutable().getAbsolutePath());
     ThriftCommandRunner runner = ThriftCommandRunner.instanceFor(command);
     return runner.executeVersion();
+  }
+
+  private String clientLibraryPrefix(String name) {
+    if (!clientTypeAliases().containsKey(name)) {
+      throw new IllegalArgumentException("Invalid client type alias name");
+    }
+    return "client-" + name;
+  }
+
+  private void generateClientLibrary(ClientTypeAlias alias) 
+      throws ThriftStartupException {
+    final String name = alias.getName();
+    logger.info("Generating library for client type alias: {}", name);
+    try {
+        ThriftCommand cmd = new ThriftCommand(alias);
+        cmd.setRecurse(true);
+        cmd.setVerbose(true);
+        if (thriftExecutable() != null) {
+          cmd.setThriftCommand(thriftExecutable().getAbsolutePath());
+        }
+        final File[] extraDirs;
+        /* TODO: add facility for adding in extra lib dirs */
+        /*
+        if (thrift().thriftLibDir() != null) {
+            File jsLib = new File(thrift().thriftLibDir(), "js/src");
+            extraDirs = new File[] { jsLib };
+        } else {
+            extraDirs = new File[0];
+        }
+        */
+        extraDirs = new File[0];
+        final File[] files = new File[] { globalIdlFile() };
+        final File clientLibrary = new ProcessIDL().process(
+          files, tempDir(), clientLibraryPrefix(name), cmd, extraDirs
+        );
+        final String path = clientLibrary.getAbsolutePath();
+        logger.info("{} client library created at: {}", name, path);
+    } catch (IOException e) {
+      throw new ThriftStartupException(
+        e, ThriftStartupMessage.STARTUP_009, alias.getName(), e.getMessage()
+      );
+    }
   }
 
 }

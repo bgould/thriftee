@@ -22,7 +22,9 @@ public class ResourceTestBase extends AbstractThriftEETest {
   public synchronized void setup() throws Exception {
     this.component = new Component();
     this.app = new ThriftApplication();
+    //this.app.setContext(this.component.getContext().createChildContext());
     this.component.getDefaultHost().attach(this.app);
+    this.app.getContext().getAttributes().put(FrameworkResource._attr2, thrift());
     component.start();
     //this.component.attach("/", this.app);
     //this.app.getContext().getAttributes().put(FrameworkResource._attr2, thrift());
@@ -51,7 +53,6 @@ public class ResourceTestBase extends AbstractThriftEETest {
   }
 
   public synchronized void handleGet(String uri) {
-    this.app.getContext().getAttributes().put(FrameworkResource._attr2, thrift());
     this.request = new Request(Method.GET, uri);
     this.response = new Response(this.request);
     app().handle(request, response);

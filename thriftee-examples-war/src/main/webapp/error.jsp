@@ -1,6 +1,6 @@
 <%@page import="java.io.PrintWriter"%>
 <%@page import="java.io.StringWriter"%>
-<%@ page session="false" %><%@page import="org.apache.commons.lang.StringEscapeUtils"%>
+<%@ page session="false" %><%@page import="thriftee.shaded.org.apache.commons.lang.StringEscapeUtils"%>
 <pre>
 <% out.println(StringEscapeUtils.escapeHtml(pageContext.getErrorData().toString())); %>
 <% out.println(StringEscapeUtils.escapeHtml(pageContext.getErrorData().getRequestURI())); %>

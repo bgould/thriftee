@@ -11,7 +11,7 @@ public class ClientsResourceTest extends ResourceTestBase {
   public void testGet() {
 
     assertEquals(4, thrift().clientTypeAliases().size());
-    this.handleGet("/clients");
+    this.handleGet("/clients/");
     assertEquals(200, rsp().getStatus().getCode());
 
     final String text = rsp().getEntityAsText();

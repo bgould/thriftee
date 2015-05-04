@@ -3,6 +3,7 @@ package org.thriftee.restlet;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.ext.freemarker.TemplateRepresentation;
 import org.restlet.resource.ServerResource;
@@ -24,8 +25,13 @@ public abstract class FrameworkResource extends ServerResource {
 
   public static final String _attr2 = "org.thriftee.app.attr";
 
+  public static ThriftEE thrift(final Context ctx) {
+    return (ThriftEE) ctx.getAttributes().get(_attr2);
+  }
+
   protected ThriftEE thrift() {
-    return (ThriftEE) getContext().getAttributes().get(_attr2);
+    return thrift(getContext());
+    //    return (ThriftEE) getContext().getAttributes().get(_attr2);
     /*
     final Object servletContext = getContext().getAttributes().get(_attr);
 		if (servletContext != null) {
