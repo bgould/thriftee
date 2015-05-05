@@ -56,7 +56,7 @@ public abstract class FrameworkResource extends ServerResource {
     cfg.setClassForTemplateLoading(FrameworkResource.class, prefix);
   }
   
-  protected TemplateRepresentation getTemplate(
+  public static TemplateRepresentation getTemplate(
       final String tpl, 
       final Object data, 
       final MediaType mediaType) {

@@ -27,6 +27,12 @@ public class ThriftEEServlet extends ServerServlet {
 
   private static final long serialVersionUID = 9217322620918070877L;
 
+  public static void initComponent(Component component) {
+    component.getClients().add(Protocol.FILE);
+    component.getClients().add(Protocol.CLAP);
+    component.getClients().add(Protocol.ZIP);
+  }
+
   @Override
   public void init() throws ServletException {
     super.init();
@@ -35,9 +41,7 @@ public class ThriftEEServlet extends ServerServlet {
   @Override
   protected void init(Component component) {
     super.init(component);
-    component.getClients().add(Protocol.FILE);
-    component.getClients().add(Protocol.CLAP);
-    component.getClients().add(Protocol.ZIP);
+    initComponent(component);
   }
 
   @Override

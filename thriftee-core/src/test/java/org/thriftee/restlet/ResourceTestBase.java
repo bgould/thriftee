@@ -6,6 +6,7 @@ import org.restlet.Component;
 import org.restlet.Request;
 import org.restlet.Response;
 import org.restlet.data.Method;
+import org.thriftee.servlet.ThriftEEServlet;
 import org.thriftee.tests.AbstractThriftEETest;
 
 public class ResourceTestBase extends AbstractThriftEETest {
@@ -21,6 +22,7 @@ public class ResourceTestBase extends AbstractThriftEETest {
   @Before
   public synchronized void setup() throws Exception {
     this.component = new Component();
+    ThriftEEServlet.initComponent(this.component);
     this.app = new ThriftApplication();
     //this.app.setContext(this.component.getContext().createChildContext());
     this.component.getDefaultHost().attach(this.app);

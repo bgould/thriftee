@@ -345,7 +345,7 @@ public class ThriftEE {
     try {
         ThriftCommand cmd = new ThriftCommand(alias);
         cmd.setRecurse(true);
-        cmd.setVerbose(true);
+//        cmd.setVerbose(true);
         if (thriftExecutable() != null) {
           cmd.setThriftCommand(thriftExecutable().getAbsolutePath());
         }

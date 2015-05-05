@@ -20,4 +20,16 @@ public class ClientsResourceTest extends ResourceTestBase {
 
   }
 
+  @Test
+  public void testGetClientFile() {
+
+    this.handleGet("/clients/json");
+    assertEquals(200, rsp().getStatus().getCode());
+
+    final String text = rsp().getEntityAsText();
+    LOG.debug("response text:\n{}", rsp().getEntityAsText());
+    assertTrue(text.indexOf("global.json") > -1);
+
+  }
+
 }
