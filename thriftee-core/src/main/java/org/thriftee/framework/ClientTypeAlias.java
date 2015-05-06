@@ -16,7 +16,13 @@ public class ClientTypeAlias {
 
   private final Set<Flag> flags;
 
+  private final String libDir;
+
   public ClientTypeAlias(String _name, Generate _lang, Iterable<Flag> _flags) {
+    this(_name, _lang, null, _flags);
+  }
+  
+  public ClientTypeAlias(String _name, Generate _lang, String libDir, Iterable<Flag> _flags) {
     // TODO: see if these exceptions should be converted to proper heirarchy
     if (_name == null) {
       throw new IllegalArgumentException("name is required.");
@@ -34,6 +40,7 @@ public class ClientTypeAlias {
       flagSet.add(flag);
     }
     this.flags = Collections.unmodifiableSortedSet(flagSet);
+    this.libDir = libDir;
   }
 
   /**
@@ -55,6 +62,13 @@ public class ClientTypeAlias {
    */
   public Set<Flag> getFlags() {
     return flags;
+  }
+
+  /**
+   * @return the libDir
+   */
+  public String getLibDir() {
+    return libDir;
   }
 
 }

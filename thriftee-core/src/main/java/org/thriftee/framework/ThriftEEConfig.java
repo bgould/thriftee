@@ -142,17 +142,22 @@ public class ThriftEEConfig implements Serializable {
     private final SortedMap<String, ClientTypeAlias> aliases = New.sortedMap();
 
     public Builder() {
-      addClientTypeAlias("php", Generate.PHP, Flag.PHP_NAMESPACE, Flag.PHP_OOP);
+      addClientTypeAlias("php", Generate.PHP, "php/src", Flag.PHP_NAMESPACE, Flag.PHP_OOP);
       addClientTypeAlias("html", Generate.HTML);
       addClientTypeAlias("json", Generate.JSON);
       addClientTypeAlias("jquery", Generate.JS, Flag.JS_JQUERY);
     }
+    
+    public Builder addClientTypeAlias(String name, Generate lang, Flag... flags) {
+      return addClientTypeAlias(name, lang, null, flags);
+    }
 
     public Builder addClientTypeAlias(
-        String name, Generate language, Flag... flags) {
+        String name, Generate language, String libDir, Flag... flags) {
       final ClientTypeAlias cta = new ClientTypeAlias(
         name, 
         language,
+        libDir,
         Arrays.asList(flags)
       );
       return addClientTypeAlias(cta);

@@ -1,13 +1,17 @@
 package org.thriftee.restlet;
 
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.restlet.Component;
 import org.restlet.Request;
 import org.restlet.Response;
+import org.restlet.data.MediaType;
 import org.restlet.data.Method;
-import org.thriftee.servlet.ThriftEEServlet;
+import org.restlet.data.Preference;
 import org.thriftee.tests.AbstractThriftEETest;
+import org.thriftee.util.New;
 
 public class ResourceTestBase extends AbstractThriftEETest {
 
@@ -21,18 +25,16 @@ public class ResourceTestBase extends AbstractThriftEETest {
 
   @Before
   public synchronized void setup() throws Exception {
+ 
     this.component = new Component();
-    ThriftEEServlet.initComponent(this.component);
+    FrameworkResource.initComponent(this.component);
+ 
     this.app = new ThriftApplication();
-    //this.app.setContext(this.component.getContext().createChildContext());
     this.component.getDefaultHost().attach(this.app);
-    this.app.getContext().getAttributes().put(FrameworkResource._attr2, thrift());
+    FrameworkResource.initApplication(this.app, thrift());
+
     component.start();
-    //this.component.attach("/", this.app);
-    //this.app.getContext().getAttributes().put(FrameworkResource._attr2, thrift());
-//    context.setAttributes(new HashMap<String, Object>());
-//    this.app.setContext(context);
-//    app.getContext().getAttributes().put(FrameworkResource._attr2, thrift());
+  
   }
 
   public synchronized ThriftApplication app() {
@@ -55,9 +57,17 @@ public class ResourceTestBase extends AbstractThriftEETest {
   }
 
   public synchronized void handleGet(String uri) {
+    LOG.debug("running handleGet() for URI: {}", uri);
+
+    final List<Preference<MediaType>> accepted = New.arrayList();
+    accepted.add(new Preference<MediaType>(MediaType.TEXT_HTML, 0.9f));
+
     this.request = new Request(Method.GET, uri);
     this.response = new Response(this.request);
+    this.request.getClientInfo().setAcceptedMediaTypes(accepted);
+
     app().handle(request, response);
+    LOG.debug("exiting handleGet()");
   }
 
 }

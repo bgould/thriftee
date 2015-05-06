@@ -95,8 +95,8 @@ public class Generator {
       set.add(klass);
       includeMap.put(klass.getName(), makeThriftFilename(packageName));
     }
-    LOG.debug("[Generator] final include map: " + includeMap);
-    LOG.debug("[Generator] final package map: " + packageMap);
+    LOG.trace("[Generator] final include map: " + includeMap);
+    LOG.trace("[Generator] final package map: " + packageMap);
   }
 
   private Swift2ThriftGeneratorConfig createConfig(

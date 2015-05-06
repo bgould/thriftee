@@ -31,7 +31,6 @@ import com.facebook.swift.codec.ThriftUnion;
 import com.facebook.swift.codec.internal.coercion.DefaultJavaCoercions;
 import com.facebook.swift.codec.internal.compiler.CompilerThriftCodecFactory;
 import com.facebook.swift.service.ThriftService;
-//import com.facebook.swift.codec.internal.compiler.CompilerThriftCodecFactory;
 
 public class ThriftEE {
 
@@ -104,11 +103,7 @@ public class ThriftEE {
   public ThriftSchema schema() {
     return this.schema;
   }
-  
-//  public Map<String, Document> parsedIDL() {
-//    return this.parsedIDL;
-//  }
-  
+ 
   public File globalIdlFile() {
     return this.globalIdlFile;
   }
@@ -139,8 +134,6 @@ public class ThriftEE {
   
   private final SortedMap<String, ClientTypeAlias> clientTypeAliases;
   
-  // private final Map<String, Document> parsedIDL;
-  
   private final ThriftSchema schema;
 
   public ThriftEE(ThriftEEConfig config) throws ThriftStartupException {
@@ -169,15 +162,14 @@ public class ThriftEE {
       throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_002);
     }
 
-    //thriftCodecManager = new ThriftCodecManager(new ReflectionThriftCodecFactory());
     thriftCodecManager = new ThriftCodecManager(new CompilerThriftCodecFactory(false));
     thriftCodecManager.getCatalog().addDefaultCoercions(DefaultJavaCoercions.class);
 
     logger.debug("Initializing Thrift Services ----");
-    logger.debug("Services detected: {}", thriftServices);
-    logger.debug(" Structs detected: {}", thriftStructs);
-    logger.debug("  Unions detected: {}", thriftUnions);
-    logger.debug("   Enums detected: {}", thriftEnums);
+    logger.debug("[Services detected]: {}", thriftServices);
+    logger.debug("[ Structs detected]: {}", thriftStructs);
+    logger.debug("[  Unions detected]: {}", thriftUnions);
+    logger.debug("[   Enums detected]: {}", thriftEnums);
 
     //------------------------------------------------------------------//
     // Here we are checking the configured Thrift library directory to  //
@@ -264,7 +256,6 @@ public class ThriftEE {
     // ThriftEE specifically uses this to dynamically invoke services   //
     // from the ThriftEE dashboard.                                     //
     //------------------------------------------------------------------//
-    logger.info("Thrift initialization completed");
     
     File globalFile = null;
     for (int i = 0, c = idlFiles.length; globalFile == null && i < c; i++) {
@@ -287,11 +278,12 @@ public class ThriftEE {
       }
     }
 
-    logger.info("Exporting configured clients");
+    logger.debug("Exporting configured clients");
     for (final ClientTypeAlias alias : clientTypeAliases().values()) {
       generateClientLibrary(alias);
     }
 
+    logger.info("Thrift initialization completed");
   }
 
   public static Set<Class<?>> searchFor(
@@ -341,31 +333,26 @@ public class ThriftEE {
   private void generateClientLibrary(ClientTypeAlias alias) 
       throws ThriftStartupException {
     final String name = alias.getName();
-    logger.info("Generating library for client type alias: {}", name);
+    logger.debug("Generating library for client type alias: {}", name);
     try {
-        ThriftCommand cmd = new ThriftCommand(alias);
-        cmd.setRecurse(true);
-//        cmd.setVerbose(true);
-        if (thriftExecutable() != null) {
-          cmd.setThriftCommand(thriftExecutable().getAbsolutePath());
-        }
-        final File[] extraDirs;
-        /* TODO: add facility for adding in extra lib dirs */
-        /*
-        if (thrift().thriftLibDir() != null) {
-            File jsLib = new File(thrift().thriftLibDir(), "js/src");
-            extraDirs = new File[] { jsLib };
-        } else {
-            extraDirs = new File[0];
-        }
-        */
+      ThriftCommand cmd = new ThriftCommand(alias);
+      cmd.setRecurse(true);
+      if (thriftExecutable() != null) {
+        cmd.setThriftCommand(thriftExecutable().getAbsolutePath());
+      }
+      final File[] extraDirs;
+      if (thriftLibDir() != null && alias.getLibDir() != null) {
+        final File libDir = new File(thriftLibDir(), alias.getLibDir());
+        extraDirs = new File[] { libDir };
+      } else {
         extraDirs = new File[0];
-        final File[] files = new File[] { globalIdlFile() };
-        final File clientLibrary = new ProcessIDL().process(
-          files, tempDir(), clientLibraryPrefix(name), cmd, extraDirs
-        );
-        final String path = clientLibrary.getAbsolutePath();
-        logger.info("{} client library created at: {}", name, path);
+      }
+      final File[] files = new File[] { globalIdlFile() };
+      final File clientLibrary = new ProcessIDL().process(
+        files, tempDir(), clientLibraryPrefix(name), cmd, extraDirs
+      );
+      final String path = clientLibrary.getAbsolutePath();
+      logger.debug("{} client library created at: {}", name, path);
     } catch (IOException e) {
       throw new ThriftStartupException(
         e, ThriftStartupMessage.STARTUP_009, alias.getName(), e.getMessage()

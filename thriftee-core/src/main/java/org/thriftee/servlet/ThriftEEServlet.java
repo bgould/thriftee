@@ -1,13 +1,14 @@
 package org.thriftee.servlet;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebInitParam;
 import javax.servlet.annotation.WebServlet;
 
 import org.restlet.Application;
 import org.restlet.Component;
-import org.restlet.data.Protocol;
 import org.restlet.ext.servlet.ServerServlet;
+import org.thriftee.framework.ThriftEE;
 import org.thriftee.restlet.FrameworkResource;
 
 /*
@@ -27,12 +28,6 @@ public class ThriftEEServlet extends ServerServlet {
 
   private static final long serialVersionUID = 9217322620918070877L;
 
-  public static void initComponent(Component component) {
-    component.getClients().add(Protocol.FILE);
-    component.getClients().add(Protocol.CLAP);
-    component.getClients().add(Protocol.ZIP);
-  }
-
   @Override
   public void init() throws ServletException {
     super.init();
@@ -41,16 +36,15 @@ public class ThriftEEServlet extends ServerServlet {
   @Override
   protected void init(Component component) {
     super.init(component);
-    initComponent(component);
+    FrameworkResource.initComponent(component);
   }
 
   @Override
   protected void init(Application app) {
     super.init(app);
-    app.getContext().getAttributes().put(
-      FrameworkResource._attr2, 
-      ThriftServletContext.servicesFor(getServletContext())
-    );
+    final ServletContext ctx = getServletContext();
+    final ThriftEE thrift = ThriftServletContext.servicesFor(ctx);
+    FrameworkResource.initApplication(app, thrift);
   }
 
 }

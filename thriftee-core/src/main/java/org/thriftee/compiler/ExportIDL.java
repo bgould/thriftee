@@ -13,7 +13,10 @@ import org.thriftee.provider.swift.Generator;
 import org.thriftee.util.FileUtil;
 
 /**
- * Generates IDL code for a set of a Swift-annotated classes for use in by the regular Thrift compiler.
+ * <p>
+ *  Generates IDL code for a set of a Swift-annotated classes for use in 
+ *  by the regular Thrift compiler.
+ * </p>
  * @author bcg
  */
 public class ExportIDL {
@@ -25,14 +28,13 @@ public class ExportIDL {
 
   /**
    * <p>
-   *  Processes a set of classes and saves the resultant IDL files a 
-   *  specified directory.
+   *  Processes a set of classes and saves the IDL files a specified directory.
    * </p>
    * <p>
    *  Two directories will be created, one called <code>swift</code> and the 
    *  other <code>thrift</code>, depending on the flavor of IDL.
    * </p> 
-   * @param basedir Destination directory for the output files.  Will be deleted and recreated if it already exists.
+   * @param basedir Destination directory for the output files. Will be deleted and recreated if it already exists.
    * @param classes A set of Swift-annotated classes to process.
    * @return An array of <code>{@link java.io.File}</code> objects representing the IDL that was generated.
    * @throws IOException
@@ -51,10 +53,11 @@ public class ExportIDL {
         basedir.getAbsolutePath()
       );
     }
-    logger.info("Creating IDL in temporary directory: {}", basedir.getAbsolutePath());
-    logger.info("Generating IDL for classes: {}", classes);
+
+    logger.trace("Creating IDL in temp directory: {}", basedir);
+    logger.trace("Generating IDL for classes: {}", classes);
     
-    // run the swift "Swift2Thrift" generator to produce IDL from annotated classesS
+    // run the "Swift2Thrift" generator to produce IDL from annotated classes
     final Generator generator = new Generator();
     generator.setTempDir(swiftDir);
     generator.setClasses(classes.toArray(new Class[classes.size()]));
@@ -81,7 +84,7 @@ public class ExportIDL {
         sb.append("namespace php  ").append(namespace).append('\n');
         sb.append("namespace perl ").append(namespace).append('\n');
         thriftFileStr = m.replaceFirst(sb.toString());
-        logger.debug("Rewriting swift namespace: {}", sb);
+        logger.trace("Rewriting swift namespace: {}", sb);
       } else {
         logger.warn(
           "Could not find swift namespace in file:\n" + 
@@ -95,7 +98,7 @@ public class ExportIDL {
       final File thriftFile = new File(thriftDir, swiftFile.getName());
       FileUtil.writeStringToFile(thriftFileStr, thriftFile);
       global_thrift.append("include \"" + thriftFile.getName() + "\"\n");
-      logger.debug(
+      logger.trace(
         "Swift file `{}` copied to `{}`", 
         swiftFile.getAbsolutePath(), 
         thriftFile.getAbsolutePath()
