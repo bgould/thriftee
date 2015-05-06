@@ -15,7 +15,13 @@ public class IndexResourceTest extends ResourceTestBase {
 
     final String text = rsp().getEntityAsText();
     LOG.debug("response text:\n{}", rsp().getEntityAsText());
-    assertTrue(text.indexOf("API Index Page") > -1);
+    assertTrue(text.indexOf("API Index") > -1);
+
+    final boolean hasClients = text.indexOf("<a href=\"/clients/\"") > -1;
+    assertTrue("Listing should contain clients/ link", hasClients);
+
+    final boolean hasEndpoints = text.indexOf("<a href=\"/endpoints/\"") > -1;
+    assertTrue("Listing should contain endpoints/ link", hasEndpoints);
 
   }
 

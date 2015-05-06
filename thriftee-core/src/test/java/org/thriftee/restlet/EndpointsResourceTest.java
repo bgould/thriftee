@@ -7,7 +7,6 @@ import org.junit.Test;
 
 public class EndpointsResourceTest extends ResourceTestBase {
 
-  @Test
   public void testGet() {
 
     this.handleGet("/");
