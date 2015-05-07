@@ -2,7 +2,7 @@
 <hr />
 <ul>
   <#list directory.files.entrySet() as file>
-  <li><a href="${directory.baseRef}/${file.key}">${file.value}</a></li>
+  <li><a href="${directory.baseRef}${file.key}">${file.value}</a></li>
   </#list>
 </ul>
 <hr />

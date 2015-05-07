@@ -45,6 +45,34 @@ public class ThriftApplication extends Application {
     return currentResponse.get();
   }
 
+  public static void dumpCurrentRequest() {
+    final Request request = currentRequest();
+    if (request != null) {
+      final Reference resourceRef = request.getResourceRef();
+      final Reference resourceBaseRef;
+      final String resourceRemainingPart;
+      if (resourceRef == null) {
+        resourceBaseRef = null;
+        resourceRemainingPart = null;
+      } else {
+        resourceBaseRef = resourceRef.getBaseRef();
+        resourceRemainingPart = resourceRef.getRemainingPart();
+      }
+      System.err.printf(
+        "%nrootRef: %s%n" + 
+        "hostRef: %s%n" + 
+        "resourceRef: %s%n" + 
+        "resourceRef.baseRef: %s%n" +
+        "resourceRef.remainingPart: %s%n", 
+        request.getRootRef(),
+        request.getHostRef(),
+        resourceRef,
+        resourceBaseRef,
+        resourceRemainingPart
+      );
+    }
+  }
+
   @Override
   public synchronized Restlet createInboundRoot() {
 
@@ -66,12 +94,12 @@ public class ThriftApplication extends Application {
     // attach the client directories
     for (final ClientTypeAlias alias : thrift.clientTypeAliases().values()) {
       final String name = alias.getName();
-      final String base = "/clients/" + name + "/";
+      //final String base = "/clients/" + name + "/";
       //final String uri = thrift.clientLibraryDir(name).toURI().toString());
       final File zipfile = thrift.clientLibraryZip(name);
       final Reference zip = LocalReference.createFileReference(zipfile);
       final Reference uri = LocalReference.createZipReference(zip, "");
-      final DirectoryListing dir = new DirectoryListing(ctx, uri, base);
+      final DirectoryListing dir = new DirectoryListing(ctx, uri);
       LOG.trace("attaching client: {} to {}", name, uri);
       router.attach("/clients/" + name + "/", dir);
     }

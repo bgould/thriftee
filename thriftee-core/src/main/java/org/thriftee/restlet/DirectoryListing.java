@@ -19,12 +19,12 @@ public class DirectoryListing extends Directory {
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-  private final String base;
+  //private final String base;
 
-  public DirectoryListing(Context context, Reference uri, String base) {
+  public DirectoryListing(Context context, Reference uri) {
     super(context, uri);
     setListingAllowed(true);
-    this.base = base;
+    //this.base = base;
   }
 
   @Override
@@ -58,7 +58,7 @@ public class DirectoryListing extends Directory {
   protected DirectoryListingModel getDirectoryModel(final ReferenceList rl) {
     LOG.trace("entering getDirectoryModel()");
     try {
-      final DirectoryListingModel model = new DirectoryListingModel();
+      final DirectoryListingModel model = FrameworkResource.createDefaultModel();
       final String dir = normalizeIdentifier(rl);
       for (final Reference r : rl) {
         final String ref = normalizeReference(r);
@@ -73,8 +73,6 @@ public class DirectoryListing extends Directory {
           model.getFiles().put(rel, rel);
         }
       }
-      model.setTitle(getIndexName());
-      model.setBaseRef(".");
       return model;
     } finally {
       LOG.trace("exiting getDirectoryModel()");
@@ -82,23 +80,31 @@ public class DirectoryListing extends Directory {
   }
 
   private String normalizeIdentifier(ReferenceList rl) {
-    final String root = FrameworkResource.requestRoot();
+    //final String root = FrameworkResource.requestRoot();
     //System.out.println("root: " + root);
-    final String str = getRelativePart(root, rl.getIdentifier().toString());
+    //final String str = getRelativePart(root, rl.getIdentifier().toString());
     //System.out.println("str: " + root);
-    final String rel = getRelativePart(base, str+(str.endsWith("/")?"":"/"));
-    return new Reference(getRootRef(), rel).getTargetRef().toString();
+    //final String rel = getRelativePart(base, str+(str.endsWith("/")?"":"/"));
+    return normalize(withTrailingSlash(rl.getIdentifier().toString()));
   }
 
   private String normalizeReference(Reference ref) {
-    final String refstr = removeBase(ref);
+    //final String refstr = removeBase(ref.toString());
+    //return new Reference(getRootRef(), refstr).getTargetRef().toString();
+    return normalize(ref.toString());
+  }
+
+  private String normalize(final String str) {
+    final String refstr = removeBase(str);
     return new Reference(getRootRef(), refstr).getTargetRef().toString();
   }
 
-  private String removeBase(final Reference ref) {
-    final String root = FrameworkResource.requestRoot();
-    final String str = getRelativePart(root, ref.toString());
-    return getRelativePart(this.base, str);
+  private String removeBase(final String refstr) {
+    return getRelativePart(FrameworkResource.resourceBaseRef().toString(), refstr);
+  }
+
+  private static String withTrailingSlash(final String str) {
+    return str + (str.endsWith("/") ? "" : "/");
   }
 
   private static String getRelativePart(final String base, final String str) {

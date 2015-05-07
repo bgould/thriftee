@@ -43,23 +43,40 @@ public abstract class FrameworkResource extends ServerResource {
     ctx.getAttributes().put(FrameworkResource.APP_CTX_ATTR, thrift);
   }
 
-  public static String requestRoot() {
+  public static Request request() {
     final Request req = ThriftApplication.currentRequest();
     if (req != null) {
-      final Reference rootRef = req.getRootRef();
-      //final Reference hostRef = req.getHostRef();
-      //final Reference originalRef = req.getOriginalRef();
-      //final Reference resourceRef = req.getResourceRef();
-      //LoggerFactory.getLogger(FrameworkResource.class).info(
-        //"rootRef: {}\nhostRef: {}\noriginalRef: {}\nresourceRef: {}\n", 
-        //rootRef, hostRef, originalRef, resourceRef);
-      if (rootRef != null) {
-        return StringUtils.trimToEmpty(rootRef.toString());
-      } else {
-        return "";
-      }
+      return req;
     }
     throw new IllegalStateException("current request is not set");
+  }
+
+  public static Reference rootRef() {
+    final Reference rootRef = request().getRootRef();
+    if (rootRef != null) {
+      return rootRef;
+    }
+    throw new IllegalStateException("rootRef on current request is not set");
+  }
+
+  public static Reference resourceRef() {
+    final Reference resourceRef = request().getResourceRef();
+    if (resourceRef != null) {
+      return resourceRef;
+    }
+    throw new IllegalStateException("resourceRef on current req is not set");
+  }
+
+  public static Reference resourceBaseRef() {
+    final Reference baseRef = resourceRef().getBaseRef();
+    if (baseRef != null) {
+      return baseRef; 
+    }
+    throw new IllegalStateException("baseRef on resourceRef is not set");
+  }
+
+  public static String resourceRemainingPart() {
+    return StringUtils.trimToEmpty(resourceRef().getRemainingPart());
   }
 
   public static ThriftEE thrift(final Context ctx) {
@@ -89,6 +106,14 @@ public abstract class FrameworkResource extends ServerResource {
       final Object data, 
       final MediaType mediaType) {
     return new TemplateRepresentation(tpl + ".ftl", cfg, data, mediaType);
+  }
+
+  public static DirectoryListingModel createDefaultModel() {
+    final DirectoryListingModel model = new DirectoryListingModel();
+    final String listingPath = resourceBaseRef().getHierarchicalPart();
+    model.setTitle("Listing for '" + listingPath  + "'");
+    model.setBaseRef(resourceRef().toString());
+    return model;
   }
 
   protected TemplateRepresentation getDebugTemplate(
