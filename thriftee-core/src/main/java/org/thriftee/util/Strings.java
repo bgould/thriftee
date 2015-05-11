@@ -23,4 +23,19 @@ public class Strings {
         return !isBlank(s);
     }
 
+    public static String trimToNull(Object o) {
+      if (o == null) {
+        return null;
+      }
+      String s = o.toString();
+      if (s == null) {
+        return null;
+      }
+      s = s.trim();
+      if ("".equals(s)) {
+        return null;
+      }
+      return s;
+    }
+
 }

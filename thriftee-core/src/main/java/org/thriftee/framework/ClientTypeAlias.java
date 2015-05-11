@@ -14,8 +14,8 @@ public class ClientTypeAlias {
 
   private final Generate language;
 
-  private final Set<Flag> flags;
-
+  private final SortedSet<Flag> flags;
+  
   private final String libDir;
 
   public ClientTypeAlias(String _name, Generate _lang, Iterable<Flag> _flags) {

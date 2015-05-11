@@ -58,7 +58,8 @@ public class DirectoryListing extends Directory {
   protected DirectoryListingModel getDirectoryModel(final ReferenceList rl) {
     LOG.trace("entering getDirectoryModel()");
     try {
-      final DirectoryListingModel model = FrameworkResource.createDefaultModel();
+      final DirectoryListingModel model = 
+          FrameworkResource.createDefaultModel(DirectoryListing.class);
       final String dir = normalizeIdentifier(rl);
       for (final Reference r : rl) {
         final String ref = normalizeReference(r);

@@ -9,7 +9,7 @@ import com.facebook.swift.service.ThriftService;
 @ThriftService
 public interface UserService {
 
-	@ThriftMethod
-	public User find(String uid) throws UserGroupException;
-	
+  @ThriftMethod
+  public User find(String uid) throws UserGroupException;
+
 }

@@ -1,25 +1,19 @@
 package org.thriftee.examples;
 
-import java.io.IOException;
-
-import javax.ejb.EJB;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.thriftee.thrift.protocol.TJSONProtocol;
-import org.thriftee.thrift.protocol.TProtocolFactory;
-import org.thriftee.examples.presidents.PresidentService;
-import org.thriftee.examples.usergroup.service.GroupService;
-import org.thriftee.examples.usergroup.service.UserService;
-import org.thriftee.servlet.EndpointServlet;
+import org.thriftee.servlet.ThriftEEServlet;
 
-@WebServlet(urlPatterns = { "/services/endpoint/*" }, loadOnStartup = 1, name = "Example Service Endpoints")
-public class ExamplesEndpointServlet extends EndpointServlet {
+@WebServlet(
+  urlPatterns = { "/services/*" }, 
+  loadOnStartup = 1, 
+  name = "Example Service Endpoints"
+)
+public class ExamplesEndpointServlet extends ThriftEEServlet {
 
   private static final long serialVersionUID = 920163052774234943L;
 
+/*
   @EJB
   private PresidentService presidentService;
 
@@ -32,7 +26,6 @@ public class ExamplesEndpointServlet extends EndpointServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     super.doGet(request, response);
-/*
          PrintWriter out = response.getWriter(); out.println(
          "<!doctype html><html><head><title>Test Page</title></head><body>");
 
@@ -74,7 +67,6 @@ public class ExamplesEndpointServlet extends EndpointServlet {
          }
          out.println("</tbody></table>");
          out.println("</body></html>");
-*/
     }
 
   @Override
@@ -83,7 +75,7 @@ public class ExamplesEndpointServlet extends EndpointServlet {
     addProcessor("UserService", userService);
     addProcessor("GroupService", groupService);
   }
-  
+
   private TProtocolFactory protocolFactory;
 
   @Override
@@ -98,5 +90,6 @@ public class ExamplesEndpointServlet extends EndpointServlet {
   protected TProtocolFactory getOutProtocolFactory() {
     return getInProtocolFactory();
   }
+*/
 
 }

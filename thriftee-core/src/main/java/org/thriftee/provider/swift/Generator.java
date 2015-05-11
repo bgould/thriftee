@@ -13,6 +13,7 @@ import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thriftee.framework.ThriftEE;
 
 import com.facebook.swift.generator.swift2thrift.Swift2ThriftGenerator;
 import com.facebook.swift.generator.swift2thrift.Swift2ThriftGeneratorConfig;
@@ -112,7 +113,7 @@ public class Generator {
   }
 
   private String makeThriftFilename(String _packageName) {
-    return _packageName.replace('.', '_') + ".thrift";
+    return ThriftEE.moduleNameFor(_packageName) + ".thrift";
   }
 
 }

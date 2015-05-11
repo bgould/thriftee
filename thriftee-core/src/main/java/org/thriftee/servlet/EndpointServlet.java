@@ -1,3 +1,4 @@
+/*
 package org.thriftee.servlet;
 
 import java.io.File;
@@ -92,7 +93,6 @@ public abstract class EndpointServlet extends FrameworkServlet {
 			}
 			req.setAttribute("model", model);
 			req.getRequestDispatcher("/WEB-INF/thriftee/jsp/directory_listing.jsp").include(req, resp);
-		    /*
 		    StringBuilder json = new StringBuilder();
             json.append("[{'services':{");
             boolean first = true;
@@ -113,7 +113,6 @@ public abstract class EndpointServlet extends FrameworkServlet {
             resp.getWriter().println(json);
             resp.getWriter().flush();
             resp.getWriter().close();
-            */
 		} else if (processors.containsKey(pathInfo)) {
 			
 		}
@@ -198,3 +197,5 @@ public abstract class EndpointServlet extends FrameworkServlet {
 	}
 	
 }
+
+            */

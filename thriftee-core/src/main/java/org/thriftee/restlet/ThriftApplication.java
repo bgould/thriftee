@@ -82,20 +82,17 @@ public class ThriftApplication extends Application {
     final Router router = new Router(getContext());
     router.attach("", IndexResource.class);
     router.attach("/", IndexResource.class);
-    router.attach("/debug", DebugResource.class);
     router.attach("/clients/", ClientsResource.class);
-    router.attach("/services/", EndpointsResource.class);
-    router.attach("/services/endpoint", EndpointsResource.class);
-    router.attach("/services/endpoint/{svcName}", EndpointsResource.class);
-    //router.attach("/clients/{typeAlias}/", ClientsResource.class);
-    //router.attach("/services/", EndpointsResource.class);
-    //router.attach("/services/endpoint/{svcName}/", EndpointsResource.class);
-    
+    router.attach("/endpoints/", EndpointsResource.class);
+    router.attach("/endpoints/multiplex/", EndpointsResource.class);
+    router.attach("/endpoints/multiplex/{protocol}", EndpointsResource.class);
+    router.attach("/endpoints/{module}/", EndpointsResource.class);
+    router.attach("/endpoints/{module}/{service}/", EndpointsResource.class);
+    router.attach("/endpoints/{module}/{service}/{protocol}", EndpointsResource.class);
+
     // attach the client directories
     for (final ClientTypeAlias alias : thrift.clientTypeAliases().values()) {
       final String name = alias.getName();
-      //final String base = "/clients/" + name + "/";
-      //final String uri = thrift.clientLibraryDir(name).toURI().toString());
       final File zipfile = thrift.clientLibraryZip(name);
       final Reference zip = LocalReference.createFileReference(zipfile);
       final Reference uri = LocalReference.createZipReference(zip, "");

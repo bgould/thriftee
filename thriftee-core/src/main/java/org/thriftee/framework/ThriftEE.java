@@ -5,9 +5,13 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 
+import org.apache.thrift.TMultiplexedProcessor;
+import org.apache.thrift.TProcessor;
 import org.scannotation.AnnotationDB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,29 +23,42 @@ import org.thriftee.compiler.ThriftCommandException;
 import org.thriftee.compiler.ThriftCommandRunner;
 import org.thriftee.compiler.schema.SchemaBuilder;
 import org.thriftee.compiler.schema.SchemaBuilderException;
+import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.compiler.schema.ThriftSchema;
 import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.provider.swift.SwiftSchemaBuilder;
 import org.thriftee.util.New;
+import org.thriftee.util.Strings;
 
+import com.facebook.nifty.processor.NiftyProcessorAdapters;
 import com.facebook.swift.codec.ThriftCodecManager;
 import com.facebook.swift.codec.ThriftEnum;
 import com.facebook.swift.codec.ThriftStruct;
 import com.facebook.swift.codec.ThriftUnion;
 import com.facebook.swift.codec.internal.coercion.DefaultJavaCoercions;
 import com.facebook.swift.codec.internal.compiler.CompilerThriftCodecFactory;
+import com.facebook.swift.service.ThriftEventHandler;
 import com.facebook.swift.service.ThriftService;
+import com.facebook.swift.service.ThriftServiceProcessor;
 
 public class ThriftEE {
 
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+  private final Logger LOG = LoggerFactory.getLogger(getClass());
 
   public ThriftCodecManager codecManager() {
-    return thriftCodecManager;
+    return codecManager;
+  }
+
+  public ServiceLocator serviceLocator() {
+    return serviceLocator;
   }
 
   public SortedMap<String, ClientTypeAlias> clientTypeAliases() {
     return clientTypeAliases;
+  }
+
+  public SortedMap<String, ProtocolTypeAlias> protocolTypeAliases() {
+    return protocolTypeAliases;
   }
 
   public Set<Class<?>> structs() {
@@ -103,9 +120,29 @@ public class ThriftEE {
   public ThriftSchema schema() {
     return this.schema;
   }
- 
+
   public File globalIdlFile() {
     return this.globalIdlFile;
+  }
+
+  public TMultiplexedProcessor multiplexedProcessor() {
+    final TMultiplexedProcessor multiplex = new TMultiplexedProcessor();
+    for (Entry<String, TProcessor> entry : this.processors.entrySet()) {
+      if (entry.getKey() == null) {
+        throw new IllegalStateException("One or more processors was null.");
+      }
+      multiplex.registerProcessor(entry.getKey(), entry.getValue());
+    }
+    return multiplex;
+  }
+
+  public TProcessor processorFor(final ServiceSchema svc) {
+    final String serviceName = svc.getModule().getName() + "." + svc.getName();
+    final TProcessor processor = this.processors.get(serviceName);
+    if (processor == null) {
+      throw new IllegalArgumentException("processor not found for svc: " + svc);
+    }
+    return processor;
   }
 
   private final File tempDir;
@@ -118,33 +155,46 @@ public class ThriftEE {
 
   private final String thriftVersionString;
 
-  private final ThriftCodecManager thriftCodecManager;
+  private final ThriftCodecManager codecManager;
 
   private final Set<Class<?>> thriftStructs;
 
   private final Set<Class<?>> thriftServices;
 
   private final Set<Class<?>> thriftEnums;
-  
+
   private final Set<Class<?>> thriftUnions;
 
   private final File[] idlFiles;
-  
+
   private final File globalIdlFile;
-  
+
   private final SortedMap<String, ClientTypeAlias> clientTypeAliases;
   
+  private final SortedMap<String, ProtocolTypeAlias> protocolTypeAliases;
+
+  private final SortedMap<String, TProcessor> processors;
+
+  private final ServiceLocator serviceLocator;
+
   private final ThriftSchema schema;
 
-  public ThriftEE(ThriftEEConfig config) throws ThriftStartupException {
+  public ThriftEE(final ThriftEEConfig config) throws ThriftStartupException {
 
     this.tempDir = config.tempDir();
     this.idlDir = new File(tempDir, "idl");
+    this.serviceLocator = config.serviceLocator();
 
-    if (config.getClientTypeAliases() == null) {
+    if (config.clientTypeAliases() == null) {
       this.clientTypeAliases = Collections.emptySortedMap();
     } else {
-      this.clientTypeAliases = config.getClientTypeAliases();
+      this.clientTypeAliases = config.clientTypeAliases();
+    }
+
+    if (config.protocolTypeAliases() == null) {
+      this.protocolTypeAliases = Collections.emptySortedMap();
+    } else {
+      this.protocolTypeAliases = config.protocolTypeAliases();
     }
 
     final AnnotationDB annotations = new AnnotationDB();
@@ -153,7 +203,7 @@ public class ThriftEE {
     annotations.setScanMethodAnnotations(false);
     annotations.setScanParameterAnnotations(false);
     try {
-      config.scannotationConfigurator().configure(annotations);
+      annotations.scanArchives(config.annotationClasspath().getUrls());
       thriftServices = searchFor(ThriftService.class, annotations);
       thriftStructs = searchFor(ThriftStruct.class, annotations);
       thriftUnions = searchFor(ThriftUnion.class, annotations);
@@ -162,14 +212,14 @@ public class ThriftEE {
       throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_002);
     }
 
-    thriftCodecManager = new ThriftCodecManager(new CompilerThriftCodecFactory(false));
-    thriftCodecManager.getCatalog().addDefaultCoercions(DefaultJavaCoercions.class);
+    codecManager = new ThriftCodecManager(new CompilerThriftCodecFactory(false));
+    codecManager.getCatalog().addDefaultCoercions(DefaultJavaCoercions.class);
 
-    logger.debug("Initializing Thrift Services ----");
-    logger.debug("[Services detected]: {}", thriftServices);
-    logger.debug("[ Structs detected]: {}", thriftStructs);
-    logger.debug("[  Unions detected]: {}", thriftUnions);
-    logger.debug("[   Enums detected]: {}", thriftEnums);
+    LOG.debug("Initializing Thrift Services ----");
+    LOG.debug("[Services detected]: {}", thriftServices);
+    LOG.debug("[ Structs detected]: {}", thriftStructs);
+    LOG.debug("[  Unions detected]: {}", thriftUnions);
+    LOG.debug("[   Enums detected]: {}", thriftEnums);
 
     //------------------------------------------------------------------//
     // Here we are checking the configured Thrift library directory to  //
@@ -201,7 +251,7 @@ public class ThriftEE {
     } else {
       this.thriftLibDir = null;
     }
-    logger.info("Thrift library dir: {}", thriftLibDir);
+    LOG.info("Thrift library dir: {}", thriftLibDir);
 
     //------------------------------------------------------------------//
     // Next we will validate the thrift executable and make note of the //
@@ -224,8 +274,8 @@ public class ThriftEE {
       this.thriftExecutable = null;
       this.thriftVersionString = null;
     }
-    logger.info("Using Thrift executable: {}", thriftExecutable);
-    logger.info("Thrift version string: {}", thriftVersionString);
+    LOG.info("Using Thrift executable: {}", thriftExecutable);
+    LOG.info("Thrift version string: {}", thriftVersionString);
 
     Set<Class<?>> allClasses = new HashSet<Class<?>>();
     allClasses.addAll(thriftServices);
@@ -238,7 +288,7 @@ public class ThriftEE {
     // generated definitions.  If there are problems with the Thrift    //
     // schema, the export process will choke.                           //
     //------------------------------------------------------------------//
-    logger.debug("Exporting IDL files from Swift definitions");
+    LOG.debug("Exporting IDL files from Swift definitions");
     final File[] idlFiles;
     try {
       ExportIDL exporter = new ExportIDL();
@@ -256,7 +306,7 @@ public class ThriftEE {
     // ThriftEE specifically uses this to dynamically invoke services   //
     // from the ThriftEE dashboard.                                     //
     //------------------------------------------------------------------//
-    
+ 
     File globalFile = null;
     for (int i = 0, c = idlFiles.length; globalFile == null && i < c; i++) {
       final File idlFile = idlFiles[i];
@@ -278,12 +328,15 @@ public class ThriftEE {
       }
     }
 
-    logger.debug("Exporting configured clients");
+    LOG.debug("Exporting configured clients");
     for (final ClientTypeAlias alias : clientTypeAliases().values()) {
       generateClientLibrary(alias);
     }
-
-    logger.info("Thrift initialization completed");
+ 
+    LOG.debug("Setting up thrift processor map");
+    this.processors = Collections.unmodifiableSortedMap(buildProcessorMap());
+    
+    LOG.info("Thrift initialization completed");
   }
 
   public static Set<Class<?>> searchFor(
@@ -315,12 +368,27 @@ public class ThriftEE {
       return new File(thriftLibDir, "php/lib/Thrift").exists();
     }
   }
-  
+
+  public static String moduleNameFor(final String _packageName) {
+    return _packageName.replace('.', '_');
+  }
+
+  public static String serviceNameFor(Class<?> c) {
+    final ThriftService ann = c.getAnnotation(ThriftService.class);
+    if (ann == null) {
+      throw new IllegalArgumentException("not annotated with @ThriftService");
+    }
+    final String pkg = moduleNameFor(c.getPackage().getName());
+    final String val = Strings.trimToNull(ann.value());
+    final String svc = val == null ? c.getSimpleName() : val;
+    return pkg + "." + svc;
+  }
+
   private String getVersionString() {
-    ThriftCommand command = new ThriftCommand((Generate) null);
+    final ThriftCommand command = new ThriftCommand((Generate) null);
     command.setThriftCommand(this.thriftExecutable().getAbsolutePath());
-    ThriftCommandRunner runner = ThriftCommandRunner.instanceFor(command);
-    return runner.executeVersion();
+    final ThriftCommandRunner run = ThriftCommandRunner.instanceFor(command);
+    return run.executeVersion();
   }
 
   private String clientLibraryPrefix(String name) {
@@ -333,7 +401,7 @@ public class ThriftEE {
   private void generateClientLibrary(ClientTypeAlias alias) 
       throws ThriftStartupException {
     final String name = alias.getName();
-    logger.debug("Generating library for client type alias: {}", name);
+    LOG.debug("Generating library for client type alias: {}", name);
     try {
       ThriftCommand cmd = new ThriftCommand(alias);
       cmd.setRecurse(true);
@@ -352,12 +420,45 @@ public class ThriftEE {
         files, tempDir(), clientLibraryPrefix(name), cmd, extraDirs
       );
       final String path = clientLibrary.getAbsolutePath();
-      logger.debug("{} client library created at: {}", name, path);
+      LOG.debug("{} client library created at: {}", name, path);
     } catch (IOException e) {
       throw new ThriftStartupException(
         e, ThriftStartupMessage.STARTUP_009, alias.getName(), e.getMessage()
       );
     }
+  }
+
+  private SortedMap<String, TProcessor> buildProcessorMap() 
+      throws ThriftStartupException {
+    final SortedMap<String, TProcessor> processorMap = New.sortedMap();
+    for (final Class<?> svcCls : thriftServices) {
+      final String serviceName = serviceNameFor(svcCls);
+      if (processorMap.containsKey(serviceName)) {
+        throw new IllegalStateException(
+          "found multiple instances of service: " + serviceName);
+      }
+      final Object impl;
+      try {
+        if (serviceLocator != null) {
+          impl = serviceLocator.locate(this, svcCls);
+        } else {
+          impl = null;
+        }
+      } catch (ServiceLocatorException e) {
+        throw new ThriftStartupException(
+            e, ThriftStartupMessage.STARTUP_010, svcCls, e.getMessage());
+      }
+      if (impl == null) {
+        continue;
+      }
+      final List<ThriftEventHandler> eventHandlers = Collections.emptyList();
+      final ThriftServiceProcessor tsp = new ThriftServiceProcessor(
+        codecManager, eventHandlers, impl
+      );
+      final TProcessor proc = NiftyProcessorAdapters.processorToTProcessor(tsp);
+      processorMap.put(serviceName, proc);
+    }
+    return processorMap;
   }
 
 }

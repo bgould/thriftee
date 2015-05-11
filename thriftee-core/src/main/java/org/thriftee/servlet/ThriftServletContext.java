@@ -1,3 +1,4 @@
+/*
 package org.thriftee.servlet;
 
 import java.io.File;
@@ -105,16 +106,10 @@ public class ThriftServletContext {
 
   public static class Listener implements ServletContextListener {
 
-    /**
-     * @see ServletContextListener#contextInitialized(ServletContextEvent)
-     */
     public void contextInitialized(ServletContextEvent event) {
       initialize(event.getServletContext());
     }
 
-    /**
-     * @see ServletContextListener#contextDestroyed(ServletContextEvent)
-     */
     public void contextDestroyed(ServletContextEvent event) {
       destroy(event.getServletContext());
     }
@@ -122,3 +117,4 @@ public class ThriftServletContext {
   }
 
 }
+*/

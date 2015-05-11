@@ -11,11 +11,14 @@ import org.restlet.Request;
 import org.restlet.data.MediaType;
 import org.restlet.data.Protocol;
 import org.restlet.data.Reference;
+import org.restlet.data.Status;
 import org.restlet.ext.freemarker.TemplateRepresentation;
+import org.restlet.representation.Representation;
 import org.restlet.resource.ServerResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.framework.ThriftEE;
+import org.thriftee.util.New;
 
 import com.facebook.swift.codec.ThriftCodecManager;
 
@@ -26,8 +29,8 @@ import freemarker.template.ObjectWrapper;
 public abstract class FrameworkResource extends ServerResource {
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
-  
-  static final String servletCtxAttr = "org.restlet.ext.servlet.ServletContext";
+
+  //static final String servletCtxAttr = "org.restlet.ext.servlet.ServletContext";
 
   public static final String APP_CTX_ATTR = "org.thriftee.app.attr";
   
@@ -100,7 +103,7 @@ public abstract class FrameworkResource extends ServerResource {
     cfg.setObjectWrapper(beansWrapper);
     cfg.setClassForTemplateLoading(FrameworkResource.class, prefix);
   }
-  
+
   public static TemplateRepresentation getTemplate(
       final String tpl, 
       final Object data, 
@@ -108,12 +111,34 @@ public abstract class FrameworkResource extends ServerResource {
     return new TemplateRepresentation(tpl + ".ftl", cfg, data, mediaType);
   }
 
-  public static DirectoryListingModel createDefaultModel() {
+  public static DirectoryListingModel createDefaultModel(Class<?> forClass) {
     final DirectoryListingModel model = new DirectoryListingModel();
-    final String listingPath = resourceBaseRef().getHierarchicalPart();
-    model.setTitle("Listing for '" + listingPath  + "'");
+    final String listingPath = resourceBaseRef().getPath();
+    if (!listingPath.endsWith("/")) {
+      throw new IllegalStateException("listingPath should end with a slash");
+    }
+    model.setTitle("Index of '" + listingPath  + "'");
     model.setBaseRef(resourceRef().toString());
+    if (!(forClass.equals(IndexResource.class))) {
+      model.getFiles().put("../", "../");
+    }
     return model;
+  }
+
+  protected DirectoryListingModel createDefaultModel() {
+    return createDefaultModel(getClass());
+  }
+
+  protected Representation listing(DirectoryListingModel dirModel) {
+    final Map<String, Object> model = New.map();
+    model.put("title", dirModel.getTitle());
+    model.put("directory", dirModel);
+    return getTemplate("directory", model, MediaType.TEXT_HTML);
+  }
+
+  protected Representation notFound() {
+    getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND);
+    return null;
   }
 
   protected TemplateRepresentation getDebugTemplate(
@@ -128,7 +153,7 @@ public abstract class FrameworkResource extends ServerResource {
     model.put("response", getResponse());
     return getTemplate("debug", model, mediaType); 
   }
-  
+
   protected void debug(String fmt, Object... args) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format(fmt, (Object[]) args));

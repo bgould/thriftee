@@ -26,6 +26,7 @@ public class ThriftStartupException extends ThriftSystemException {
     STARTUP_007("Thrift executable specified, but does not exist: %s"),
     STARTUP_008("Could not get Thrift version string from executable: %s"),
     STARTUP_009("Error generating client library %s: %s"),
+    STARTUP_010("Error locating implementation for service %s: %s"),
     ;
 
     private final String _message;

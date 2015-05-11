@@ -19,7 +19,8 @@ public class PresidentServiceBean implements PresidentService {
 	
 	@Override
 	public List<President> getPresidents() {
-		return em.createQuery("select p from President p", President.class).getResultList();
+    final String jpql = "select p from President p";
+		return em.createQuery(jpql, President.class).getResultList();
 	}
 	
 	@Override

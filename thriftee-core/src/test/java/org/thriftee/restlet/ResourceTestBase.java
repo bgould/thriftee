@@ -59,9 +59,12 @@ public class ResourceTestBase extends AbstractThriftEETest {
     this.component = null;
   }
 
+  private static final String ROOT_REF = "tests://localhost/thriftee/tests";
+  
   protected void assertHasLink(String link) {
     final String text = rsp().getEntityAsText();
-    final boolean hasLink = text.indexOf("<a href=\"" + link + "\"") > -1;
+    final String href = req().getResourceRef() + link;
+    final boolean hasLink = text.indexOf("<a href=\"" + href + "\"") > -1;
     Assert.assertTrue("Listing should contain " + link + " link", hasLink);
   }
 
@@ -71,16 +74,19 @@ public class ResourceTestBase extends AbstractThriftEETest {
     final List<Preference<MediaType>> accepted = New.arrayList();
     accepted.add(new Preference<MediaType>(MediaType.TEXT_HTML, 0.9f));
 
-    final String rootRef = "tests://localhost/thriftee/tests";
-
-    this.request = new Request(Method.GET, rootRef + uri);
-    this.request.setRootRef(new Reference(rootRef));
-    this.request.getResourceRef().setBaseRef(rootRef);
+    this.request = new Request(Method.GET, ROOT_REF + uri);
+    this.request.setRootRef(new Reference(ROOT_REF));
+    this.request.getResourceRef().setBaseRef(ROOT_REF);
     this.request.getClientInfo().setAcceptedMediaTypes(accepted);
     
     this.response = new Response(this.request);
 
     app().handle(request, response);
+    LOG.debug(
+      "response entity as text:\n------------------\n{}\n------------------\n",
+      response.getEntityAsText()
+    );
+
     LOG.debug("exiting handleGet()");
   }
 

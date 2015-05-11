@@ -28,24 +28,33 @@ import com.facebook.swift.service.ThriftService;
  * @since 2.0
  * @author Jeff Johnston
  */
-// TODO: need to fix thrift type dependency issue in Thrift generator; should add topographical sort
 @ThriftService
 public interface PresidentService {
 	
 	@ThriftMethod
-    public List<President> getPresidents();
+  public List<President> getPresidents();
 
 	@ThriftMethod
 	public President getPresidentByUniqueId(int id);
 	
 	@ThriftMethod
-    public int getPresidentsCountWithFilter(PresidentFilter filter);
+  public int getPresidentsCountWithFilter(PresidentFilter filter);
 
 	@ThriftMethod
-    public List<President> getPresidentsWithFilterAndSort(PresidentFilter filter, PresidentSort sort, int rowStart, int rowEnd);
-   
+  public List<President> getPresidentsWithFilterAndSort(
+    PresidentFilter filter, 
+    PresidentSort sort, 
+    int rowStart, 
+    int rowEnd
+  );
+ 
 	@ThriftMethod
-    public Map<String, President> getPresidentsByUniqueIds(String property, List<String> uniqueIds);
-   
-    public void save(President president);
+  public Map<String, President> getPresidentsByUniqueIds(
+    String property, 
+    List<String> uniqueIds
+  );
+ 
+  public void save(President president);
+
 }
+

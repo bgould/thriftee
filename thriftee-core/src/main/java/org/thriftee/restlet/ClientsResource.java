@@ -13,17 +13,13 @@ public class ClientsResource extends FrameworkResource {
   @Get
   public Representation get() {
 
-    final String title = "Available Thrift Clients";
-    final DirectoryListingModel directory = new DirectoryListingModel();
-    directory.setTitle(title);
-    directory.setBaseRef(".");
+    final DirectoryListingModel directory = createDefaultModel();
     for (final ClientTypeAlias alias : thrift().clientTypeAliases().values()) {
       directory.getFiles().put(alias.getName() + "/", alias.getName() + "/");
     }
  
     final Map<String, Object> model = New.map();
-    model.put("title", title);
-    model.put("aliases", thrift().clientTypeAliases());
+    model.put("title", directory.getTitle());
     model.put("directory", directory);
     return getTemplate("clients", model, MediaType.TEXT_HTML);
 

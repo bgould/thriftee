@@ -8,6 +8,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TJSONProtocol;
+import org.apache.thrift.protocol.TProtocolFactory;
+import org.apache.thrift.protocol.TTupleProtocol;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
 import org.thriftee.util.New;
@@ -17,62 +22,84 @@ public class ThriftEEConfig implements Serializable {
   private static final long serialVersionUID = 8148668461656853500L;
 
   private final File tempDir;
-  
+
   private final File thriftExecutable;
-  
+
   private final File thriftLibDir;
-  
-  private final ScannotationConfigurator scannotationConfigurator;
+
+  private final Classpath annotationClasspath;
+
+  private final ServiceLocator serviceLocator;
 
   private final SortedMap<String, ClientTypeAlias> clientTypeAliases;
   
+  private final SortedMap<String, ProtocolTypeAlias> protocolTypeAliases;
+
   private ThriftEEConfig(
-      final File tempDir, 
-      final File thriftExecutable, 
-      final File thriftLibDir, 
-      final ScannotationConfigurator configurator,
-      final Map<String, ClientTypeAlias> clientTypeAliases) {
+      final File tempDir,
+      final File thriftExecutable,
+      final File thriftLibDir,
+      final Classpath annotationClasspath,
+      final ServiceLocator serviceLocator,
+      final Map<String, ClientTypeAlias> clientTypeAliases,
+      final Map<String, ProtocolTypeAlias> protocolTypeAliases) {
     super();
     this.tempDir = tempDir;
     this.thriftExecutable = thriftExecutable;
     this.thriftLibDir = thriftLibDir;
-    this.scannotationConfigurator = configurator;
+    this.annotationClasspath = annotationClasspath;
+    this.serviceLocator = serviceLocator;
     final SortedMap<String, ClientTypeAlias> aliases = New.sortedMap();
     aliases.putAll(clientTypeAliases);
     this.clientTypeAliases = Collections.unmodifiableSortedMap(aliases);
+    final SortedMap<String, ProtocolTypeAlias> protocols = New.sortedMap();
+    protocols.putAll(protocolTypeAliases);
+    this.protocolTypeAliases = Collections.unmodifiableSortedMap(protocols);
   }
 
   public File tempDir() {
     return this.tempDir;
   }
-  
+
   public File thriftExecutable() {
     return this.thriftExecutable;
   }
-  
+
   public File thriftLibDir() {
     return this.thriftLibDir;
   }
-  
-  public ScannotationConfigurator scannotationConfigurator() {
-    return this.scannotationConfigurator;
+
+  public Classpath annotationClasspath() {
+    return this.annotationClasspath;
   }
 
-  public SortedMap<String, ClientTypeAlias> getClientTypeAliases() {
+  public SortedMap<String, ClientTypeAlias> clientTypeAliases() {
     return this.clientTypeAliases;
+  }
+  
+  public SortedMap<String, ProtocolTypeAlias> protocolTypeAliases() {
+    return this.protocolTypeAliases;
+  }
+
+  public ServiceLocator serviceLocator() {
+    return this.serviceLocator;
   }
 
   public static class Factory {
-    
+
     private File tempDir;
-    
+
     private File thriftExecutable;
-    
+
     private File thriftLibDir;
-    
-    private ScannotationConfigurator scannotationConfigurator;
-  
+
+    private Classpath annotationClasspath;
+
+    private ServiceLocator serviceLocator;
+
     private Map<String, ClientTypeAlias> clientTypeAliases = new HashMap<>();
+
+    private Map<String, ProtocolTypeAlias> protocolTypes = new HashMap<>();
 
     public void setTempDir(File tempDir) {
 //      if (tempDir == null) {
@@ -80,21 +107,29 @@ public class ThriftEEConfig implements Serializable {
 //      }
       this.tempDir = tempDir;
     }
-  
+
     public void setThriftExecutable(File file) {
       this.thriftExecutable = file;
     }
-  
+
     public void setThriftLibDir(File file) {
       this.thriftLibDir = file;
     }
-  
-    public void setScannotationConfigurator(ScannotationConfigurator configurator) {
-      this.scannotationConfigurator = configurator;
+
+    public void setAnnotationClasspath(Classpath classpath) {
+      this.annotationClasspath = classpath;
+    }
+
+    public void setServiceLocator(ServiceLocator serviceLocator) {
+      this.serviceLocator = serviceLocator;
     }
 
     public void setClientTypeAliases(Map<String, ClientTypeAlias> aliases) {
       this.clientTypeAliases = aliases;
+    }
+
+    public void setProtocolTypeAliases(Map<String, ProtocolTypeAlias> protos) {
+      this.protocolTypes = protos;
     }
 
     public Map<String, ClientTypeAlias> getClientTypeAliases() {
@@ -113,41 +148,69 @@ public class ThriftEEConfig implements Serializable {
       return thriftLibDir;
     }
 
-    public ScannotationConfigurator getScannotationConfigurator() {
-      return scannotationConfigurator;
+    public Classpath getAnnotationClasspath() {
+      return annotationClasspath;
     }
-  
+
     public ThriftEEConfig newInstance() {
       if (tempDir == null) {
         throw new IllegalArgumentException("tempDir cannot be null");
       }
-      if (scannotationConfigurator == null) {
+      if (annotationClasspath == null) {
         throw new IllegalArgumentException("cannot be null");
       }
       return new ThriftEEConfig(
         tempDir, 
         thriftExecutable, 
         thriftLibDir, 
-        scannotationConfigurator,
-        clientTypeAliases == null ? Collections.emptyMap() : clientTypeAliases
+        annotationClasspath,
+        serviceLocator,
+        clientTypeAliases == null ? Collections.emptyMap() : clientTypeAliases,
+        protocolTypes == null ? Collections.emptyMap() : protocolTypes
       );
     }
-  
+
   }
-  
+
   public static class Builder {
   
     private final Factory factory = new Factory();
 
     private final SortedMap<String, ClientTypeAlias> aliases = New.sortedMap();
 
+    private final SortedMap<String, ProtocolTypeAlias> protocols = New.sortedMap();
+
     public Builder() {
+
       addClientTypeAlias("php", Generate.PHP, "php/src", Flag.PHP_NAMESPACE, Flag.PHP_OOP);
       addClientTypeAlias("html", Generate.HTML);
       addClientTypeAlias("json", Generate.JSON);
       addClientTypeAlias("jquery", Generate.JS, Flag.JS_JQUERY);
+
+      addProtocolTypeAlias("binary", new TBinaryProtocol.Factory());
+      addProtocolTypeAlias("compact", new TCompactProtocol.Factory());
+      addProtocolTypeAlias("json", new TJSONProtocol.Factory());
+      addProtocolTypeAlias("tuple", new TTupleProtocol.Factory());
+
     }
-    
+
+    public Builder addProtocolTypeAlias(String name, TProtocolFactory factory) {
+      final ProtocolTypeAlias pta = new ProtocolTypeAlias(name, factory);
+      addProtocolTypeAlias(pta);
+      return this;
+    }
+
+    public Builder addProtocolTypeAlias(ProtocolTypeAlias protocolType) {
+      final String name = protocolType.getName();
+      if (protocols.containsKey(name)) {
+        throw new IllegalArgumentException(
+          "A type alias named `" + name + "` has already been set."
+        );
+      }
+      protocols.put(name, protocolType);
+      return this;
+    }
+
     public Builder addClientTypeAlias(String name, Generate lang, Flag... flags) {
       return addClientTypeAlias(name, lang, null, flags);
     }
@@ -181,27 +244,33 @@ public class ThriftEEConfig implements Serializable {
       factory.setTempDir(tempDir);
       return this;
     }
-  
+
     public Builder thriftExecutable(final File file) {
       factory.setThriftExecutable(file);
       return this;
     }
-  
+
     public Builder thriftLibDir(final File file) {
       factory.setThriftLibDir(file);
       return this;
     }
-  
-    public Builder scannotationConfigurator(final ScannotationConfigurator configurator) {
-      factory.setScannotationConfigurator(configurator);
+
+    public Builder annotationClasspath(final Classpath classpath) {
+      factory.setAnnotationClasspath(classpath);
       return this;
     }
-  
+
+    public Builder serviceLocator(final ServiceLocator serviceLocator) {
+      factory.setServiceLocator(serviceLocator);
+      return this;
+    }
+
     public ThriftEEConfig build() {
       factory.setClientTypeAliases(aliases);
+      factory.setProtocolTypeAliases(protocols);
       return factory.newInstance();
     }
-  
+
   }
-  
+
 }

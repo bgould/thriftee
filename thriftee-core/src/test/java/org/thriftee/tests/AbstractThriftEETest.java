@@ -18,17 +18,17 @@ import org.thriftee.util.FileUtil;
 public abstract class AbstractThriftEETest {
 
   private final File tempDirForClass;
-  
+
   private static final Map<String, ThriftEE> thrifteeInstances = new HashMap<String, ThriftEE>();
-  
+
   private static final Properties TEST_PROPERTIES;
-  
+
   private static final File thriftLibDir;
-  
+
   private static final File thriftExecutable;
-  
+
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
-  
+
   static {
     final Logger logger = LoggerFactory.getLogger(AbstractThriftEETest.class);
     logger.trace("TRACE level enabled");
@@ -60,21 +60,22 @@ public abstract class AbstractThriftEETest {
       System.getProperty("thrift.executable", "/usr/local/bin/thrift")
     ));
   }
-  
+
   public static final File thriftLibDir() {
     return thriftLibDir;
   }
-  
+
   public static final File thriftExecutable() {
     return thriftExecutable;
   }
-  
+
   protected static ThriftEE loadThriftee(File tempDir) throws ThriftStartupException {
     synchronized (thrifteeInstances) {
       if (!thrifteeInstances.containsKey(tempDir.getAbsolutePath())) {
         final ThriftEE thrift = new ThriftEE(
           (new ThriftEEConfig.Builder())
-            .scannotationConfigurator(new TestScannotationConfigurator())
+            .annotationClasspath(new TestClasspath())
+            .serviceLocator(new ExampleServiceLocator())
             .thriftLibDir(thriftLibDir)
             .thriftExecutable(thriftExecutable)
             .tempDir(tempDir)
@@ -85,9 +86,9 @@ public abstract class AbstractThriftEETest {
     }
     return thrifteeInstances.get(tempDir.getAbsolutePath());
   }
-  
+
   private final ThriftEE thrift;
-  
+
   public AbstractThriftEETest() {
     try {
       final String simpleName = getClass().getSimpleName();
@@ -99,15 +100,15 @@ public abstract class AbstractThriftEETest {
       throw new RuntimeException(e);
     }
   }
-  
+
   protected File getTempDirForTest() {
     final StackTraceElement stackTraceElement = Thread.currentThread().getStackTrace()[2];
     File retval = new File(tempDirForClass, stackTraceElement.getMethodName());
     return retval;
   }
-  
+
   protected ThriftEE thrift() {
     return thrift;
   }
-  
+
 }
