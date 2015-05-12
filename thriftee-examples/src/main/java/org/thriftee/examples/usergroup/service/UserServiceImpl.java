@@ -8,7 +8,7 @@ import javax.ejb.Stateless;
 
 import org.thriftee.examples.usergroup.domain.User;
 
-@Stateless
+@Stateless(name="UserServiceBean")
 @Remote(UserService.class)
 public class UserServiceImpl implements UserService {
 

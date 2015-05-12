@@ -3,6 +3,7 @@ package org.thriftee.servlet;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import org.apache.commons.lang.StringUtils;
 import org.thriftee.framework.ServiceLocator;
 import org.thriftee.framework.ServiceLocatorException;
 import org.thriftee.framework.ServiceLocatorException.ServiceLocatorMessage;
@@ -26,7 +27,7 @@ public class DefaultEJBServiceLocator implements ServiceLocator {
       throw new IllegalArgumentException("Service interface not annotated.");
     }
     final String name = annotation.value();
-    final String svcName = (name == null) ? svcIntf.getSimpleName() : name;
+    final String svcName = (StringUtils.trimToNull(name) == null) ? svcIntf.getSimpleName() : name;
     final String jndiName = "java:app/" + svcName + "Bean";
     final I result;
     try {

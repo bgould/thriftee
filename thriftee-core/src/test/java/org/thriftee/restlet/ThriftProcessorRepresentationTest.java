@@ -38,7 +38,6 @@ import com.facebook.swift.codec.ThriftCodecManager;
 
 public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
 
-
   @Test
   public void testBinaryProcessor() throws Exception{
     TProtocolFactory factory = new TBinaryProtocol.Factory();

@@ -11,7 +11,7 @@ import javax.ejb.Stateless;
 import org.thriftee.examples.usergroup.domain.Group;
 import org.thriftee.examples.usergroup.domain.User;
 
-@Stateless
+@Stateless(name="GroupServiceBean")
 @Remote(GroupService.class)
 public class GroupServiceImpl implements GroupService {
 
