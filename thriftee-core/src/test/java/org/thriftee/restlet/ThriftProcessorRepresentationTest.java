@@ -95,17 +95,17 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
       resultStr = new String(out.toByteArray());
     } else {
       resultStr = new BigInteger(1, out.toByteArray()).toString(16);
-    } 
+    }
     LOG.debug("service result: {}", resultStr);
 
     final InputStream bais = new ByteArrayInputStream(out.toByteArray());
     final TTransport transport = new TIOStreamTransport(bais, null);
     final TProtocol protocol = factory.getProtocol(transport);
 
+    final ThriftCodec<User> codec = mgr.getCodec(User.class);
     final TMessage msg = protocol.readMessageBegin();
     protocol.readStructBegin();
     final TField field = protocol.readFieldBegin();
-    ThriftCodec<User> codec = mgr.getCodec(User.class);
     final User result = codec.read(protocol);
     protocol.readFieldEnd();
     protocol.readStructEnd();

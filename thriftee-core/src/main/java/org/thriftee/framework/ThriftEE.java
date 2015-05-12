@@ -126,11 +126,13 @@ public class ThriftEE {
   }
 
   public TMultiplexedProcessor multiplexedProcessor() {
+    LOG.debug("Building multiplexed processor");
     final TMultiplexedProcessor multiplex = new TMultiplexedProcessor();
     for (Entry<String, TProcessor> entry : this.processors.entrySet()) {
       if (entry.getKey() == null) {
         throw new IllegalStateException("One or more processors was null.");
       }
+      LOG.debug("registering with multiplex processor: {}", entry.getKey());
       multiplex.registerProcessor(entry.getKey(), entry.getValue());
     }
     return multiplex;
@@ -430,9 +432,11 @@ public class ThriftEE {
 
   private SortedMap<String, TProcessor> buildProcessorMap() 
       throws ThriftStartupException {
+    LOG.debug("Building processor map with svc locator: {}", serviceLocator);
     final SortedMap<String, TProcessor> processorMap = New.sortedMap();
     for (final Class<?> svcCls : thriftServices) {
       final String serviceName = serviceNameFor(svcCls);
+      LOG.debug("Searching for impl of {} ({})", serviceName, svcCls);
       if (processorMap.containsKey(serviceName)) {
         throw new IllegalStateException(
           "found multiple instances of service: " + serviceName);
@@ -440,7 +444,7 @@ public class ThriftEE {
       final Object impl;
       try {
         if (serviceLocator != null) {
-          impl = serviceLocator.locate(this, svcCls);
+          impl = serviceLocator.locate(svcCls);
         } else {
           impl = null;
         }
@@ -449,6 +453,7 @@ public class ThriftEE {
             e, ThriftStartupMessage.STARTUP_010, svcCls, e.getMessage());
       }
       if (impl == null) {
+        LOG.warn("No implementation found for service {}", serviceName);
         continue;
       }
       final List<ThriftEventHandler> eventHandlers = Collections.emptyList();

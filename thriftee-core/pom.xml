@@ -52,14 +52,13 @@
       <groupId>org.restlet.jee</groupId>
       <artifactId>org.restlet</artifactId>
     </dependency>
+    <!-- 
+
     <dependency>
       <groupId>org.restlet.jee</groupId>
       <artifactId>org.restlet.ext.servlet</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.restlet.jee</groupId>
-      <artifactId>org.restlet.ext.servlet</artifactId>
-    </dependency>
+    -->
     <dependency>
       <groupId>org.restlet.jee</groupId>
       <artifactId>org.restlet.ext.freemarker</artifactId>
@@ -80,11 +79,7 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- provided scoped dependencies -->
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-    </dependency>
+
   </dependencies>
   
   <profiles>

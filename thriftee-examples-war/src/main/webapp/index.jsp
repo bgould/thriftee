@@ -4,14 +4,18 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>ThriftEE Javascript Examples Page</title>
 <script type="text/javascript" src="${pageContext.request.contextPath}/jquery-1.11.1.min.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/clients/jquery/thrift.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/clients/jquery/org_thriftee_examples_presidents_types.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/clients/jquery/PresidentService.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/services/clients/jquery/thrift.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/services/clients/jquery/org_thriftee_examples_presidents_types.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/services/clients/jquery/PresidentService.js"></script>
 <script type="text/javascript">
 (function ($) {
     var _mp = new Thrift.Multiplexer(),
         _transport = new Thrift.Transport('${pageContext.request.contextPath}/services/endpoint'),
-        _client = _mp.createClient('PresidentService', PresidentServiceClient, _transport);
+        _client = _mp.createClient(
+          'org_thriftee_examples_presidents.PresidentService', 
+          PresidentServiceClient, 
+          _transport
+        );
     ;
     window.client = _client;
     function _getEditorText() {

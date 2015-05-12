@@ -90,7 +90,9 @@ public class ThriftEEServlet extends ServerServlet {
   }
 
   protected ServiceLocator createServiceLocator() {
-    return new DefaultEJBServiceLocator();
+    final DefaultEJBServiceLocator locator = new DefaultEJBServiceLocator();
+    locator.setSearchAllModules(true);
+    return locator;
   }
  
   private static final long serialVersionUID = 9217322620918070877L;

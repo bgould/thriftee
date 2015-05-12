@@ -80,36 +80,29 @@ public class EndpointsResource extends FrameworkResource {
   }
 
   @Post
-  public Representation process() throws IOException, TException {
-    if (!resolve()) {
+  public Representation process(Representation entity) {
+    LOG.debug("entering process()");
+    if (!resolve() || getProtocolType() == null) {
       return notFound();
     }
-    if (!isMultiplex() || getService() == null) {
+    //final Representation entity = getRequest().getEntity();
+    final MediaType mediaType = entity.getMediaType();
+    LOG.debug("service: {}", getService());
+    LOG.debug("protocol: {}", getProtocolType().getName());
+    LOG.debug("multiplex: {}", isMultiplex());
+    LOG.debug("mediaType: {}", mediaType);
+    if (!isMultiplex() && getService() == null) {
       getResponse().setStatus(Status.CLIENT_ERROR_METHOD_NOT_ALLOWED);
       return null;
     }
-    return new OutputRepresentation(getRequest().getEntity().getMediaType()) {
-      @Override
-      public void write(final OutputStream out) throws IOException {
-        final InputStream in = getRequest().getEntity().getStream();
-        final TTransport transport = new TIOStreamTransport(in, out);
-        try {
-          final TProtocol inProtocol = getInFactory().getProtocol(transport);
-          final TProtocol outProtocol = getOutFactory().getProtocol(transport);
-          if (getProcessor().process(inProtocol, outProtocol)) {
-            out.flush();
-          } else {
-            throw new IOException("TProcessor.process() returned false");
-          }
-        } catch (RuntimeException e) {
-          throw e;
-        } catch (TException e) {
-          throw new RuntimeException(e);
-        } finally {
-          transport.close();
-        }
-      }
-    };
+    final Representation result = new ThriftProcessorRepresentation(
+      entity, 
+      getInFactory(), 
+      getOutFactory(), 
+      getProcessor()
+    );
+    LOG.debug("exiting process()");
+    return result;
   }
 
   @Get

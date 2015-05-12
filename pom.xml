@@ -239,6 +239,7 @@
           </systemProperties>
         </configuration>
       </plugin>
+      <!--
       <plugin>
         <groupId>org.apache.openejb.maven</groupId>
         <artifactId>tomee-maven-plugin</artifactId>
@@ -258,6 +259,7 @@
           </libs>
         </configuration>
       </plugin>
+      -->
     </plugins>
   </build>
 

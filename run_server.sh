@@ -1,4 +1,3 @@
 #!/bin/bash
-
-mvn clean install && mvn tomee:run
-
+mvn clean install
+(cd thriftee-examples-war && mvn tomee:run)

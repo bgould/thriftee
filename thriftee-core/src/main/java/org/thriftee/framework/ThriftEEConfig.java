@@ -182,10 +182,11 @@ public class ThriftEEConfig implements Serializable {
 
     public Builder() {
 
+      // TODO: the defaults probably shouldn't be buried here
       addClientTypeAlias("php", Generate.PHP, "php/src", Flag.PHP_NAMESPACE, Flag.PHP_OOP);
       addClientTypeAlias("html", Generate.HTML);
       addClientTypeAlias("json", Generate.JSON);
-      addClientTypeAlias("jquery", Generate.JS, Flag.JS_JQUERY);
+      addClientTypeAlias("jquery", Generate.JS, "js/src", Flag.JS_JQUERY);
 
       addProtocolTypeAlias("binary", new TBinaryProtocol.Factory());
       addProtocolTypeAlias("compact", new TCompactProtocol.Factory());

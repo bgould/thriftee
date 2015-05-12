@@ -3,6 +3,7 @@ package org.thriftee.framework;
 import java.io.ByteArrayOutputStream;
 import java.util.Date;
 
+import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TSimpleJSONProtocol;
@@ -23,7 +24,7 @@ import com.facebook.swift.codec.ThriftCodec;
 
 public class ThriftEETest extends AbstractThriftEETest {
 
-  public static final String MODULE = "org_thriftee_examples_usergroup_service";
+  public static final String MODULE = USERGROUP_SERVICES_MODULE;
 
   public ThriftEETest() throws ThriftStartupException {
     super();
@@ -32,7 +33,7 @@ public class ThriftEETest extends AbstractThriftEETest {
   @Test
   public void testServiceLocator() throws Exception {
     UserService userService;
-    userService = thrift().serviceLocator().locate(thrift(), UserService.class);
+    userService = thrift().serviceLocator().locate(UserService.class);
     User aardvark = userService.find("aaardvark");
     Assert.assertNotNull("returned user must not be null", aardvark);
   }
@@ -57,6 +58,12 @@ public class ThriftEETest extends AbstractThriftEETest {
     ServiceSchema svcSchema = moduleSchema.getServices().get("GroupService");
     TProcessor groupService = thrift().processorFor(svcSchema);
     Assert.assertNotNull("TProcessor should not be null", groupService);
+  }
+
+  @Test
+  public void testMultiplexProcessor() throws Exception {
+    TMultiplexedProcessor mp = thrift().multiplexedProcessor();
+    LOG.debug("multiplexed processor: {}", mp);
   }
 
   @Test

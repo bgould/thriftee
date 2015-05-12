@@ -53,17 +53,25 @@
     </dependency>
   </dependencies>
   <build>
-    <finalName>thriftee-examples</finalName>
-    <outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory>
     <plugins>
       <plugin>
         <groupId>org.apache.openejb.maven</groupId>
         <artifactId>tomee-maven-plugin</artifactId>
-        <version>1.7.1</version>
+        <version>${tomee.version}</version>
         <configuration>
-          <tomeeVersion>1.7.1</tomeeVersion>
+          <context>ex</context>
+          <tomeeVersion>${tomee.version}</tomeeVersion>
           <removeTomeeWebapp>true</removeTomeeWebapp>
           <simpleLog>true</simpleLog>
+          <synchronization>
+            <updateInterval>5</updateInterval>
+            <extensions>
+              <extension>html</extension>
+              <extension>js</extension>
+              <extension>css</extension>
+              <extension>jsp</extension> 
+            </extensions>
+          </synchronization>
           <libs>
             <lib>org.eclipse.persistence:eclipselink:2.5.1</lib>
             <lib>remove:openjpa</lib>

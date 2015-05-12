@@ -8,7 +8,6 @@ import org.thriftee.examples.usergroup.service.UserService;
 import org.thriftee.examples.usergroup.service.UserServiceImpl;
 import org.thriftee.framework.ServiceLocator;
 import org.thriftee.framework.ServiceLocatorException;
-import org.thriftee.framework.ThriftEE;
 
 public class ExampleServiceLocator implements ServiceLocator {
 
@@ -17,7 +16,7 @@ public class ExampleServiceLocator implements ServiceLocator {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <I> I locate(ThriftEE thriftee, Class<I> svcIntf)
+  public <I> I locate(final Class<I> svcIntf)
       throws ServiceLocatorException {
     if (UserService.class.equals(svcIntf)) {
       return (I) new UserServiceImpl();
