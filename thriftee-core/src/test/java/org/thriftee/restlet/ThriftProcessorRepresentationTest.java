@@ -1,7 +1,9 @@
 package org.thriftee.restlet;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -16,8 +18,10 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TStruct;
 import org.apache.thrift.protocol.TTupleProtocol;
+import org.apache.thrift.protocol.TType;
 import org.apache.thrift.transport.TIOStreamTransport;
 import org.apache.thrift.transport.TTransport;
+import org.junit.Assert;
 import org.junit.Test;
 import org.restlet.representation.ByteArrayRepresentation;
 import org.restlet.representation.Representation;
@@ -25,6 +29,7 @@ import org.thriftee.compiler.schema.MethodArgumentSchema;
 import org.thriftee.compiler.schema.MethodSchema;
 import org.thriftee.compiler.schema.ModuleSchema;
 import org.thriftee.compiler.schema.ServiceSchema;
+import org.thriftee.examples.usergroup.domain.User;
 import org.thriftee.tests.AbstractThriftEETest;
 import org.thriftee.util.New;
 
@@ -33,49 +38,92 @@ import com.facebook.swift.codec.ThriftCodecManager;
 
 public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
 
-  private static final String MODULE = "org_thriftee_examples_usergroup_service";
 
   @Test
-  public void testBinaryProcessor() throws TException, IOException {
+  public void testBinaryProcessor() throws Exception{
     TProtocolFactory factory = new TBinaryProtocol.Factory();
     testProcessor(factory);
   }
 
   @Test
-  public void testJsonProcessor() throws TException, IOException {
+  public void testJsonProcessor() throws Exception {
     TProtocolFactory factory = new TJSONProtocol.Factory();
     testProcessor(factory);
   }
 
   @Test
-  public void testCompactProcessor() throws TException, IOException {
+  public void testCompactProcessor() throws Exception {
     TProtocolFactory factory = new TCompactProtocol.Factory();
     testProcessor(factory);
   }
 
   @Test
-  public void testTupleProcessor() throws TException, IOException {
+  public void testTupleProcessor() throws Exception {
     TProtocolFactory factory = new TTupleProtocol.Factory();
     testProcessor(factory);
   }
 
-  void testProcessor(TProtocolFactory factory) throws TException, IOException {
+  void testProcessor(TProtocolFactory factory) throws Exception {
 
-    ThriftCodecManager mgr = thrift().codecManager();
-    ModuleSchema module = thrift().schema().getModules().get(MODULE);
-    ServiceSchema service = module.getServices().get("UserService");
-    MethodSchema method = service.getMethods().get("find");
+    final boolean txt = factory.getClass().equals(TJSONProtocol.Factory.class);
+    LOG.debug("testing protocol: " + factory.getProtocol(null).getClass());
 
-    Map<String, Object> args = New.map();
+    final String modName = USERGROUP_SERVICES_MODULE;
+    final ThriftCodecManager mgr = thrift().codecManager();
+    final ModuleSchema module = thrift().schema().getModules().get(modName);
+    final ServiceSchema service = module.getServices().get("UserService");
+    final MethodSchema method = service.getMethods().get("find");
+
+    final Map<String, Object> args = New.map();
     args.put("uid", "aaardvark");
-    byte[] serviceCall = createServiceCall(mgr, factory, method, args);
+    final byte[] serviceCall = createServiceCall(mgr, factory, method, args);
+    String callStr;
+    if (txt) {
+      callStr = new String(serviceCall);
+    } else {
+      callStr = new BigInteger(1, serviceCall).toString(16);
+    }
+    LOG.debug("service call: {}", callStr);
 
-    Representation in = new ByteArrayRepresentation(serviceCall);
-    ThriftProcessorRepresentation rep = new ThriftProcessorRepresentation(
+    final Representation in = new ByteArrayRepresentation(serviceCall);
+    final ThriftProcessorRepresentation r = new ThriftProcessorRepresentation(
       in, factory, factory, thrift().processorFor(service)
     );
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    rep.write(out);
+    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    r.write(out);
+    String resultStr;
+    if (txt) {
+      resultStr = new String(out.toByteArray());
+    } else {
+      resultStr = new BigInteger(1, out.toByteArray()).toString(16);
+    } 
+    LOG.debug("service result: {}", resultStr);
+
+    final InputStream bais = new ByteArrayInputStream(out.toByteArray());
+    final TTransport transport = new TIOStreamTransport(bais, null);
+    final TProtocol protocol = factory.getProtocol(transport);
+
+    final TMessage msg = protocol.readMessageBegin();
+    protocol.readStructBegin();
+    final TField field = protocol.readFieldBegin();
+    ThriftCodec<User> codec = mgr.getCodec(User.class);
+    final User result = codec.read(protocol);
+    protocol.readFieldEnd();
+    protocol.readStructEnd();
+    protocol.readMessageEnd();
+
+    Assert.assertEquals(TMessageType.REPLY, msg.type);
+    Assert.assertEquals("find", msg.name);
+    Assert.assertEquals(0, msg.seqid);
+
+    Assert.assertEquals(TType.STRUCT, field.type);
+    Assert.assertEquals(0, field.id);
+
+    Assert.assertEquals("aaardvark", result.getUid());
+    Assert.assertEquals("Alan", result.getFirstName());
+    Assert.assertEquals("Aardvark", result.getLastName());
+    Assert.assertEquals("Aardvark, Alan", result.getDisplayName());
+    Assert.assertEquals("alanaardvark@example.com", result.getEmail());
 
   }
 
@@ -92,7 +140,7 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
     TProtocol protocol = factory.getProtocol(transport);
     TMessage msg = new TMessage(method.getName(), TMessageType.CALL, 0);
     protocol.writeMessageBegin(msg);
-    protocol.writeStructBegin(new TStruct("__fixme__"));
+    protocol.writeStructBegin(new TStruct(""));
     if (args != null) {
       for (Entry<String, Object> entry : args.entrySet()) {
         final String key = entry.getKey();

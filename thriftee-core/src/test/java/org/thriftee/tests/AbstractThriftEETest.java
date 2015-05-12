@@ -10,6 +10,8 @@ import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thriftee.examples.presidents.PresidentService;
+import org.thriftee.examples.usergroup.service.UserService;
 import org.thriftee.framework.ThriftEE;
 import org.thriftee.framework.ThriftEEConfig;
 import org.thriftee.framework.ThriftStartupException;
@@ -29,6 +31,12 @@ public abstract class AbstractThriftEETest {
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
+  public static final String USERGROUP_SERVICES_MODULE = 
+        ThriftEE.moduleNameFor(UserService.class.getPackage().getName());
+  
+  public static final String PRESIDENTS_MODULE = 
+        ThriftEE.moduleNameFor(PresidentService.class.getPackage().getName());
+ 
   static {
     final Logger logger = LoggerFactory.getLogger(AbstractThriftEETest.class);
     logger.trace("TRACE level enabled");
