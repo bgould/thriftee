@@ -18,10 +18,9 @@
   }
   $(function () {
     $('#runIt').click(function () {
-      var script = _getEditorText(),
-        result = null;
+      var script = _getEditorText(), result = null;
       if (console && console.log) {
-        console.log('running script\n', script);
+        console.log('running script: ', script);
       }
       $('#result-script-area').text(script);
       result = eval(script);
