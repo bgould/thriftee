@@ -1,22 +1,14 @@
 package org.thriftee.restlet;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
-import org.apache.thrift.transport.TIOStreamTransport;
-import org.apache.thrift.transport.TTransport;
 import org.json.JSONObject;
 import org.restlet.data.MediaType;
 import org.restlet.data.Status;
-import org.restlet.representation.OutputRepresentation;
 import org.restlet.representation.Representation;
 import org.restlet.representation.StringRepresentation;
 import org.restlet.resource.Get;
@@ -81,16 +73,17 @@ public class EndpointsResource extends FrameworkResource {
 
   @Post
   public Representation process(Representation entity) {
-    LOG.debug("entering process()");
+    LOG.trace("entering process()");
     if (!resolve() || getProtocolType() == null) {
       return notFound();
     }
-    //final Representation entity = getRequest().getEntity();
     final MediaType mediaType = entity.getMediaType();
-    LOG.debug("service: {}", getService());
-    LOG.debug("protocol: {}", getProtocolType().getName());
-    LOG.debug("multiplex: {}", isMultiplex());
-    LOG.debug("mediaType: {}", mediaType);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("service: {}", getService());
+      LOG.trace("protocol: {}", getProtocolType().getName());
+      LOG.trace("multiplex: {}", isMultiplex());
+      LOG.trace("mediaType: {}", mediaType);
+    }
     if (!isMultiplex() && getService() == null) {
       getResponse().setStatus(Status.CLIENT_ERROR_METHOD_NOT_ALLOWED);
       return null;
@@ -101,7 +94,7 @@ public class EndpointsResource extends FrameworkResource {
       getOutFactory(), 
       getProcessor()
     );
-    LOG.debug("exiting process()");
+    LOG.trace("exiting process()");
     return result;
   }
 

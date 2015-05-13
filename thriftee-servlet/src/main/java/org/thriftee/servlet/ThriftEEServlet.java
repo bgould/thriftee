@@ -39,7 +39,7 @@ public class ThriftEEServlet extends ServerServlet {
 
   @Override
   protected Application createApplication(Context parentContext) {
-    return new ThriftApplication(parentContext);
+    return new ThriftApplication(parentContext.createChildContext());
   }
 
   @Override

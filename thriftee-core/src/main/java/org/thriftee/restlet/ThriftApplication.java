@@ -9,6 +9,7 @@ import org.restlet.Response;
 import org.restlet.Restlet;
 import org.restlet.data.LocalReference;
 import org.restlet.data.Reference;
+import org.restlet.resource.ServerResource;
 import org.restlet.routing.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,33 +76,42 @@ public class ThriftApplication extends Application {
 
   @Override
   public synchronized Restlet createInboundRoot() {
-
-    final Context ctx = getContext();
-    final ThriftEE thrift = FrameworkResource.thrift(ctx);
-
     final Router router = new Router(getContext());
-    router.attach("", IndexResource.class);
-    router.attach("/", IndexResource.class);
-    router.attach("/clients/", ClientsResource.class);
-    router.attach("/endpoints/", EndpointsResource.class);
-    router.attach("/endpoints/multiplex/", EndpointsResource.class);
-    router.attach("/endpoints/multiplex/{protocol}", EndpointsResource.class);
-    router.attach("/endpoints/{module}/", EndpointsResource.class);
-    router.attach("/endpoints/{module}/{service}/", EndpointsResource.class);
-    router.attach("/endpoints/{module}/{service}/{protocol}", EndpointsResource.class);
-
-    // attach the client directories
-    for (final ClientTypeAlias alias : thrift.clientTypeAliases().values()) {
-      final String name = alias.getName();
-      final File zipfile = thrift.clientLibraryZip(name);
-      final Reference zip = LocalReference.createFileReference(zipfile);
-      final Reference uri = LocalReference.createZipReference(zip, "");
-      final DirectoryListing dir = new DirectoryListing(ctx, uri);
-      LOG.trace("attaching client: {} to {}", name, uri);
-      router.attach("/clients/" + name + "/", dir);
+    attach(router, IndexResource.class, "/");
+    attach(router, ClientsResource.class, "/clients/");
+    attach(router, EndpointsResource.class,
+      "/endpoints/",
+      "/endpoints/multiplex/",
+      "/endpoints/multiplex/{protocol}",
+      "/endpoints/{module}/",
+      "/endpoints/{module}/{service}/",
+      "/endpoints/{module}/{service}/{protocol}"
+    );
+    for (final ClientTypeAlias alias : thrift().clientTypeAliases().values()) {
+      attach(router, alias);
     }
-
     return router;
+  }
+
+  private ThriftEE thrift() {
+    return FrameworkResource.thrift(getContext());
+  }
+
+  private void attach(Router r, Class<? extends ServerResource> c, String...p) {
+    for (final String path : p) {
+      r.attach(path, c);
+    }
+  }
+
+  private void attach(Router router, ClientTypeAlias alias) {
+    final String name = alias.getName();
+    final Context ctx = getContext().createChildContext();
+    final File zipfile = thrift().clientLibraryZip(name);
+    final Reference file = LocalReference.createFileReference(zipfile);
+    final Reference zip = LocalReference.createZipReference(file, "");
+    final DirectoryListing dir = new DirectoryListing(ctx, zip);
+    LOG.trace("attaching client: {} to {}", name, zip);
+    router.attach("/clients/" + name + "/", dir);
   }
 
   @Override
