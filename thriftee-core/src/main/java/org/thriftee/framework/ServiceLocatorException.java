@@ -7,21 +7,20 @@ public class ServiceLocatorException extends ThriftSystemException {
 
   private static final long serialVersionUID = -5694741758963250097L;
 
-  public ServiceLocatorException(
-      ThriftMessage thrifteeMessage, Object... arguments) {
-    super(thrifteeMessage, arguments);
+  public ServiceLocatorException(Messages msg, Object... args) {
+    super(msg, args);
   }
 
-  public ServiceLocatorException(
-      Throwable cause, ThriftMessage thrifteeMessage, Object... arguments) {
-    super(cause, thrifteeMessage, arguments);
+  public ServiceLocatorException(Throwable t, Messages msg, Object... args) {
+    super(t, msg, args);
   }
 
-  public static enum ServiceLocatorMessage implements ThriftMessage {
+  public static enum Messages implements ThriftMessage {
     SVCLOC_000("A generic error occurred attempting to locate a service."),
+    SVCLOC_001("A service has already been registered for: {}"),
     ;
     private final String _message;
-    private ServiceLocatorMessage(String message) {
+    private Messages(String message) {
       this._message = message;
     }
     @Override

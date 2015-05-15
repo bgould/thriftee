@@ -12,13 +12,16 @@ import javax.naming.NamingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thriftee.framework.DefaultServiceLocator;
 import org.thriftee.framework.ServiceLocator;
 import org.thriftee.framework.ServiceLocatorException;
-import org.thriftee.framework.ServiceLocatorException.ServiceLocatorMessage;
+import org.thriftee.framework.ServiceLocatorException.Messages;
 import org.thriftee.util.New;
 import org.thriftee.util.Strings;
 
-public class DefaultEJBServiceLocator implements ServiceLocator {
+public class DefaultEJBServiceLocator 
+        extends DefaultServiceLocator 
+        implements ServiceLocator {
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -128,6 +131,10 @@ public class DefaultEJBServiceLocator implements ServiceLocator {
 
   @Override
   public <I> I locate(Class<I> svcIntf) throws ServiceLocatorException {
+    final I parentResult = super.locate(svcIntf);
+    if (parentResult != null) {
+      return parentResult;
+    }
     if (!isSearchAllModules() && getModulesToSearch().isEmpty()) {
       throw new IllegalStateException(
         "Either searchAllModules must be set to true, " +
@@ -140,7 +147,7 @@ public class DefaultEJBServiceLocator implements ServiceLocator {
       ic = new InitialContext();
       matches = implMap(ic, svcIntf);
     } catch (NamingException e) {
-      throw new ServiceLocatorException(e, ServiceLocatorMessage.SVCLOC_000);
+      throw new ServiceLocatorException(e, Messages.SVCLOC_000);
     }
     final Set<String> allMatches = new HashSet<>();
     for (String moduleName : matches.keySet()) {
@@ -157,7 +164,7 @@ public class DefaultEJBServiceLocator implements ServiceLocator {
         final I bean = (I) ic.lookup(jndiName);
         result = bean;
       } catch (NamingException e) {
-        throw new ServiceLocatorException(e, ServiceLocatorMessage.SVCLOC_000);
+        throw new ServiceLocatorException(e, Messages.SVCLOC_000);
       }
       return result;
     }

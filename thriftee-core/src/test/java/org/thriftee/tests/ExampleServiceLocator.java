@@ -6,12 +6,18 @@ import org.thriftee.examples.usergroup.service.GroupService;
 import org.thriftee.examples.usergroup.service.GroupServiceImpl;
 import org.thriftee.examples.usergroup.service.UserService;
 import org.thriftee.examples.usergroup.service.UserServiceImpl;
-import org.thriftee.framework.ServiceLocator;
+import org.thriftee.framework.DefaultServiceLocator;
 import org.thriftee.framework.ServiceLocatorException;
 
-public class ExampleServiceLocator implements ServiceLocator {
+public class ExampleServiceLocator extends DefaultServiceLocator {
 
-  public ExampleServiceLocator() {
+  public ExampleServiceLocator() throws ServiceLocatorException {
+    UserService userSvc = new UserServiceImpl();
+    GroupService groupSvc = new GroupServiceImpl(userSvc);
+    PresidentService pres = new PresidentServiceBean();
+    register(UserService.class, userSvc);
+    register(GroupService.class, groupSvc);
+    register(PresidentService.class, pres);
   }
 
   @Override

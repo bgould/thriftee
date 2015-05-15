@@ -12,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.examples.presidents.PresidentService;
 import org.thriftee.examples.usergroup.service.UserService;
+import org.thriftee.exceptions.ThriftSystemException;
 import org.thriftee.framework.ThriftEE;
 import org.thriftee.framework.ThriftEEConfig;
-import org.thriftee.framework.ThriftStartupException;
 import org.thriftee.util.FileUtil;
 
 public abstract class AbstractThriftEETest {
@@ -77,7 +77,7 @@ public abstract class AbstractThriftEETest {
     return thriftExecutable;
   }
 
-  protected static ThriftEE loadThriftee(File tempDir) throws ThriftStartupException {
+  protected static ThriftEE loadThriftee(File tempDir) throws ThriftSystemException {
     synchronized (thrifteeInstances) {
       if (!thrifteeInstances.containsKey(tempDir.getAbsolutePath())) {
         final ThriftEE thrift = new ThriftEE(
@@ -104,7 +104,7 @@ public abstract class AbstractThriftEETest {
       final File tempDir = new File(prefix + "/tests/" + simpleName);
       this.tempDirForClass = tempDir;
       this.thrift = loadThriftee(tempDir);
-    } catch (ThriftStartupException e) {
+    } catch (ThriftSystemException e) {
       throw new RuntimeException(e);
     }
   }

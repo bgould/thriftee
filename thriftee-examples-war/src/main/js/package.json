@@ -1,0 +1,12 @@
+{
+  "name": "ThriftEE",
+  "version": "0.0.3",
+  "scripts": {
+    "build": "browserify thriftee.js --standalone ThriftEE -o ../webapp/thriftee.js",
+    "watch": "watchify thriftee.js --standalone ThriftEE -o ../webapp/thriftee.js"
+  },
+  "dependencies": {
+    "object-hash": "~0.3.0",
+    "underscore": "~1.8.3"
+  }
+}
