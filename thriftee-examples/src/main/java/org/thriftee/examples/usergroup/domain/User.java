@@ -1,10 +1,14 @@
 package org.thriftee.examples.usergroup.domain;
 
+import java.io.Serializable;
+
 import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct
-public final class User {
+public final class User implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
 	private String uid;
 

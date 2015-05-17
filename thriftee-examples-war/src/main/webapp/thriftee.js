@@ -29654,30 +29654,37 @@ var Client = function (server, callback) {
   var multiplexer = new Thrift.Multiplexer();
   var transport = new Thrift.Transport(server.base + server.endpointPath);
   var protocol = new Thrift.Protocol(transport);
-  var services = { 'ThriftSchemaService' : multiplexer.createClient(
-    'ThriftSchemaService', 
-    ThriftSchemaServiceClient, 
-    transport
-  )};
+  var services = { 
+    'org_thriftee_compiler_schema' : {
+      'ThriftSchemaService' : multiplexer.createClient(
+        'org_thriftee_compiler_schema.ThriftSchemaService', 
+        ThriftSchemaServiceClient, 
+        transport
+      )
+    }
+  };
   Object.defineProperty(this, 'services', {
     get : function () {
       return services;
     },
     'enumerable' : true
   });
-  services.ThriftSchemaService.getSchema(function (schema) {
+  services.org_thriftee_compiler_schema.ThriftSchemaService.getSchema(function (schema) {
     logger.debug('loaded schema', schema);
     var schema_str = JSON.stringify(schema);
     Object.defineProperty(self, 'schema', { 'get' : function () { return JSON.parse(schema_str); } });
     for (i in schema.modules) {
       logger.debug('Found module named ', i);
+      if (typeof(services[i]) === 'undefined') {
+        services[i] = {};
+      }
       var module = schema.modules[i];
       for (serviceName in module.services) {
         var client = window[serviceName + 'Client'];
         logger.debug("Looping over service named ", serviceName, client);
         if (typeof(client) === 'function') {
           logger.debug('Found service/client: ', serviceName, client);
-          services[serviceName] = multiplexer.createClient(serviceName, client, transport);
+          services[i][serviceName] = multiplexer.createClient(i + '.' + serviceName, client, transport);
         }
       }
     }
@@ -29728,8 +29735,6 @@ Server.prototype.init = function(callback) {
             if (scripts[i].href !== href && !scripts[i].loaded) {
               logger.debug("still need to load: ", scripts[i]);
               result = false;
-            } else {
-              logger.debug("already loaded: ", scripts[i]);
             }
           }
           if (!result) {
@@ -29740,7 +29745,7 @@ Server.prototype.init = function(callback) {
       };
       var $html = $(data);
       logger.debug("getting scripts; $this._loading = ", $server._loading);
-      $("a[href$='.js']", $html).each(function () {
+      $("a[href$='.js']", $html).not("a[href$='thrift.js']").each(function () {
         var href = $(this).attr("href");
         scripts[href] = new __.script_loader(href);
         scripts[href].load(function () {

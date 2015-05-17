@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Javascript Test Page</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js" type="text/javascript"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/codemirror.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/mode/javascript/javascript.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/addon/hint/show-hint.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/addon/hint/javascript-hint.js" type="text/javascript"></script>
+<script type="text/javascript" src="services/clients/jquery/thrift.js"></script>
+<script type="text/javascript" src="thriftee.js"></script>
+
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.0/slate/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/codemirror.css" rel="stylesheet" type="text/css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/addon/hint/show-hint.css" rel="stylesheet" type="text/css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/theme/ambiance.css" rel="stylesheet" type="text/css">
+
+<script type="text/javascript">
+(function ($) {
+  var _editor, _console;
+  function enhanceTextAreas() {
+    _editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      theme: 'ambiance',
+      mode: { name: "javascript", globalVars: true },
+      extraKeys: { "Ctrl-Space": "autocomplete" },
+      lineNumbers: true,
+      value: localStorage.getItem("js_editor_last_script")
+    });
+    _editor.setSize('100%', '250px');
+	var lastScript = localStorage.getItem("js_editor_last_script") || '';
+    _editor.setValue(lastScript);
+    _console = CodeMirror.fromTextArea(document.getElementById('console'), {
+      theme: 'ambiance',
+      lineNumbers: true,
+      readOnly:  true,
+    });
+    _console.setSize('100%', '250px');
+    $('#runIt').click(executeEditor);
+    $('#clearIt').click(clearConsole);
+  }
+  function clearConsole() {
+    _console.setValue(''); 
+  }
+  function addConsoleMessage() {
+    var msgStr = '',
+      args = [];
+    for (var i in arguments) {
+      var arg = arguments[i];
+      if (typeof(arg) === 'number') {
+        args.push(arg.toString());
+      } else if (arg === null) {
+        args.push("null");
+      } else if (arg === undefined) {
+        args.push("undefined");
+      } else if (typeof(arg) === 'object') {
+        args.push(arg.toSource());
+      } else if (typeof(arg) === 'string') {
+        args.push('"' + arg + '"');
+      } else {
+        args.push(arg.toString());
+      }
+    }
+    msgStr = args.join(' ');
+    _console.setValue(
+      (_console.getValue() ? (_console.getValue() + "\n") : '') + msgStr);
+    console.log(msgStr);
+  }
+  function executeEditor() {
+    var script = _editor.getValue();
+    localStorage.setItem("js_editor_last_script", script);
+    (function () {
+      var old_console = window.console,
+        console = {
+          log : function () {
+            addConsoleMessage.apply(null, arguments);
+          }
+        };
+      try {
+        eval(script);
+      } catch (e) {
+        addConsoleMessage('uncaught exception', e);
+      }
+    })();
+  }
+  function loadThriftEE() {
+    ThriftEE.init('services').createClient(function (err, _client) {
+      window.client = _client;
+      enhanceTextAreas();
+    });
+  }
+  $(document).ready(loadThriftEE);
+}(jQuery));
+</script>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <h1 class="col-md-12">Javascript Test Page</h1>
+    </div>
+    <div class="row">
+      <h2>Code Editor</h2>
+      <div class="row">
+        <div class="col-md-12">
+          <textarea id="editor"></textarea>
+        </div>
+      </div>
+      <div class="row">
+        <p class="col-md-12">
+          <button id="runIt" class="btn btn-default pull-right">
+            Run Code
+          </button>
+        </p>
+      </div>
+      <h2>Console</h2>
+      <div class="row">
+        <div class="col-md-12">
+          <textarea id="console"></textarea>
+        <div>
+      </div>
+      <div class="row">
+        <p class="col-md-12">
+          <button id="clearIt" class="btn btn-default pull-right">
+            Clear Console
+          </button>
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
