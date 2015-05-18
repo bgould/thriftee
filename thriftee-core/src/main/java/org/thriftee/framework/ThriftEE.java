@@ -39,6 +39,7 @@ import com.facebook.swift.codec.ThriftUnion;
 import com.facebook.swift.codec.internal.ThriftCodecFactory;
 import com.facebook.swift.codec.internal.coercion.DefaultJavaCoercions;
 import com.facebook.swift.codec.internal.compiler.CompilerThriftCodecFactory;
+import com.facebook.swift.codec.internal.reflection.ReflectionThriftCodecFactory;
 import com.facebook.swift.service.ThriftEventHandler;
 import com.facebook.swift.service.ThriftService;
 import com.facebook.swift.service.ThriftServiceProcessor;
@@ -220,8 +221,13 @@ public class ThriftEE {
       throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_002);
     }
 
+    LOG.debug("Using bytecode compiler: {}", config.useBytecodeCompiler());
     final ThriftCodecFactory codecFactory;
-    codecFactory = new CompilerThriftCodecFactory(false);
+    if (config.useBytecodeCompiler()) {
+      codecFactory = new CompilerThriftCodecFactory(false);
+    } else {
+      codecFactory = new ReflectionThriftCodecFactory();
+    }
     codecManager = new ThriftCodecManager(codecFactory);
     codecManager.getCatalog().addDefaultCoercions(DefaultJavaCoercions.class);
 

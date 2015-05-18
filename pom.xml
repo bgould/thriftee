@@ -6,7 +6,7 @@
   
   <groupId>org.thriftee</groupId>
   <artifactId>thriftee-root</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.3-SNAPSHOT</version>
   <packaging>pom</packaging>
   
   <name>thriftee-root</name>

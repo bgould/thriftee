@@ -110,15 +110,23 @@ public class ThriftEEServlet extends ServerServlet {
     final File thriftLibDir = readThriftLibDir();
     final Classpath warpath = new WarFileClasspath(ctx);
     final ServiceLocator serviceLocator = createServiceLocator();
-    final ThriftEEConfig config = new ThriftEEConfig.Builder()
+    final ThriftEEConfig.Builder builder = new ThriftEEConfig.Builder()
       .tempDir(tempDir)
       .thriftExecutable(thriftExecutable)
       .thriftLibDir(thriftLibDir)
       .annotationClasspath(warpath)
-      .serviceLocator(serviceLocator)
-      .build();
+      .serviceLocator(serviceLocator);
+    initConfigBuilder(builder);
+    final ThriftEEConfig config = builder.build();
     final ThriftEE svcs = new ThriftEEFactory().create(config);
     this._thriftee = svcs;
+  }
+
+  /**
+   * Subclasses should override this method to add/update configuration options
+   * @param builder
+   */
+  protected void initConfigBuilder(ThriftEEConfig.Builder builder) {
   }
 
 }

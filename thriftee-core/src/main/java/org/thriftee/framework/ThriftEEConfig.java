@@ -21,6 +21,8 @@ public class ThriftEEConfig implements Serializable {
 
   private static final long serialVersionUID = 8148668461656853500L;
 
+  private final boolean useBytecodeCompiler;
+
   private final File tempDir;
 
   private final File thriftExecutable;
@@ -36,6 +38,7 @@ public class ThriftEEConfig implements Serializable {
   private final SortedMap<String, ProtocolTypeAlias> protocolTypeAliases;
 
   private ThriftEEConfig(
+      final boolean useBytecodeCompiler,
       final File tempDir,
       final File thriftExecutable,
       final File thriftLibDir,
@@ -44,6 +47,7 @@ public class ThriftEEConfig implements Serializable {
       final Map<String, ClientTypeAlias> clientTypeAliases,
       final Map<String, ProtocolTypeAlias> protocolTypeAliases) {
     super();
+    this.useBytecodeCompiler = useBytecodeCompiler;
     this.tempDir = tempDir;
     this.thriftExecutable = thriftExecutable;
     this.thriftLibDir = thriftLibDir;
@@ -85,7 +89,13 @@ public class ThriftEEConfig implements Serializable {
     return this.serviceLocator;
   }
 
+  public boolean useBytecodeCompiler() {
+    return this.useBytecodeCompiler;
+  }
+
   public static class Factory {
+
+    private boolean useBytecodeCompiler = true;
 
     private File tempDir;
 
@@ -100,6 +110,10 @@ public class ThriftEEConfig implements Serializable {
     private Map<String, ClientTypeAlias> clientTypeAliases = new HashMap<>();
 
     private Map<String, ProtocolTypeAlias> protocolTypes = new HashMap<>();
+
+    public void setUseBytecodeCompiler(boolean useBytecodeCompiler) {
+      this.useBytecodeCompiler = useBytecodeCompiler;
+    }
 
     public void setTempDir(File tempDir) {
 //      if (tempDir == null) {
@@ -136,6 +150,10 @@ public class ThriftEEConfig implements Serializable {
       return clientTypeAliases;
     }
 
+    public boolean isUseBytecodeCompiler() {
+      return useBytecodeCompiler;
+    }
+
     public File getTempDir() {
       return tempDir;
     }
@@ -160,6 +178,7 @@ public class ThriftEEConfig implements Serializable {
         throw new IllegalArgumentException("cannot be null");
       }
       return new ThriftEEConfig(
+        useBytecodeCompiler,
         tempDir, 
         thriftExecutable, 
         thriftLibDir, 
@@ -193,6 +212,11 @@ public class ThriftEEConfig implements Serializable {
       addProtocolTypeAlias("json", new TJSONProtocol.Factory());
       addProtocolTypeAlias("tuple", new TTupleProtocol.Factory());
 
+    }
+
+    public Builder useBytecodeCompiler(boolean useBytecodeCompiler) {
+      this.factory.setUseBytecodeCompiler(useBytecodeCompiler);
+      return this;
     }
 
     public Builder addProtocolTypeAlias(String name, TProtocolFactory factory) {
