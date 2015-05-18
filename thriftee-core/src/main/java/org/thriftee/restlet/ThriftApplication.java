@@ -13,8 +13,8 @@ import org.restlet.resource.ServerResource;
 import org.restlet.routing.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.framework.ClientTypeAlias;
 import org.thriftee.framework.ThriftEE;
+import org.thriftee.framework.client.ClientTypeAlias;
 
 /*
  * 

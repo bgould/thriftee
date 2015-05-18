@@ -27,6 +27,7 @@ import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.compiler.schema.ThriftSchema;
 import org.thriftee.compiler.schema.ThriftSchemaService;
 import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
+import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.provider.swift.SwiftSchemaBuilder;
 import org.thriftee.util.New;
 import org.thriftee.util.Strings;

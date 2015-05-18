@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -15,6 +15,7 @@ import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TTupleProtocol;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
+import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.util.New;
 
 public class ThriftEEConfig implements Serializable {
@@ -34,7 +35,7 @@ public class ThriftEEConfig implements Serializable {
   private final ServiceLocator serviceLocator;
 
   private final SortedMap<String, ClientTypeAlias> clientTypeAliases;
-  
+
   private final SortedMap<String, ProtocolTypeAlias> protocolTypeAliases;
 
   private ThriftEEConfig(
@@ -80,7 +81,7 @@ public class ThriftEEConfig implements Serializable {
   public SortedMap<String, ClientTypeAlias> clientTypeAliases() {
     return this.clientTypeAliases;
   }
-  
+
   public SortedMap<String, ProtocolTypeAlias> protocolTypeAliases() {
     return this.protocolTypeAliases;
   }
@@ -107,9 +108,13 @@ public class ThriftEEConfig implements Serializable {
 
     private ServiceLocator serviceLocator;
 
-    private Map<String, ClientTypeAlias> clientTypeAliases = new HashMap<>();
+    private SortedMap<String, ClientTypeAlias> clients = new TreeMap<>();
 
-    private Map<String, ProtocolTypeAlias> protocolTypes = new HashMap<>();
+    private SortedMap<String, ProtocolTypeAlias> protocols = new TreeMap<>();
+
+    private boolean useDefaultClientTypeAliases = true;
+    
+    private boolean useDefaultProtocolTypeAliases = true;
 
     public void setUseBytecodeCompiler(boolean useBytecodeCompiler) {
       this.useBytecodeCompiler = useBytecodeCompiler;
@@ -138,16 +143,16 @@ public class ThriftEEConfig implements Serializable {
       this.serviceLocator = serviceLocator;
     }
 
-    public void setClientTypeAliases(Map<String, ClientTypeAlias> aliases) {
-      this.clientTypeAliases = aliases;
+    public void setClientTypes(SortedMap<String, ClientTypeAlias> aliases) {
+      this.clients = aliases;
     }
 
-    public void setProtocolTypeAliases(Map<String, ProtocolTypeAlias> protos) {
-      this.protocolTypes = protos;
+    public void setProtocolTypes(SortedMap<String, ProtocolTypeAlias> protos) {
+      this.protocols = protos;
     }
 
-    public Map<String, ClientTypeAlias> getClientTypeAliases() {
-      return clientTypeAliases;
+    public Map<String, ClientTypeAlias> getClientTypes() {
+      return clients;
     }
 
     public boolean isUseBytecodeCompiler() {
@@ -170,12 +175,41 @@ public class ThriftEEConfig implements Serializable {
       return annotationClasspath;
     }
 
+    public boolean isUseDefaultClientTypeAliases() {
+      return useDefaultClientTypeAliases;
+    }
+
+    public void setUseDefaultClientTypeAliases(boolean useDefaults) {
+      this.useDefaultClientTypeAliases = useDefaults;
+    }
+
+    public boolean isUseDefaultProtocolTypes() {
+      return useDefaultProtocolTypeAliases;
+    }
+
+    public void setUseDefaultProtocolTypes(boolean useDefaults) {
+      this.useDefaultProtocolTypeAliases = useDefaults;
+    }
+
     public ThriftEEConfig newInstance() {
       if (tempDir == null) {
         throw new IllegalArgumentException("tempDir cannot be null");
       }
       if (annotationClasspath == null) {
         throw new IllegalArgumentException("cannot be null");
+      }
+      final Map<String, ClientTypeAlias> clientTypes = new TreeMap<>();
+      if (isUseDefaultClientTypeAliases()) {
+        for (ClientTypeAlias.Defaults def : ClientTypeAlias.Defaults.values()) {
+          final ClientTypeAlias cta = def.getInstance();
+          clientTypes.put(cta.getName(), cta);
+        }
+      }
+      if (clients != null) {
+        for (final String key : clients.keySet()) {
+          final ClientTypeAlias cta = clients.get(key);
+          clientTypes.put(key, cta);
+        }
       }
       return new ThriftEEConfig(
         useBytecodeCompiler,
@@ -184,8 +218,8 @@ public class ThriftEEConfig implements Serializable {
         thriftLibDir, 
         annotationClasspath,
         serviceLocator,
-        clientTypeAliases == null ? Collections.emptyMap() : clientTypeAliases,
-        protocolTypes == null ? Collections.emptyMap() : protocolTypes
+        clientTypes,
+        protocols == null ? Collections.emptyMap() : protocols
       );
     }
 
@@ -200,12 +234,6 @@ public class ThriftEEConfig implements Serializable {
     private final SortedMap<String, ProtocolTypeAlias> protocols = New.sortedMap();
 
     public Builder() {
-
-      // TODO: the defaults probably shouldn't be buried here
-      addClientTypeAlias("php", Generate.PHP, "php/src", Flag.PHP_NAMESPACE, Flag.PHP_OOP);
-      addClientTypeAlias("html", Generate.HTML);
-      addClientTypeAlias("json", Generate.JSON);
-      addClientTypeAlias("jquery", Generate.JS, "js/src", Flag.JS_JQUERY);
 
       addProtocolTypeAlias("binary", new TBinaryProtocol.Factory());
       addProtocolTypeAlias("compact", new TCompactProtocol.Factory());
@@ -291,8 +319,8 @@ public class ThriftEEConfig implements Serializable {
     }
 
     public ThriftEEConfig build() {
-      factory.setClientTypeAliases(aliases);
-      factory.setProtocolTypeAliases(protocols);
+      factory.setClientTypes(aliases);
+      factory.setProtocolTypes(protocols);
       return factory.newInstance();
     }
 

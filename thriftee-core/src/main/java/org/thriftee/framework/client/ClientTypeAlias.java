@@ -1,5 +1,6 @@
-package org.thriftee.framework;
+package org.thriftee.framework.client;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.SortedSet;
@@ -21,7 +22,15 @@ public class ClientTypeAlias {
   public ClientTypeAlias(String _name, Generate _lang, Iterable<Flag> _flags) {
     this(_name, _lang, null, _flags);
   }
-  
+
+  public ClientTypeAlias(String _name, Generate _lang, Flag... _flags) {
+    this(_name, _lang, null, Arrays.asList(_flags != null ? _flags : new Flag[0]));
+  }
+
+  public ClientTypeAlias(String _name, Generate _lang, String libDir, Flag... _flags) {
+    this(_name, _lang, libDir, Arrays.asList(_flags != null ? _flags : new Flag[0]));
+  }
+
   public ClientTypeAlias(String _name, Generate _lang, String libDir, Iterable<Flag> _flags) {
     // TODO: see if these exceptions should be converted to proper heirarchy
     if (_name == null) {
@@ -69,6 +78,26 @@ public class ClientTypeAlias {
    */
   public String getLibDir() {
     return libDir;
+  }
+
+  public static enum Defaults {
+
+    HTML(new HTMLClientTypeAlias()),
+    JQUERY(new JQueryClientTypeAlias()),
+    JSON(new JSONClientTypeAlias()),
+    PHP(new PHPClientTypeAlias()),
+    ;
+
+    private ClientTypeAlias instance;
+
+    private Defaults(ClientTypeAlias alias) {
+      this.instance = alias;
+    }
+
+    public ClientTypeAlias getInstance() {
+      return this.instance;
+    }
+
   }
 
 }

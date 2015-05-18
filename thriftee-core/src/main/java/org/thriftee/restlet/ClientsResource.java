@@ -5,7 +5,7 @@ import java.util.Map;
 import org.restlet.data.MediaType;
 import org.restlet.representation.Representation;
 import org.restlet.resource.Get;
-import org.thriftee.framework.ClientTypeAlias;
+import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.util.New;
 
 public class ClientsResource extends FrameworkResource {

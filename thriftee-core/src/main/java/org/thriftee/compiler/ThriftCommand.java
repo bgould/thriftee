@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
-import org.thriftee.framework.ClientTypeAlias;
+import org.thriftee.framework.client.ClientTypeAlias;
 
 public class ThriftCommand {
   
