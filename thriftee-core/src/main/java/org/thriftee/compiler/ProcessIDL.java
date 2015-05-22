@@ -11,7 +11,13 @@ public class ProcessIDL {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
+  private PostProcessor postProcessor;
+
   public ProcessIDL() {}
+
+  public ProcessIDL(PostProcessor postProcessor) {
+    this.postProcessor = postProcessor;
+  }
 
   public File process(
       File[] idlFiles, 
@@ -26,6 +32,12 @@ public class ProcessIDL {
     }
     if (!outputDir.mkdirs()) {
       throw new IOException("could not create output directory: " + outputDir.getAbsolutePath());
+    }
+    File zipFile = new File(workDir, zipName + ".zip");
+    if (zipFile.exists()) {
+      if (!zipFile.delete()) {
+        throw new IOException("Could not delete existing zip file: " + zipFile.getAbsolutePath());
+      }
     }
     cmd.setOutputLocation(outputDir);
     for (File file : idlFiles) {
@@ -43,11 +55,10 @@ public class ProcessIDL {
         throw new IOException("Thrift generation process was interrupted.", e);
       }
     }
-    File zipFile = new File(workDir, zipName + ".zip");
-    if (zipFile.exists()) {
-      if (!zipFile.delete()) {
-        throw new IOException("Could not delete existing zip file: " + zipFile.getAbsolutePath());
-      }
+    final PostProcessor pp = getPostProcessor();
+    if (pp != null) {
+      logger.trace("executing post processor: {}", pp);
+      pp.postProcess(outputDir);
     }
     FileUtil.createZipFromDirectory(zipFile, "", outputDir, extraZipDirectories);
     return zipFile;
@@ -56,6 +67,20 @@ public class ProcessIDL {
   public File getOutputDir(File workDir, String zipName) {
     final File outputDir = new File(workDir, zipName);
     return outputDir;
+  }
+
+  /**
+   * @return the postProcessor
+   */
+  public PostProcessor getPostProcessor() {
+    return postProcessor;
+  }
+
+  /**
+   * @param postProcessor the postProcessor to set
+   */
+  public void setPostProcessor(PostProcessor postProcessor) {
+    this.postProcessor = postProcessor;
   }
 
 }

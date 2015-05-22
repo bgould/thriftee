@@ -23,7 +23,7 @@ public class ThriftStartupException extends ThriftSystemException {
     STARTUP_004("Generated IDL did not contain a global.thrift file"),
     STARTUP_005("Thrift library directory does not exist: %s"),
     STARTUP_006("Thrift library directory exists but appears invalid: %s"),
-    STARTUP_007("Thrift executable specified, but does not exist: %s"),
+    STARTUP_007("Thrift executable not specified, and not found on path."),
     STARTUP_008("Could not get Thrift version string from executable: %s"),
     STARTUP_009("Error generating client library %s: %s"),
     STARTUP_010("Error locating implementation for service %s: %s"),

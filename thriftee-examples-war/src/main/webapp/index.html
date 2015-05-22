@@ -5,14 +5,15 @@
 <title>ThriftEE Examples Page</title>
 <script type="text/javascript" src="jquery-1.11.1.min.js"></script>
 <script type="text/javascript" src="services/clients/jquery/thrift.js"></script>
-<script type="text/javascript" src="services/clients/jquery/org_thriftee_examples_presidents_types.js"></script>
-<script type="text/javascript" src="services/clients/jquery/PresidentService.js"></script>
+<script type="text/javascript" src="services/clients/jquery/client-jquery-all.js"></script>
 <script type="text/javascript">
 (function ($) {
   var _mp = new Thrift.Multiplexer(),
     _transport = new Thrift.Transport('services/endpoints/multiplex/json'),
-    _client = _mp.createClient('org_thriftee_examples_presidents.PresidentService', PresidentServiceClient, _transport);
+    _client = _mp.createClient('org_thriftee_examples_presidents.PresidentService', PresidentServiceClient, _transport),
+    _userClient = _mp.createClient('org_thriftee_examples_usergroup_service.UserService', UserServiceClient, _transport);
   window.client = _client;
+  window.userClient = _userClient;
   function _getEditorText() {
     return $('#editor-textarea').val();
   }

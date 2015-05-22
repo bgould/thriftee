@@ -273,7 +273,7 @@ public class ThriftCommand {
     addFlag(flag, null);
   }
 
-  // TODO: covert exceptions to ThriftEE exception heirarchy
+  // TODO: convert exceptions to ThriftEE exception heirarchy
   public void addFlag(Flag flag, String value) {
     if (!flag.language.equals(this.language)) {
       throw new IllegalArgumentException(

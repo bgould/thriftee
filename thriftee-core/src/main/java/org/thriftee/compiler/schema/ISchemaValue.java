@@ -4,10 +4,10 @@ import com.facebook.swift.codec.ThriftProtocolType;
 
 public interface ISchemaValue {
 
-    public Object getValue();
+  public Object getValue();
 
-    public ThriftProtocolType getThriftProtocolType();
+  public ThriftProtocolType getThriftProtocolType();
 
-    public String toThriftIDLString();
+  public String toThriftIDLString();
 
 }

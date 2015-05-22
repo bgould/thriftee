@@ -278,21 +278,26 @@ public class ThriftEE {
     //       we should use NestedVM. Maybe use NestedVM no matter what.
     // TODO: Figure out a way to check the Thrift version against the version
     //       for the support libraries
-    if (config.thriftExecutable() != null && config.thriftExecutable().exists()
-        && config.thriftExecutable().canExecute()) {
+    if (config.thriftExecutable() != null && 
+        config.thriftExecutable().exists() && 
+        config.thriftExecutable().canExecute()) {
       this.thriftExecutable = config.thriftExecutable();
-      try {
-        this.thriftVersionString = getVersionString();
-      } catch (ThriftCommandException e) {
-        throw new ThriftStartupException(
-            e, ThriftStartupMessage.STARTUP_008, e.getMessage());
-      }
     } else {
-      this.thriftExecutable = null;
-      this.thriftVersionString = null;
+      final String thriftOnPath = ThriftCommand.searchPathForThrift();
+      if (thriftOnPath == null) {
+        throw new ThriftStartupException(ThriftStartupMessage.STARTUP_007);
+      }
+      final File thriftExecutableFile = new File(thriftOnPath);
+      this.thriftExecutable = thriftExecutableFile;
     }
-    LOG.info("Using Thrift executable: {}", thriftExecutable);
-    LOG.info("Thrift version string: {}", thriftVersionString);
+    try {
+      this.thriftVersionString = getVersionString();
+    } catch (ThriftCommandException e) {
+      throw new ThriftStartupException(
+          e, ThriftStartupMessage.STARTUP_008, e.getMessage());
+    }
+    LOG.info("Using Thrift executable: {}", this.thriftExecutable);
+    LOG.info("Thrift version string: {}", this.thriftVersionString);
 
     final Set<Class<?>> allClasses = new HashSet<Class<?>>();
     allClasses.addAll(thriftServices);
@@ -427,7 +432,7 @@ public class ThriftEE {
     final String name = alias.getName();
     LOG.debug("Generating library for client type alias: {}", name);
     try {
-      ThriftCommand cmd = new ThriftCommand(alias);
+      final ThriftCommand cmd = new ThriftCommand(alias);
       cmd.setRecurse(true);
       if (thriftExecutable() != null) {
         cmd.setThriftCommand(thriftExecutable().getAbsolutePath());
@@ -440,8 +445,10 @@ public class ThriftEE {
         extraDirs = new File[0];
       }
       final File[] files = new File[] { globalIdlFile() };
-      final File clientLibrary = new ProcessIDL().process(
-        files, tempDir(), clientLibraryPrefix(name), cmd, extraDirs
+      final ProcessIDL idlProcessor = new ProcessIDL(alias);
+      final String zipName = clientLibraryPrefix(name);
+      final File clientLibrary = idlProcessor.process(
+        files, tempDir(), zipName, cmd, extraDirs
       );
       final String path = clientLibrary.getAbsolutePath();
       LOG.debug("{} client library created at: {}", name, path);
