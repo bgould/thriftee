@@ -2,6 +2,7 @@ package org.thriftee.compiler;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,12 @@ public class ProcessIDL {
     final PostProcessor pp = getPostProcessor();
     if (pp != null) {
       logger.trace("executing post processor: {}", pp);
-      pp.postProcess(outputDir);
+      PostProcessorEvent event = new PostProcessorEvent(
+        outputDir,
+        null,
+        extraZipDirectories != null ? Arrays.asList(extraZipDirectories) : null
+      );
+      pp.postProcess(event);
     }
     FileUtil.createZipFromDirectory(zipFile, "", outputDir, extraZipDirectories);
     return zipFile;

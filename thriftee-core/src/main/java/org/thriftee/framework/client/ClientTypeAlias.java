@@ -1,6 +1,5 @@
 package org.thriftee.framework.client;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,6 +8,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.thriftee.compiler.PostProcessor;
+import org.thriftee.compiler.PostProcessorEvent;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
 
@@ -87,7 +87,7 @@ public class ClientTypeAlias implements PostProcessor {
    * Subclasses may override this to post-process generated files.
    * @param dir Location where the generated file are located
    */
-  public void postProcess(File dir) throws IOException {}
+  public void postProcess(PostProcessorEvent event) throws IOException {}
 
   public static enum Defaults {
 

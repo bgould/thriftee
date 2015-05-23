@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thriftee.compiler.PostProcessorEvent;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
 import org.thriftee.util.FileUtil;
@@ -22,7 +23,8 @@ public class JQueryClientTypeAlias extends ClientTypeAlias {
   }
 
   @Override
-  public void postProcess(File dir) throws IOException {
+  public void postProcess(PostProcessorEvent event) throws IOException {
+    final File dir = event.getDirectory();
     LOG.debug("Post processing jQuery client library: {}", dir);
     LOG.debug("-------------------------------------");
     final File outputFile = new File(dir, CONCAT_FILE_NAME);

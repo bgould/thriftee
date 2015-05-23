@@ -5,6 +5,6 @@ import java.io.IOException;
 
 public interface PostProcessor {
 
-  public void postProcess(File dir) throws IOException;
+  public void postProcess(PostProcessorEvent ev) throws IOException;
 
 }
