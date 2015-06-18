@@ -88,7 +88,45 @@ public class FileUtil {
       out.write(buffer, 0, n);
     }
   }
-  
+
+  public static void copyRecursively(File src, File dest) throws IOException {
+    if (src.isDirectory()) {
+      for (final File c : src.listFiles()) {
+        if (c.isDirectory()) {
+          File destdir = new File(dest, c.getName());
+          /*
+          if (destdir.exists()) {
+            throw new IOException(
+              "could not create directory, already exists: " + 
+              destdir.getAbsolutePath()
+            );
+          }
+          */
+          if (!destdir.exists() && !destdir.mkdir()) {
+            throw new IOException(
+              "could not create directory: " + 
+              destdir.getAbsolutePath()
+            );
+          }
+          copyRecursively(c, destdir);
+        } else {
+          File destfile = new File(dest, c.getName());
+          copyRecursively(c, destfile);
+        }
+      }
+    } else {
+      FileInputStream in = null;
+      FileOutputStream out = null;
+      try {
+        in = new FileInputStream(src);
+        out = new FileOutputStream(dest);
+        copy(in, out);
+      } finally {
+        if (in != null) { try { in.close(); } catch (Exception e) {} }
+        if (out != null) { try { out.close(); } catch (Exception e) {} }
+      }
+    }
+  }
 
   public static void deleteRecursively(File file) throws IOException {
     if (file.isDirectory()) {

@@ -78,7 +78,6 @@ public class ThriftApplication extends Application {
   public synchronized Restlet createInboundRoot() {
     final Router router = new Router(getContext());
     attach(router, IndexResource.class, "/");
-    attach(router, ClientsResource.class, "/clients/");
     attach(router, EndpointsResource.class,
       "/endpoints/",
       "/endpoints/multiplex/",
@@ -87,9 +86,16 @@ public class ThriftApplication extends Application {
       "/endpoints/{module}/{service}/",
       "/endpoints/{module}/{service}/{protocol}"
     );
+    router.attach("/clients/", new DirectoryListing(
+      getContext().createChildContext(), 
+      LocalReference.createFileReference(thrift().clientsDir())
+    ));
+/*
+    attach(router, ClientsResource.class, "/clients/");
     for (final ClientTypeAlias alias : thrift().clientTypeAliases().values()) {
       attach(router, alias);
     }
+*/
     return router;
   }
 
@@ -102,7 +108,7 @@ public class ThriftApplication extends Application {
       r.attach(path, c);
     }
   }
-
+/*
   private void attach(Router router, ClientTypeAlias alias) {
     final String name = alias.getName();
     final Context ctx = getContext().createChildContext();
@@ -113,7 +119,7 @@ public class ThriftApplication extends Application {
     LOG.trace("attaching client: {} to {}", name, zip);
     router.attach("/clients/" + name + "/", dir);
   }
-
+*/
   @Override
   public void handle(Request request, Response response) {
     try {

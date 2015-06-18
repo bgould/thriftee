@@ -39,6 +39,7 @@ public abstract class FrameworkResource extends ServerResource {
   public static void initComponent(Component component) {
     component.getClients().add(Protocol.CLAP);
     component.getClients().add(Protocol.ZIP);
+    component.getClients().add(Protocol.FILE);
   }
 
   public static void initApplication(Application app, ThriftEE thrift) {

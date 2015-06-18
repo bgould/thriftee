@@ -89,6 +89,10 @@ public class ThriftEE {
     return this.tempDir;
   }
 
+  public File clientsDir() {
+    return this.clientsDir;
+  }
+
   public File idlDir() {
     return this.idlDir;
   }
@@ -102,8 +106,8 @@ public class ThriftEE {
   }
 
   public File clientLibraryDir(final String name) {
-    final String prefix = clientLibraryPrefix(name);
-    final File dir = new File(tempDir(), prefix);
+    final String prefix = validateLibrary(name);
+    final File dir = new File(clientsDir(), prefix);
     if (!dir.exists() || !dir.isDirectory()) {
       throw new IllegalStateException(
         "client dir does not exist: " + dir.getAbsolutePath());
@@ -113,7 +117,7 @@ public class ThriftEE {
 
   public File clientLibraryZip(final String name) {
     final String prefix = clientLibraryPrefix(name);
-    final File zip = new File(tempDir(), prefix + ".zip");
+    final File zip = new File(clientsDir(), prefix + ".zip");
     if (!zip.exists() || !zip.isFile()) {
       throw new IllegalStateException(
         "client zip file does not exist: " + zip.getAbsolutePath());
@@ -153,6 +157,8 @@ public class ThriftEE {
 
   private final File tempDir;
 
+  private final File clientsDir;
+
   private final File idlDir;
 
   private final File thriftExecutable;
@@ -188,6 +194,7 @@ public class ThriftEE {
   public ThriftEE(final ThriftEEConfig config) throws ThriftStartupException {
 
     this.tempDir = config.tempDir();
+    this.clientsDir = new File(this.tempDir, "clients");
     this.idlDir = new File(tempDir, "idl");
     if (config.serviceLocator() != null) {
       this.serviceLocator = config.serviceLocator();
@@ -420,11 +427,15 @@ public class ThriftEE {
     return run.executeVersion();
   }
 
-  private String clientLibraryPrefix(String name) {
+  private String validateLibrary(String name) {
     if (!clientTypeAliases().containsKey(name)) {
       throw new IllegalArgumentException("Invalid client type alias name");
     }
-    return "client-" + name;
+    return name;
+  }
+
+  private String clientLibraryPrefix(String name) {
+    return "client-" + validateLibrary(name);
   }
 
   private void generateClientLibrary(ClientTypeAlias alias) 
@@ -448,9 +459,12 @@ public class ThriftEE {
       final ProcessIDL idlProcessor = new ProcessIDL(alias);
       final String zipName = clientLibraryPrefix(name);
       final File clientLibrary = idlProcessor.process(
-        files, tempDir(), zipName, cmd, extraDirs
+        files, clientsDir, zipName, cmd, extraDirs
       );
       final String path = clientLibrary.getAbsolutePath();
+      final File clientDir = new File(clientsDir(), zipName);
+      final File renameDir = new File(clientsDir(), name);
+      clientDir.renameTo(renameDir);
       LOG.debug("{} client library created at: {}", name, path);
     } catch (IOException e) {
       throw new ThriftStartupException(

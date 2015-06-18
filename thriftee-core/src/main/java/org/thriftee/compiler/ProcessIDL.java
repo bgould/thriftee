@@ -32,12 +32,14 @@ public class ProcessIDL {
       FileUtil.deleteRecursively(outputDir);
     }
     if (!outputDir.mkdirs()) {
-      throw new IOException("could not create output directory: " + outputDir.getAbsolutePath());
+      throw new IOException(
+        "could not create output directory: " + outputDir.getAbsolutePath());
     }
     File zipFile = new File(workDir, zipName + ".zip");
     if (zipFile.exists()) {
       if (!zipFile.delete()) {
-        throw new IOException("Could not delete existing zip file: " + zipFile.getAbsolutePath());
+        throw new IOException(
+          "Could not delete existing zip file: " + zipFile.getAbsolutePath());
       }
     }
     cmd.setOutputLocation(outputDir);
@@ -50,10 +52,12 @@ public class ProcessIDL {
       try {
         int exit = process.waitFor();
         if (exit > 0) {
-          throw new IOException("thrift generation failed with exit code: " + exit);
+          throw new IOException(
+            "thrift generation failed with exit code: " + exit);
         }
       } catch (InterruptedException e) {
-        throw new IOException("Thrift generation process was interrupted.", e);
+        throw new IOException(
+            "Thrift generation process was interrupted.", e);
       }
     }
     final PostProcessor pp = getPostProcessor();
@@ -67,6 +71,14 @@ public class ProcessIDL {
       pp.postProcess(event);
     }
     FileUtil.createZipFromDirectory(zipFile, "", outputDir, extraZipDirectories);
+    if (extraZipDirectories != null) {
+      for (File extra : extraZipDirectories) {
+        for (File file : extra.listFiles()) {
+          logger.debug("copying recursively: {}", file.getAbsolutePath());
+          FileUtil.copyRecursively(extra, outputDir);
+        }
+      }
+    }
     return zipFile;
   }
 
