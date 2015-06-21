@@ -1,10 +1,6 @@
-var $ = require('jquery');
-var logging = require('./logging');
-var logger = logging.get('thriftee');
-var util = require('./util');
 var events = require('events');
 
-logger.level = "debug";
+var util = require('./util');
 
 // holder for 'private' functions
 var __ = {};
@@ -12,20 +8,37 @@ var __ = {};
 // module.exports - 'public' functions
 var ThriftEE = {};
 
+__.get_script = function getScript(source, callback) {
+  var doc = document;
+  var script = doc.createElement('script');
+  var prior = doc.getElementsByTagName('script')[0];
+  script.async = 1;
+  prior.parentNode.insertBefore(script, prior);
+  script.onload = script.onreadystatechange = function( _, isAbort ) {
+    if (isAbort || !script.readyState || /loaded|complete/.test(script.readyState) ) {
+      script.onload = script.onreadystatechange = null;
+      script = undefined;
+      if (!isAbort) { 
+        if (callback) {
+          callback();
+        }
+      }
+    }
+  };
+  script.src = source;
+}; 
+
 // reference to a ThriftEE server
 var Server = function (id, base, options) {
   var serverEvents = new events.EventEmitter();
   events.EventEmitter.call(this);
-  logger.debug('options', options);
   options = util.extend(util.extend({ 
     'id'   : id, 
     'base' : base
   }), options);
-  logger.debug('options', options);
   util.define(this, options);
   Object.defineProperty(this, '_events',  { 'value'  : serverEvents });
   Object.defineProperty(this, '_loading', { 'writable' : true, 'value' : 0 });
-  logger.debug('created ThriftEE server instance: ', this);
 };
 util.inherits(Server, events.EventEmitter);
 
@@ -56,27 +69,31 @@ var Client = function (server, callback) {
     },
     'enumerable' : true
   });
-  services.org_thriftee_compiler_schema.ThriftSchemaService.getSchema(function (schema) {
-    logger.debug('loaded schema', schema);
-    var schema_str = JSON.stringify(schema);
-    Object.defineProperty(self, 'schema', { 'get' : function () { return JSON.parse(schema_str); } });
-    for (i in schema.modules) {
-      logger.debug('Found module named ', i);
-      if (typeof(services[i]) === 'undefined') {
-        services[i] = {};
-      }
-      var module = schema.modules[i];
-      for (serviceName in module.services) {
-        var client = window[serviceName + 'Client'];
-        logger.debug("Looping over service named ", serviceName, client);
-        if (typeof(client) === 'function') {
-          logger.debug('Found service/client: ', serviceName, client);
-          services[i][serviceName] = multiplexer.createClient(i + '.' + serviceName, client, transport);
+  services.org_thriftee_compiler_schema.ThriftSchemaService.getSchema(
+    function (schema) {
+      var schema_str = JSON.stringify(schema);
+      Object.defineProperty(self, 'schema', {
+        'get' : function () {
+          return JSON.parse(schema_str);
+        }
+      });
+      for (i in schema.modules) {
+        if (typeof(services[i]) === 'undefined') {
+          services[i] = {};
+        }
+        var module = schema.modules[i];
+        for (serviceName in module.services) {
+          var client = window[serviceName + 'Client'];
+          if (typeof(client) === 'function') {
+            services[i][serviceName] = multiplexer.createClient(
+              i + '.' + serviceName, client, transport
+            );
+          }
         }
       }
+      callback(null, self);
     }
-    callback(null, self);
-  });
+  );
 };
 util.inherits(Server, events.EventEmitter);
 
@@ -87,60 +104,52 @@ Object.defineProperty(Client, 'init', {
 });
 
 Server.prototype.init = function(callback) {
-  var $server = this;
-  logger.debug('loading: ', $server._loading);
-  if ($server._loading == 2) { // loaded
-    logger.debug('already loaded, firing callback');
+  var _server = this;
+  if (_server._loading == 2) { // loaded
     callback();
-    return $server;
-  
-  } else if ($server._loading == 1) { // loading
-    logger.debug('already loading, registering callback');
-    $server._emitter.once('loaded', callback);
-    return $server;
-  } else if ($server._loading == 0) { // not started
-    logger.debug('not loaded, starting');
-    $server._events.once('loaded', callback);
-    $server._loading = 1;
+    return _server;
+  } else if (_server._loading == 1) { // loading
+    _server._emitter.once('loaded', callback);
+    return _server;
+  } else if (_server._loading == 0) { // not started
+    _server._events.once('loaded', callback);
+    _server._loading = 1;
     var onError = function (jqXHR, settings, exception) {
-      logger.debug("onError() fired");
-      $server._events.emit('loaded', exception);
-      $server._loading = 0;
+      _server._events.emit('loaded', exception);
+      _server._loading = 0;
     };
     var onSuccess = function () {
-      logger.debug("onSuccess() fired");
-      $server._loading = 2;
-      $server._events.emit('loaded', null, $server);
+      _server._loading = 2;
+      _server._events.emit('loaded', null, _server);
+      return true;
     };
-    $.get($server.base + $server.jqueryClientPath, function (data, textStatus, jqXHR) {
-      var scripts = {};
-      var onComplete = function (href) {
-        logger.debug("finished ", href);
-        if ($server._loading == 1) {
-          var result = true;
-          for (var i in scripts) {
-            if (scripts[i].href !== href && !scripts[i].loaded) {
-              logger.debug("still need to load: ", scripts[i]);
-              result = false;
-            }
+    var scripts = {};
+    var paths = [ 'thrift.js', 'client-jquery-all.js', ];
+    var onComplete = function (href) {
+      if (_server._loading == 1) {
+        var result = true;
+        for (var i in scripts) {
+          if (scripts[i].href !== href && !scripts[i].loaded) {
+            result = false;
           }
-          if (!result) {
-            return false;
-          }
-          onSuccess();
         }
-      };
-      var $html = $(data);
-      logger.debug("getting scripts; $this._loading = ", $server._loading);
-      $("a[href$='.js']", $html).not("a[href$='thrift.js']").each(function () {
-        var href = $(this).attr("href");
-        scripts[href] = new __.script_loader(href);
-        scripts[href].load(function () {
-          onComplete(href);
-        });
+        if (!result) {
+          return false;
+        }
+        return onSuccess();
+      }
+    };
+    var load = function (href) {
+      scripts[href] = new __.loader(href);
+      scripts[href].load(function () {
+        onComplete(href);
       });
-    }).fail(onError);
-    return $server;
+    };
+    for (i in paths) {
+      var val = paths[i];
+      load(_server.base + _server.jqueryClientPath + val);
+    }
+    return _server;
   }
   throw 'illegal state';
 };
@@ -157,7 +166,6 @@ Server.prototype.createClient = function(callback) {
     if (err) {
       return callback(err);
     }
-    logger.debug('entered createClient() ', server, Thrift);
     Client.init(server, function (err, client) {
       if (err) {
         return callback(err);
@@ -176,7 +184,7 @@ __.defaults = {
 // cache for the server instances
 __.instances = {};
 
-// filter out any options that we've not defined as defaults and convert all values to strings
+// filter out any options that we've not defined as defaults stringify
 __.makeopts = function (_options) {
   var size = 0;
   var tmp = {};
@@ -186,10 +194,10 @@ __.makeopts = function (_options) {
   }
   for (var opt in _options) {
     if (__.defaults.hasOwnProperty(opt)) {
-      tmp[opt] = (_options[opt]) ? (_options[opt] + "") : ""; // convert all values to string (immutable)
+      tmp[opt] = (_options[opt]) ? (_options[opt] + "") : "";
       size++;
     } else {
-      logging.get('thriftee').warn('invalid configuration option (skipping): ', opt);
+      console.warn('invalid configuration option (skipping): ', opt);
     }
   }
   return { 'size' : size, 'options' : tmp }; 
@@ -202,13 +210,15 @@ __.init = function (base, options) {
   var _opts = __.makeopts(options);
   // final options merged with defaults in specific order
   options = {}; 
-  // if only default options were provided and the instance is cached, just return it
+  // if only default options were provided and the instance is cached, return 
   if (_opts.size == 0 && __.instances[base]) {
     return __.instances[base];
   }
   // merge defaults in specific order before hashing
   for (var _default in __.defaults) {
-    options[_default] = _opts.options.hasOwnProperty(_default) ? _opts.options[_default] : __.defaults[_default];
+    options[_default] = _opts.options.hasOwnProperty(_default) 
+                      ? _opts.options[_default] 
+                      : __.defaults[_default];
   }
   // only hash if non-default options were supplied (performance)
   var hash = (_opts.size > 0) ? require('object-hash').sha1(options) : "";
@@ -229,23 +239,15 @@ __.get = function (key) {
 __.scripts = {};
 
 // use this to only load 1 instance of a particular script at a time
-__.script_loader = function (script) {
+__.loader = function (script) {
   if (__.scripts[script]) {
-    logger.debug("found existing instance for script", script);
     return(__.scripts[script]);
   };
-  __.scripts[script] = (typeof(this) !== 'object') ? new __.script_loader(script) : this;
+  __.scripts[script] = ((typeof(this)!=='object')?new __.loader(script):this);
   Object.defineProperty(this, 'script', {
     'value' : script,
     'enumerable' : true
   });
-  /*
-  Object.defineProperty(this, '_loading', {
-    'value' : 0,
-    'writeable' : true,
-    'enumerable' : false
-  });
-  */
   var _loading = false;
   Object.defineProperty(this, '_loading', {
     get : function () {
@@ -267,21 +269,15 @@ __.script_loader = function (script) {
   });
 };
 
-__.script_loader.prototype.load = function(callback) {
+__.loader.prototype.load = function(callback) {
   var $this = this;
   if ($this._loading == 0) { // not started
     $this._emitter.once('loaded', callback);
     $this._loading = 1;
-    $.getScript($this.script)
-      .done(function (script, textStatus, jqXHR) {
-        $this._loading = 2;
-        $this._emitter.emit('loaded');
-      })
-      .fail(function (jqXHR, settings, exception) {
-        logger.error('failed to retrieve script', $this, exception);
-        $this._emitter.emit('loaded', exception);
-        $this._loading = 0;
-      });
+    __.get_script($this.script, function () {
+      $this._loading = 2;
+      $this._emitter.emit('loaded');
+    });
   } else if ($this._loading == 1) { // loading
     this._emitter.on('loaded', callback);
   } else if ($this._loading == 2) { // loaded

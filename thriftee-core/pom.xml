@@ -189,12 +189,14 @@
                       <shadedPattern>org.thriftee.swift</shadedPattern>
                       <excludes>
                         <exclude>com.facebook.swift.codec.ThriftConstructor</exclude>
+                        <exclude>com.facebook.swift.codec.ThriftDocumentation</exclude>
                         <exclude>com.facebook.swift.codec.ThriftEnum</exclude>
                         <exclude>com.facebook.swift.codec.ThriftEnumValue</exclude>
                         <exclude>com.facebook.swift.codec.ThriftField</exclude>
                         <exclude>com.facebook.swift.codec.ThriftField$Requiredness</exclude>
                         <exclude>com.facebook.swift.codec.ThriftStruct</exclude>
                         <exclude>com.facebook.swift.codec.ThriftUnion</exclude>
+                        <exclude>com.facebook.swift.codec.ThriftUnionId</exclude>
                         <exclude>com.facebook.swift.service.ThriftException</exclude>
                         <exclude>com.facebook.swift.service.ThriftMethod</exclude>
                         <exclude>com.facebook.swift.service.ThriftService</exclude>
