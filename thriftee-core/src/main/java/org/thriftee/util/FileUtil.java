@@ -20,7 +20,7 @@ public class FileUtil {
     try {
       in = new FileInputStream(file);
       if (((int) file.length()) > 0) {
-        byte[] buffer = new byte[(int) file.length()];
+        byte[] buffer = new byte[1024];
         for (int n = -1; (n = in.read(buffer)) > -1; ) {
           baos.write(buffer, 0, n);
         }
