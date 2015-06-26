@@ -11,7 +11,7 @@ public class ClientsResourceTest extends ResourceTestBase {
   public void testGetClientDirListing() {
     this.handleGet("/clients/php/");
     assertEquals(200, rsp().getStatus().getCode());
-    assertHasLink("Types.php");
+    assertHasLink("Thrift/");
     assertHasLink("org/");
   }
 
@@ -24,7 +24,7 @@ public class ClientsResourceTest extends ResourceTestBase {
 
   @Test
   public void testGetClientFile() {
-    this.handleGet("/clients/php/Types.php");
+    this.handleGet("/clients/php/Thrift/TMultiplexedProcessor.php");
     assertEquals(200, rsp().getStatus().getCode());
     assertTrue(rsp().getEntityAsText().indexOf("<?php") > -1);
   }
