@@ -28,7 +28,7 @@ public class ThriftApplication extends Application {
 
   public ThriftApplication(Context context) {
     super(context);
-    this.getMetadataService().setDefaultMediaType(MediaType.TEXT_PLAIN);
+    getMetadataService().setDefaultMediaType(MediaType.TEXT_PLAIN);
   }
 
   private static final ThreadLocal<Response> currentResponse = new ThreadLocal<>();
@@ -57,15 +57,26 @@ public class ThriftApplication extends Application {
       "/endpoints/{module}/{service}/",
       "/endpoints/{module}/{service}/{protocol}"
     );
-    router.attach("/clients/", new DirectoryListing(
+    router.attach("/clients/", createClientsDirectory());
+    router.attach("/idl/", createIdlDirectory());
+    return router;
+  }
+
+  private DirectoryListing createClientsDirectory() {
+    final DirectoryListing dir = new DirectoryListing(
       getContext().createChildContext(), 
       LocalReference.createFileReference(thrift().clientsDir())
-    ));
-    router.attach("/idl/", new DirectoryListing(
+    );
+    dir.setIndexName("default.html");
+    return dir;
+  }
+
+  private DirectoryListing createIdlDirectory() {
+    final DirectoryListing dir = new DirectoryListing(
       getContext().createChildContext(),
       LocalReference.createFileReference(thrift().idlDir())
-    ));
-    return router;
+    );
+    return dir;
   }
 
   private ThriftEE thrift() {
