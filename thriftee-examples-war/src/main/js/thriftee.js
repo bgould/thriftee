@@ -1,6 +1,4 @@
-var events = require('events');
-
-var util = require('./util');
+(function (is_common_js) {
 
 // holder for 'private' functions
 var __ = {};
@@ -29,22 +27,20 @@ __.get_script = function getScript(source, callback) {
 }; 
 
 // reference to a ThriftEE server
-var Server = function (id, base, options) {
-  var serverEvents = new events.EventEmitter();
-  events.EventEmitter.call(this);
-  options = util.extend(util.extend({ 
-    'id'   : id, 
-    'base' : base
-  }), options);
-  util.define(this, options);
-  Object.defineProperty(this, '_events',  { 'value'  : serverEvents });
+function Server(id, base, options) {
+  if (!(typeof(options) === 'object')) {
+    options = {};
+  }
+  options.id = id;
+  options.base = base;
+  Object.defineProperty(this, '_option', { 'value' :  function (key) {
+    return options[key];
+  }});
   Object.defineProperty(this, '_loading', { 'writable' : true, 'value' : 0 });
 };
-util.inherits(Server, events.EventEmitter);
 
-var Client = function (server, callback) {
+function Client (server, callback) {
   var self = this;
-  events.EventEmitter.call(this);
   Object.defineProperty(this, 'server', {
     get : function () {
       return server;
@@ -95,7 +91,6 @@ var Client = function (server, callback) {
     }
   );
 };
-util.inherits(Server, events.EventEmitter);
 
 Object.defineProperty(Client, 'init', {
   'value' : function(server, callback) {
@@ -109,18 +104,14 @@ Server.prototype.init = function(callback) {
     callback();
     return _server;
   } else if (_server._loading == 1) { // loading
-    _server._emitter.once('loaded', callback);
     return _server;
   } else if (_server._loading == 0) { // not started
-    _server._events.once('loaded', callback);
     _server._loading = 1;
     var onError = function (jqXHR, settings, exception) {
-      _server._events.emit('loaded', exception);
       _server._loading = 0;
     };
     var onSuccess = function () {
       _server._loading = 2;
-      _server._events.emit('loaded', null, _server);
       return true;
     };
     var scripts = {};
@@ -181,10 +172,6 @@ __.defaults = {
   'endpointPath'   : '/endpoints/multiplex/json'
 };
 
-// cache for the server instances
-__.instances = {};
-
-// filter out any options that we've not defined as defaults stringify
 __.makeopts = function (_options) {
   var size = 0;
   var tmp = {};
@@ -207,34 +194,8 @@ __.init = function (base, options) {
   if (!base) {
     throw 'a base URL for the ThriftEE instance must be supplied';
   }
-  var _opts = __.makeopts(options);
-  // final options merged with defaults in specific order
-  options = {}; 
-  // if only default options were provided and the instance is cached, return 
-  if (_opts.size == 0 && __.instances[base]) {
-    return __.instances[base];
-  }
-  // merge defaults in specific order before hashing
-  for (var _default in __.defaults) {
-    options[_default] = _opts.options.hasOwnProperty(_default) 
-                      ? _opts.options[_default] 
-                      : __.defaults[_default];
-  }
-  // only hash if non-default options were supplied (performance)
-  var hash = (_opts.size > 0) ? require('object-hash').sha1(options) : "";
-  var key = base + hash;
-  if (!(__.instances[key])) {
-    __.instances[key] = new Server(key, base, options);
-  }
-  return __.instances[key];
+  return new Server(base, base, __.makeopts(options));
 };
-
-__.get = function (key) {
-  if (!key) {
-    throw 'key must be provided';
-  }
-  return __.instances[key] || null;
-}
 
 __.scripts = {};
 
@@ -257,10 +218,6 @@ __.loader = function (script) {
       _loading = value;
     }
   });
-  Object.defineProperty(this, '_emitter', {
-    'value' : new events.EventEmitter(),
-    'enumerable' : false
-  });
   Object.defineProperty(this, 'loaded', {
     'get' : function () {
       return this._loading == 2;
@@ -272,14 +229,13 @@ __.loader = function (script) {
 __.loader.prototype.load = function(callback) {
   var $this = this;
   if ($this._loading == 0) { // not started
-    $this._emitter.once('loaded', callback);
     $this._loading = 1;
     __.get_script($this.script, function () {
       $this._loading = 2;
-      $this._emitter.emit('loaded');
+      callback();
     });
   } else if ($this._loading == 1) { // loading
-    this._emitter.on('loaded', callback);
+    throw 'loader for ' + $this.script + ' is already started';
   } else if ($this._loading == 2) { // loaded
     callback();
   }
@@ -298,4 +254,10 @@ Object.defineProperties(ThriftEE, {
   }
 });
 
-module.exports = ThriftEE;
+if (!is_common_js) {
+  window.ThriftEE = ThriftEE;
+} else {
+  module.exports = ThriftEE;
+}
+
+}(typeof(module) == 'object'));

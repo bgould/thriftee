@@ -29,6 +29,7 @@ import org.thriftee.compiler.schema.ThriftSchemaService;
 import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.provider.swift.SwiftSchemaBuilder;
+import org.thriftee.util.FileUtil;
 import org.thriftee.util.New;
 import org.thriftee.util.Strings;
 
@@ -193,7 +194,7 @@ public class ThriftEE {
 
   public ThriftEE(final ThriftEEConfig config) throws ThriftStartupException {
 
-    this.tempDir = config.tempDir();
+    this.tempDir = new File(config.tempDir(), "thriftee");
     this.clientsDir = new File(this.tempDir, "clients");
     this.idlDir = new File(tempDir, "idl");
     if (config.serviceLocator() != null) {
@@ -322,6 +323,8 @@ public class ThriftEE {
     try {
       final ExportIDL exporter = new ExportIDL();
       idlFiles = exporter.export(idlDir, allClasses);
+      createIdlZip("swift");
+      createIdlZip("thrift");
     } catch (final IOException e) {
       throw new ThriftStartupException(
           e, ThriftStartupMessage.STARTUP_001, e.getMessage());
@@ -471,6 +474,13 @@ public class ThriftEE {
         e, ThriftStartupMessage.STARTUP_009, alias.getName(), e.getMessage()
       );
     }
+  }
+
+  private File createIdlZip(String type) throws IOException {
+    final File dir = new File(idlDir(), type);
+    final File zip = new File(idlDir(), "idl-" + type + ".zip");
+    FileUtil.createZipFromDirectory(zip, "", dir);
+    return zip;
   }
 
   private SortedMap<String, TProcessor> buildProcessorMap() 

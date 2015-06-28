@@ -15,6 +15,7 @@ public class IndexResource extends FrameworkResource {
     final DirectoryListingModel directory = createDefaultModel();
     directory.getFiles().put("clients/", "clients/");
     directory.getFiles().put("endpoints/", "endpoints/");
+    directory.getFiles().put("idl/", "idl/");
 
     final Map<String, Object> model = New.map();
     model.put("title", directory.getTitle());

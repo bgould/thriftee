@@ -41,7 +41,11 @@ public class FileUtil {
     }
   }
   
-  public static void createZipFromDirectory(File outputFile, String zipBaseDir, File fileBaseDir, File... extraZipDirectories) throws IOException {
+  public static void createZipFromDirectory(
+      File outputFile, 
+      String zipBaseDir, 
+      File fileBaseDir, 
+      File... extraZipDirectories) throws IOException {
     FileOutputStream os = null;
     ZipOutputStream zip = null;
     try {
