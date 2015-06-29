@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -93,6 +94,16 @@ public class FileUtil {
     }
   }
 
+  public static void copyFile(File src, File dest) throws IOException {
+    if (src == null) {
+      throw new IOException("src cannot be null");
+    }
+    if (src.isDirectory()) {
+      throw new IOException("cannot be a directory: " + src.getAbsolutePath());
+    }
+    copyRecursively(src, dest);
+  }
+  
   public static void copyRecursively(File src, File dest) throws IOException {
     if (src.isDirectory()) {
       for (final File c : src.listFiles()) {
@@ -158,7 +169,25 @@ public class FileUtil {
       } catch (IOException e) {}
     }
   }
-  
+
+  public static int urlToFile(URL url, File file) throws IOException {
+    InputStream in = null;
+    FileOutputStream out = null;
+    try {
+      in = url.openStream();
+      out = new FileOutputStream(file);
+      final byte[] buffer = new byte[1024];
+      int bytesRead = 0;
+      for (int n; ((n = in.read(buffer)) > -1); bytesRead += n) {
+        out.write(buffer, 0, n);
+      }
+      return bytesRead;
+    } finally {
+      forceClosed(in);
+      forceClosed(out);
+    }
+  }
+
   public static Properties readProperties(InputStream in) throws IOException {
     Properties props = new Properties();
     props.load(in);

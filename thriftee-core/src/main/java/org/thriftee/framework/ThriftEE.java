@@ -459,7 +459,7 @@ public class ThriftEE {
         extraDirs = new File[0];
       }
       final File[] files = new File[] { globalIdlFile() };
-      final ProcessIDL idlProcessor = new ProcessIDL(alias);
+      final ProcessIDL idlProcessor = new ProcessIDL(thriftLibDir(), alias);
       final String zipName = clientLibraryPrefix(name);
       final File clientLibrary = idlProcessor.process(
         files, clientsDir, zipName, cmd, extraDirs

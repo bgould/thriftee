@@ -79,7 +79,10 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>com.yahoo.platform.yui</groupId>
+      <artifactId>yuicompressor</artifactId>
+    </dependency>
   </dependencies>
   
   <profiles>
@@ -172,6 +175,18 @@
                     <relocation>
                       <pattern>org.json</pattern>
                       <shadedPattern>thriftee.shaded.org.json</shadedPattern>
+                    </relocation>
+                    <relocation>
+                      <pattern>org.mozilla</pattern>
+                      <shadedPattern>thriftee.shaded.org.mozilla</shadedPattern>
+                    </relocation>
+                    <relocation>
+                      <pattern>com.yahoo</pattern>
+                      <shadedPattern>thriftee.shaded.com.yahoo</shadedPattern>
+                    </relocation>
+                    <relocation>
+                      <pattern>jargs</pattern>
+                      <shadedPattern>thriftee.shaded.jargs</shadedPattern>
                     </relocation>
                     <!-- TODO: maybe do this with proguard instead, as it
                                seems that restlet likes to load things via

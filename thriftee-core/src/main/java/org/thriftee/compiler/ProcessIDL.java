@@ -12,11 +12,14 @@ public class ProcessIDL {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
+  private File thriftLibDir;
+
   private PostProcessor postProcessor;
 
   public ProcessIDL() {}
 
-  public ProcessIDL(PostProcessor postProcessor) {
+  public ProcessIDL(File thriftLibDir, PostProcessor postProcessor) {
+    this.thriftLibDir = thriftLibDir;
     this.postProcessor = postProcessor;
   }
 
@@ -65,7 +68,7 @@ public class ProcessIDL {
       logger.trace("executing post processor: {}", pp);
       PostProcessorEvent event = new PostProcessorEvent(
         outputDir,
-        null,
+        thriftLibDir,
         extraZipDirectories != null ? Arrays.asList(extraZipDirectories) : null
       );
       pp.postProcess(event);
