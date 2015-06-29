@@ -28,47 +28,46 @@ function _get_script(source, callback) {
     }
   };
   script.src = source;
-}; 
-
-function _init_client(server, callback) {
-  return new Client(server, callback);
-}
+} 
 
 function _freeze(obj) {
   if (typeof(Object.freeze) === 'function') {
-    return Object.freeze(obj)
+    return Object.freeze(obj);
   }
   return obj;
 }
 
 function _make_opts(_options) {
-  var tmp = {};
+  var tmp = {}, opt;
   _options = _options || {};
   if (typeof(_options) !== 'object') {
     throw 'if options config is supplied, it must be an object';
   }
-  for (var opt in _options) {
+  for (opt in _options) {
     if (__defaults.hasOwnProperty(opt)) {
       tmp[opt] = (_options[opt]) ? (_options[opt] + "") : "";
     } else {
       console.warn('invalid configuration option (skipping): ', opt);
     }
   }
-  for (var opt in __defaults) {
-    if (!tmp.hasOwnProperty(opt)) {
-      tmp[opt] = __defaults[opt];
+  for (opt in __defaults) {
+    if (__defaults.hasOwnProperty(opt)) {
+      if (!tmp.hasOwnProperty(opt)) {
+        tmp[opt] = __defaults[opt];
+      }
     }
   }
   return tmp;
-};
+}
 
 // use this to only load 1 instance of a particular script at a time
 function ScriptLoader(script) {
   if (__scripts[script]) {
     return __scripts[script];
-  };
+  }
   if (typeof(this) !== 'object') {
-    return __scripts[script] = new ScriptLoader(script);
+    __scripts[script] = new ScriptLoader(script);
+    return __scripts[script];
   }
   var _loader = __scripts[script] = this,
       _loading = 0;
@@ -88,7 +87,7 @@ function ScriptLoader(script) {
     'load' : {
       'value' : function load(callback) {
         if (_loader.loading) {
-          throw 'loader for ' + loader.script + ' is already started';
+          throw 'loader for ' + _loader.script + ' is already started';
         } 
         if (_loader.loaded) {
           callback();
@@ -106,7 +105,7 @@ function ScriptLoader(script) {
 // reference to a ThriftEE server
 function Server(id, base, options) {
 
-  if (!(typeof(options) === 'object')) {
+  if (typeof(options) !== 'object') {
     options = {};
   }
   options.id = id;
@@ -124,19 +123,21 @@ function Server(id, base, options) {
 
   function _fire_loaded(err) {
     try {
-      _when_loaded.forEach(function (el, idx, arr) {
+      _when_loaded.forEach(function (el) {
         el(err, _server);
       });
     } finally {
-      when_loaded = [];
+      _when_loaded = [];
     }
     return null;
   }
 
+  /*
   function _on_init_error(jqXHR, settings, exception) {
     _loading = 0;
     return _fire_loaded(exception);
   }
+  */
 
   function _on_init_success() {
     _loading = 2;
@@ -244,22 +245,26 @@ function Client(server, callback) {
     mplex.createClient(svcnm, ThriftSchemaServiceClient, trans).getSchema(
       function on_schema_loaded(schema) {
         var svcs = {};
-        for (i in schema.modules) {
-          if (typeof(svcs[i]) === 'undefined') {
-            Object.defineProperty(svcs, i, { value : {}, enumerable: true });
-          }
-          var module = schema.modules[i];
-          for (serviceName in module.services) {
-            var svcClient = window[serviceName + 'Client'],
-                clientName = i + '.' + serviceName;
-            if (typeof(svcClient) === 'function') {
-              Object.defineProperty(svcs[i], serviceName, {
-                'value' : mplex.createClient(clientName, svcClient, trans),
-                'enumerable' : true
-              });
+        for (var i in schema.modules) {
+          if (schema.modules.hasOwnProperty(i)) {
+            if (typeof(svcs[i]) === 'undefined') {
+              Object.defineProperty(svcs, i, { value : {}, enumerable: true });
             }
+            var module = schema.modules[i];
+            for (var serviceName in module.services) {
+              if (module.services.hasOwnProperty(serviceName)) {
+                var svcClient = window[serviceName + 'Client'],
+                    clientName = i + '.' + serviceName;
+                if (typeof(svcClient) === 'function') {
+                  Object.defineProperty(svcs[i], serviceName, {
+                    'value' : mplex.createClient(clientName, svcClient, trans),
+                    'enumerable' : true
+                  });
+                }
+              }
+            }
+            _freeze(svcs[i]);
           }
-          _freeze(svcs[i]);
         }
         Object.defineProperties(client, {
           'server' : { 'value' : server, 'enumerable' : true },
