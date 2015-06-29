@@ -1,302 +1,291 @@
-var ThriftEE = {};
-
 (function (is_common_js) {
 
-// holder for 'private' functions
-var __ = {};
+// default options for creating server instances
+var __defaults = {
+      'jqueryClientPath' : '/clients/jquery/',
+      'endpointPath'   : '/endpoints/multiplex/json'
+    },
+    __scripts = {};
 
-// module.exports - 'public' functions
-
-__.get_script = function getScript(source, callback) {
+// adds an element to the page for scripts that need to be dynamically loaded
+function _get_script(source, callback) {
   var doc = document;
+  var body = doc.getElementsByTagName('body')[0];
   var script = doc.createElement('script');
-  var prior = doc.getElementsByTagName('script')[0];
-  script.async = 1;
-  prior.parentNode.insertBefore(script, prior);
-  script.onload = script.onreadystatechange = function( _, isAbort ) {
-    if (isAbort || !script.readyState || /loaded|complete/.test(script.readyState) ) {
+  body.appendChild(script);
+  script.onload = script.onreadystatechange = function(_, abort) {
+    var ready_state = script.readyState;
+    if (abort || !ready_state || /loaded|complete/.test(ready_state)) {
       script.onload = script.onreadystatechange = null;
       script = undefined;
-      if (!isAbort) { 
+      if (!abort) { 
         if (callback) {
           callback();
         }
+      } else {
+        // TODO: handle error/abort
       }
     }
   };
   script.src = source;
 }; 
 
-// reference to a ThriftEE server
-function Server(id, base, options) {
-  if (!(typeof(options) === 'object')) {
-    options = {};
-  }
-  options.id = id;
-  options.base = base;
-  Object.defineProperty(this, '_get', { 'value' :  function (key) {
-    return options[key];
-  }});
-  Object.defineProperty(this, '_loading', { 'writable' : true, 'value' : 0 });
-  var when_loaded = [];
-  Object.defineProperty(this, '_on_loaded', { 'writable' : false, 'value' :
-    function (callback) {
-      when_loaded.push(callback);
-    }
-  });
-  Object.defineProperty(this, '_fire_loaded', { 'writable' : false, 'value' :
-    function (err, server) {
-      try {
-        when_loaded.forEach(function (el, idx, arr) {
-          el(err, server);
-        });
-      } finally {
-        when_loaded = [];
-      }
-    }
-  });
-};
-
-function Client (server, callback) {
-  var self = this;
-  Object.defineProperty(this, 'server', {
-    get : function () {
-      return server;
-    },
-    'enumerable' : true
-  });
-  var multiplexer = new Thrift.Multiplexer();
-  var transport = new Thrift.Transport(
-    server._get('base') + server._get('endpointPath')
-  );
-  var protocol = new Thrift.Protocol(transport);
-  var services = { 
-    'org_thriftee_compiler_schema' : {
-      'ThriftSchemaService' : multiplexer.createClient(
-        'org_thriftee_compiler_schema.ThriftSchemaService', 
-        ThriftSchemaServiceClient, 
-        transport
-      )
-    }
-  };
-  Object.defineProperty(this, 'services', {
-    get : function () {
-      return services;
-    },
-    'enumerable' : true
-  });
-  services.org_thriftee_compiler_schema.ThriftSchemaService.getSchema(
-    function (schema) {
-      var schema_str = JSON.stringify(schema);
-      Object.defineProperty(self, 'schema', {
-        'get' : function () {
-          return JSON.parse(schema_str);
-        }
-      });
-      for (i in schema.modules) {
-        if (typeof(services[i]) === 'undefined') {
-          services[i] = {};
-        }
-        var module = schema.modules[i];
-        for (serviceName in module.services) {
-          var client = window[serviceName + 'Client'];
-          if (typeof(client) === 'function') {
-            services[i][serviceName] = multiplexer.createClient(
-              i + '.' + serviceName, client, transport
-            );
-          }
-        }
-      }
-      callback(null, self);
-    }
-  );
-};
-
-Object.defineProperty(Client, 'init', {
-  'value' : function(server, callback) {
-    var client = new Client(server, callback);
-  }
-});
-
-Server.prototype.init = function(callback) {
-  var _server = this;
-  if (_server._loading == 2) { // loaded
-    callback();
-    return _server;
-  } else if (_server._loading == 1) { // loading
-    _server._on_loaded(callback);
-    return _server;
-  } else if (_server._loading == 0) { // not started
-    _server._on_loaded(callback);
-    _server._loading = 1;
-    var onError = function (jqXHR, settings, exception) {
-      _server._loading = 0;
-      _server._fire_loaded(exception, null);
-    };
-    var onSuccess = function () {
-      _server._loading = 2;
-      _server._fire_loaded(null, _server);
-      return true;
-    };
-    var scripts = {};
-    var paths = [];
-    // TODO: choosing to download thrift.js should be configurable
-    if (typeof(Thrift) !== 'object') {
-      paths.push('thrift.js');
-    }
-    // TODO: choosing to download the client library should be configurable
-    if (typeof(ThriftSchemaServiceClient) !== 'function') {
-      paths.push('client-jquery-all.js');
-    }
-    var onComplete = function (href) {
-      if (_server._loading == 1) {
-        var result = true;
-        for (var i in scripts) {
-          if (scripts[i].href !== href && !scripts[i].loaded) {
-            result = false;
-          }
-        }
-        if (!result) {
-          return false;
-        }
-        return onSuccess();
-      }
-    };
-    var load = function (href) {
-      scripts[href] = new __.loader(href);
-      scripts[href].load(function () {
-        onComplete(href);
-      });
-    };
-    if (paths.length > 0) {
-      for (i in paths) {
-        var val = paths[i];
-        load(_server._get('base') + _server._get('jqueryClientPath') + val);
-      }
-    } else {
-      _server._fire_loaded(null, _server);
-    }
-    return _server;
-  }
-  throw 'illegal state';
-};
-
-Server.prototype.isLoaded = function () {
-  return this._loading == 2;
+function _init_client(server, callback) {
+  return new Client(server, callback);
 }
 
-/**
- * @param callback a function that takes arguments (err, client)
- */
-Server.prototype.createClient = function(callback) {
-  return this.init(function (err, server) {
-    if (err) {
-      return callback(err);
-    }
-    Client.init(server, function (err, client) {
-      if (err) {
-        return callback(err);
-      }
-      callback(null, client);
-    });
-  });
-};
+function _freeze(obj) {
+  if (typeof(Object.freeze) === 'function') {
+    return Object.freeze(obj)
+  }
+  return obj;
+}
 
-// default options for creating server instances
-__.defaults = {
-  'jqueryClientPath' : '/clients/jquery/',
-  'endpointPath'   : '/endpoints/multiplex/json'
-};
-
-__.makeopts = function (_options) {
-  var size = 0;
+function _make_opts(_options) {
   var tmp = {};
   _options = _options || {};
   if (typeof(_options) !== 'object') {
     throw 'if options config is supplied, it must be an object';
   }
   for (var opt in _options) {
-    if (__.defaults.hasOwnProperty(opt)) {
+    if (__defaults.hasOwnProperty(opt)) {
       tmp[opt] = (_options[opt]) ? (_options[opt] + "") : "";
-      size++;
     } else {
       console.warn('invalid configuration option (skipping): ', opt);
     }
   }
-  for (var opt in __.defaults) {
+  for (var opt in __defaults) {
     if (!tmp.hasOwnProperty(opt)) {
-      tmp[opt] = __.defaults[opt];
+      tmp[opt] = __defaults[opt];
     }
   }
-  return { 'size' : size, 'options' : tmp }; 
+  return tmp;
 };
-
-__.init = function (base, options) {
-  if (!base) {
-    throw 'a base URL for the ThriftEE instance must be supplied';
-  }
-  return new Server(base, base, __.makeopts(options).options);
-};
-
-__.scripts = {};
 
 // use this to only load 1 instance of a particular script at a time
-__.loader = function (script) {
-  if (__.scripts[script]) {
-    return(__.scripts[script]);
+function ScriptLoader(script) {
+  if (__scripts[script]) {
+    return __scripts[script];
   };
-  __.scripts[script] = ((typeof(this)!=='object')?new __.loader(script):this);
-  Object.defineProperty(this, 'script', {
-    'value' : script,
-    'enumerable' : true
-  });
-  var _loading = false;
-  Object.defineProperty(this, '_loading', {
-    get : function () {
-      return _loading;
+  if (typeof(this) !== 'object') {
+    return __scripts[script] = new ScriptLoader(script);
+  }
+  var _loader = __scripts[script] = this,
+      _loading = 0;
+  Object.defineProperties(_loader, {
+    'script' : { 
+      'value' : script, 
+      'enumerable' : true
     },
-    set : function (value) {
-      _loading = value;
+    'loading' : {
+      'get' : function () { return _loading === 1; },
+      'enumerable' : true
+    },
+    'loaded' : {
+      'get' : function () { return _loading === 2; },
+      'enumerable' : true
+    },
+    'load' : {
+      'value' : function load(callback) {
+        if (_loader.loading) {
+          throw 'loader for ' + loader.script + ' is already started';
+        } 
+        if (_loader.loaded) {
+          callback();
+        }
+        _loading = 1;
+        _get_script(_loader.script, function () {
+          _loading = 2;
+          callback();
+        });
+      }
+    },
+  });
+}
+
+// reference to a ThriftEE server
+function Server(id, base, options) {
+
+  if (!(typeof(options) === 'object')) {
+    options = {};
+  }
+  options.id = id;
+  options.base = base;
+  
+  var _server = this,
+      _loading = 0,
+      _when_loaded = [],
+      _paths = [],
+      _scripts = {};
+
+  function _on_loaded(callback) {
+    _when_loaded.push(callback);
+  }
+
+  function _fire_loaded(err) {
+    try {
+      _when_loaded.forEach(function (el, idx, arr) {
+        el(err, _server);
+      });
+    } finally {
+      when_loaded = [];
+    }
+    return null;
+  }
+
+  function _on_init_error(jqXHR, settings, exception) {
+    _loading = 0;
+    return _fire_loaded(exception);
+  }
+
+  function _on_init_success() {
+    _loading = 2;
+    return _fire_loaded(null);
+  }
+
+  // TODO: choosing to download thrift.js should be configurable
+  function _is_thrift_loaded() {
+    return typeof(Thrift) === 'object';
+  }
+
+  // TODO: choosing to download thriftee.js should be configurable
+  function _is_client_loaded() {
+    return typeof(ThriftSchemaServiceClient) === 'function';
+  }
+
+  function _on_script_complete(href) {
+    if (_loading !== 1) {
+      throw 'illegal state: ' + _loading;
+    }
+    var result = true;
+    for (var i in _scripts) {
+      if (_scripts[i].href !== href && !_scripts[i].loaded) {
+        result = false;
+      }
+    }
+    if (!result) {
+      return false;
+    }
+    return _on_init_success();
+  }
+
+  function _load_script(path) {
+    var href = _make_href(path);
+    _scripts[href] = new ScriptLoader(href);
+    _scripts[href].load(function _script_completed() {
+      return _on_script_complete(href);
+    });
+  }
+
+  function _make_href(path) {
+    return options.base + options.jqueryClientPath + path;
+  }
+
+  Object.defineProperties(_server, {
+    'id' : { 'value' : id, 'enumerable' : true },
+    'base' : { 'value' : base, 'enumerable' : true },
+    'endpoint' : {
+      'value' : options.base + options.endpointPath,
+      'enumerable' : true
+    },
+    'loaded' : {
+      'get' : function () {
+        return _loading === 2;
+      },
+      'enumerable' : true
+    },
+    'loading' : {
+      'get' : function (){
+        return _loading === 1;
+      },
+      'enumerable' : true
+    },
+    'init' : {
+      'value' : function (callback) {
+        if (_server.loaded) {
+          callback();
+          return _server;
+        }
+        if (_server.loading) {
+          _on_loaded(callback);
+          return _server;
+        }
+        _loading = 1;
+        _on_loaded(callback);
+        if (!_is_thrift_loaded()) {
+          _paths.push('thrift.js');
+        }
+        if (!_is_client_loaded()) {
+          _paths.push('client-jquery-all.js');
+        }
+        if (_paths.length > 0) {
+          _paths.forEach(_load_script);
+          return _server;
+        }
+        _fire_loaded(null, _server);
+        return _server;
+      }
+    },
+    'createClient' : {
+      'value' : function(callback) {
+        return new Client(_server, callback);
+      }
     }
   });
-  Object.defineProperty(this, 'loaded', {
-    'get' : function () {
-      return this._loading == 2;
-    },
-    'enumerable' : true
+
+}
+
+function Client(server, callback) {
+  var client = this;
+  server.init(function () {
+    var mplex = new Thrift.Multiplexer(),
+        trans = new Thrift.Transport(server.endpoint),
+        svcnm = 'org_thriftee_compiler_schema.ThriftSchemaService';
+    mplex.createClient(svcnm, ThriftSchemaServiceClient, trans).getSchema(
+      function on_schema_loaded(schema) {
+        var svcs = {};
+        for (i in schema.modules) {
+          if (typeof(svcs[i]) === 'undefined') {
+            Object.defineProperty(svcs, i, { value : {}, enumerable: true });
+          }
+          var module = schema.modules[i];
+          for (serviceName in module.services) {
+            var svcClient = window[serviceName + 'Client'],
+                clientName = i + '.' + serviceName;
+            if (typeof(svcClient) === 'function') {
+              Object.defineProperty(svcs[i], serviceName, {
+                'value' : mplex.createClient(clientName, svcClient, trans),
+                'enumerable' : true
+              });
+            }
+          }
+          _freeze(svcs[i]);
+        }
+        Object.defineProperties(client, {
+          'server' : { 'value' : server, 'enumerable' : true },
+          'schema' : { 'value' : _freeze(schema), 'enumerable' : true },
+          'services' : { 'value' : _freeze(svcs), 'enumerable' : true }
+        });
+        _freeze(client);
+        callback(null, client);
+      }
+    );
   });
-};
+}
 
-__.loader.prototype.load = function(callback) {
-  var $this = this;
-  if ($this._loading == 0) { // not started
-    $this._loading = 1;
-    __.get_script($this.script, function () {
-      $this._loading = 2;
-      callback();
-    });
-  } else if ($this._loading == 1) { // loading
-    throw 'loader for ' + $this.script + ' is already started';
-  } else if ($this._loading == 2) { // loaded
-    callback();
-  }
-};
-
-Object.defineProperties(ThriftEE, {
+var ThriftEE = _freeze(Object.defineProperties({}, {
   'init' : {
     'value' : function (base, options) {
-      return __.init(base, options);
-    }
-  },
-  'get' : {
-    'value' : function (key) {
-      return __.get(key);
+      if (!base) {
+        throw 'a base URL for the ThriftEE instance must be supplied';
+      }
+      return new Server(base, base, _make_opts(options));
     }
   }
-});
+}));
 
 if (!is_common_js) {
-//  window.ThriftEE = ThriftEE;
+  window.ThriftEE = ThriftEE;
 } else {
   module.exports = ThriftEE;
 }
