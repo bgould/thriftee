@@ -3,6 +3,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
   xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.thriftee</groupId>
     <artifactId>thriftee-root</artifactId>
@@ -14,25 +15,14 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>net.sf.scannotation</groupId>
-      <artifactId>scannotation</artifactId>
-      <version>1.0.2</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.thriftee</groupId>
       <artifactId>thriftee-core</artifactId>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.restlet.jee</groupId>
       <artifactId>org.restlet.ext.servlet</artifactId>
     </dependency>
+    <!-- test scoped dependencies -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -55,26 +45,12 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-shade-plugin</artifactId>
-            <version>2.3</version>
             <executions>
               <execution>
                 <phase>package</phase>
                 <goals>
                   <goal>shade</goal>
                 </goals>
-                <configuration>
-                  <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
-                  <relocations>
-                    <relocation>
-                      <pattern>org.slf4j</pattern>
-                      <shadedPattern>org.thriftee.logging</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.scannotation</pattern>
-                      <shadedPattern>thriftee.shaded.org.scannotation</shadedPattern>
-                    </relocation>
-                  </relocations>
-                </configuration>
               </execution>
             </executions>
           </plugin>
