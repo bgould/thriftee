@@ -2,6 +2,8 @@ package org.thriftee.util;
 
 import java.io.UnsupportedEncodingException;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 public class Strings {
 
   private Strings() {
@@ -36,6 +38,10 @@ public class Strings {
     return null;
     }
     return s;
+  }
+  
+  public static String escHtml(String html) {
+	return StringEscapeUtils.escapeHtml(html);
   }
 
 }

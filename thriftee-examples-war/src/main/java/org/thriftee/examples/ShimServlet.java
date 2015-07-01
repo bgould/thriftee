@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import thriftee.shaded.org.apache.commons.lang.StringEscapeUtils;
+import org.thriftee.util.Strings;
 
 @WebServlet(urlPatterns={ "/error.html" })
 public class ShimServlet extends HttpServlet {
@@ -132,7 +132,7 @@ public class ShimServlet extends HttpServlet {
     public static String esc(Object obj) {
         return obj == null 
                   ? "" 
-                  : StringEscapeUtils.escapeHtml(obj.toString());
+                  : Strings.escHtml(obj.toString());
     }
 
     private static final String headerContent = 
