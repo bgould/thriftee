@@ -1,12 +1,16 @@
 {
-  "name": "ThriftEE",
-  "version": "0.0.3",
+  "name": "thriftee-dashboard",
+  "version": "1.0.0",
+  "main": "index.js",
   "scripts": {
-    "build": "browserify thriftee.js -t stripify -s ThriftEE |uglifyjs -cm > ../webapp/thriftee.js",
-    "watch": "watchify thriftee.js -t stripify -s ThriftEE |uglifyjs -cm > ../webapp/thriftee.js"
+    "build": "browserify -t browserify-handlebars -t stripify -s Dashboard index.js | uglifyjs -cm > ../webapp/dashboard.js",
+    "watch": "watchify -t browserify-handlebars -s Dashboard index.js -o ../webapp/dashboard.js"
   },
   "dependencies": {
+    "jquery": "~2.1.1",
+    "console-browserify": "~1.1.0",
     "object-hash": "~0.3.0",
-    "underscore": "~1.8.3"
+    "handlebars": "~1.3.0",
+    "browserify-handlebars": "~0.2.0"
   }
 }

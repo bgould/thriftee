@@ -1,0 +1,39 @@
+<div class="row">
+  <div class="col-md-12">
+    <div id="service_methods">
+      <h3>Service Methods</h3>
+      {{#each methods}}
+      <div class="well">
+        <h4><a class="service_method_link" rel="{{@key}}">{{@key}}</a></h4>
+        <dl>
+          <dt>Return Type</dt>
+          <dd>{{this.returnType.typeName}}</dd>
+          <dt>Arguments</dt>
+          <dd>
+            <table class="table-bordered table-striped table-condensed">
+              <thead>
+                <tr>
+                  <th>id</th>
+                  <th>name</th>
+                  <th>type</th>
+                  <th>requiredness</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each this.arguments}}
+                <tr>
+                  <td>{{this.identifier}}</td>
+                  <td>{{this.name}}</td>
+                  <td>{{this.type.typeName}}</td>
+                  <td>{{this.requiredness}}</td>
+                </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </dd>
+        </dl>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+</div>
