@@ -44,6 +44,16 @@
         <version>${slf4j.version}</version>
       </dependency>
       <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.thriftee</groupId>
         <artifactId>thriftee-core</artifactId>
         <version>${project.version}</version>
@@ -74,11 +84,6 @@
         <version>${restlet.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.facebook.swift</groupId>
-        <artifactId>swift-annotations</artifactId>
-        <version>${swift.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.apache.thrift</groupId>
         <artifactId>libthrift</artifactId>
         <version>${thrift.version}</version>
@@ -88,6 +93,11 @@
             <artifactId>commons-logging</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.facebook.swift</groupId>
+        <artifactId>swift-annotations</artifactId>
+        <version>${swift.version}</version>
       </dependency>
       <dependency>
         <groupId>com.facebook.swift</groupId>
@@ -133,11 +143,6 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>com.google.javascript</groupId>
-        <artifactId>closure-compiler</artifactId>
-        <version>v20141023</version>
-      </dependency>
-      <dependency>
         <groupId>com.yahoo.platform.yui</groupId>
         <artifactId>yuicompressor</artifactId>
         <version>2.4.8</version>
@@ -154,14 +159,9 @@
         <version>${swift.version}</version>
       </dependency>
       <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-classic</artifactId>
-        <version>1.1.2</version>
-      </dependency>
-      <dependency>
         <groupId>org.json</groupId>
         <artifactId>json</artifactId>
-        <version>20140107</version>
+        <version>${json.version}</version>
       </dependency>
       <dependency>
         <groupId>commons-lang</groupId>
@@ -177,12 +177,12 @@
       <dependency>
         <groupId>net.sf.scannotation</groupId>
         <artifactId>scannotation</artifactId>
-        <version>1.0.2</version>
+        <version>${scannotation.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.persistence</groupId>
         <artifactId>eclipselink</artifactId>
-        <version>2.5.1</version>
+        <version>${eclipselink.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -199,10 +199,14 @@
     <swift.version>0.16.0-thriftee</swift.version>
     <junit.version>4.11</junit.version>
     <slf4j.version>1.7.5</slf4j.version>
-    <tomee.version>1.7.1</tomee.version>
+    <tomee.version>1.7.2</tomee.version>
     <thrift.version>0.9.2</thrift.version>
     <restlet.version>2.2.2</restlet.version>
+    <eclipselink.version>2.6.0</eclipselink.version>
+    <scannotation.version>1.0.2</scannotation.version>
+    <json.version>20140107</json.version>
     <commons.lang.version>2.6</commons.lang.version>
+    <logback.version>1.1.2</logback.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -356,13 +360,10 @@
                     <pattern>jargs</pattern>
                     <shadedPattern>thriftee.shaded.jargs</shadedPattern>
                   </relocation>
-                  <!-- TODO: maybe do this with proguard instead, as it
-                             seems that restlet likes to load things via
-                             classpath URLs 
                   <relocation>
                     <pattern>org.restlet</pattern>
                     <shadedPattern>thriftee.shaded.org.restlet</shadedPattern>
-                  </relocation>-->
+                  </relocation>
                   <relocation>
                     <pattern>freemarker</pattern>
                     <shadedPattern>thriftee.shaded.freemarker</shadedPattern>
@@ -386,6 +387,21 @@
                     </excludes>
                   </relocation>
                 </relocations>
+                <transformers>
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                  	<resource>ConverterHelper</resource>
+                  </transformer>
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                  	<resource>OSGI-INF/restlet.xml</resource>
+                  </transformer>
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  	<resource>META-INF/services/org.restlet.engine.converter.ConverterHelper</resource>
+                  	<file>${basedir}/../src/main/shade/META-INF/services/org.restlet.engine.converter.ConverterHelper</file>
+                  </transformer>
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                    <!-- <addHeader>false</addHeader> -->
+                  </transformer>
+                </transformers>
               </configuration>
             </execution>
           </executions>
