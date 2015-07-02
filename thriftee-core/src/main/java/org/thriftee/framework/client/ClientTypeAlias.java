@@ -92,6 +92,7 @@ public class ClientTypeAlias implements PostProcessor {
   public static enum Defaults {
 
     HTML(new HTMLClientTypeAlias()),
+    JAVA(new JavaClientTypeAlias()),
     JQUERY(new JQueryClientTypeAlias()),
     JSON(new JSONClientTypeAlias()),
     NODE(new NodeJSClientTypeAlias()),

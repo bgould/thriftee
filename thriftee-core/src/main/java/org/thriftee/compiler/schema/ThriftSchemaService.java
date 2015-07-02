@@ -8,15 +8,26 @@ public interface ThriftSchemaService {
 
   @ThriftMethod
   public ThriftSchema getSchema();
+  
+  @ThriftMethod
+  public String jsonTemplate(ThriftSchemaType type);
 
   public static class Impl implements ThriftSchemaService {
+
     private final ThriftSchema schema;
+
     public Impl(final ThriftSchema schema) {
       this.schema = schema;
     }
+
     public ThriftSchema getSchema() {
       return schema;
     }
+
+    public String jsonTemplate(ThriftSchemaType type) {
+      return "{}";
+    }
+    
   }
 
 }
