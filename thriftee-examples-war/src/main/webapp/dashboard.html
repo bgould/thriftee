@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Javascript Test Page</title>
+    <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="./dashboard.css" rel="stylesheet" type="text/css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/codemirror.css" rel="stylesheet" type="text/css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/addon/hint/show-hint.css" rel="stylesheet" type="text/css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/theme/ambiance.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <nav class="navbar navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" 
+                  class="navbar-toggle collapsed" 
+                  data-toggle="collapse" 
+                  data-target="#navbar" 
+                  aria-expanded="false" 
+                  aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">ThriftEE Services Dashboard</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li>***</li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <h3>Services</h3>
+          <ul class="nav nav-sidebar" id="services-sidebar"></ul>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <h1 id="page_header" class="page-header"></h1>
+          <div id="content_area"></div>
+        </div>
+      </div>
+    </div>
+    <script src="services/clients/jquery/thriftee-all.min.js" type="text/javascript"></script>
+    <script src="dashboard.js" type="text/javascript"></script>
+    <script type="text/javascript">jQuery = $ = Dashboard.jQuery;</script>
+    <script src="assets/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/codemirror.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/mode/javascript/javascript.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/addon/hint/show-hint.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/4.8.0/addon/hint/javascript-hint.js" type="text/javascript"></script>
+  </body>
+</html>

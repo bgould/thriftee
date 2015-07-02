@@ -2,15 +2,19 @@
 <project
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
   xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.thriftee</groupId>
     <artifactId>thriftee-root</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
+
   <artifactId>thriftee-examples-war</artifactId>
   <packaging>war</packaging>
   <name>thriftee-examples-war</name>
+
   <dependencies>
     <dependency>
       <groupId>org.thriftee</groupId>
@@ -21,8 +25,8 @@
       <artifactId>thriftee-servlet</artifactId>
     </dependency>
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -52,6 +56,7 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
+ 
   <build>
     <plugins>
       <plugin>
@@ -80,4 +85,6 @@
       </plugin>
     </plugins>
   </build>
+
 </project>
+

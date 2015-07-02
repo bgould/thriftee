@@ -54,6 +54,40 @@
               </execution>
             </executions>
           </plugin>
+          <!-- TODO: get proguard working -->
+          <!--
+          <plugin>
+            <groupId>com.github.wvengen</groupId>
+            <artifactId>proguard-maven-plugin</artifactId>
+            <version>2.0.10</version>
+            <dependencies>
+              <dependency>
+                <groupId>net.sf.proguard</groupId>
+                <artifactId>proguard-base</artifactId>
+                <version>5.0</version>
+                <scope>runtime</scope>
+              </dependency>
+            </dependencies>          
+            <executions>
+              <execution>
+                <id>proguard</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>proguard</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <maxMemory>256m</maxMemory>
+              <proguardInclude>proguard.conf</proguardInclude>
+              <includeDependency>false</includeDependency>
+              <obfuscate>false</obfuscate>
+              <libs>
+                <lib>${java.home}/lib/rt.jar</lib>
+              </libs>
+            </configuration>
+          </plugin>
+        -->
         </plugins>
       </build>
     </profile>

@@ -87,9 +87,6 @@ public class PresidentServicePopulator {
         president.setEducation(data[6]);
         president.setCareer(data[7]);
         president.setPoliticalParty(data[8]);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Inserting prez: " + president.getName().getFullName());
-        }
         em.persist(president);
       }
     } finally {
@@ -100,25 +97,5 @@ public class PresidentServicePopulator {
       }
     }
   }
- 
-  /*
-  public void createPresidentTable() {
-    jdbcTemplate.execute(
-        "CREATE TABLE president ( " 
-      + " id              INTEGER NOT NULL PRIMARY KEY, " 
-      + " first_name      VARCHAR(50) NOT NULL, " 
-      + " last_name       VARCHAR(50) NOT NULL, "
-      + " nick_name       VARCHAR(50) NOT NULL, " 
-      + " term            VARCHAR(50) NOT NULL, " 
-      + " born            DATE NOT NULL," 
-      + " died            DATE NULL, "
-      + " education       VARCHAR(100) NULL, " 
-      + " career          VARCHAR(100) NOT NULL, " 
-      + " political_party VARCHAR(100) NOT NULL, " 
-      + " selected        VARCHAR(1) NULL " 
-      + ")"
-    );
-  }
-  */
 
 }
