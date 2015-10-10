@@ -7,6 +7,16 @@
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <jta-data-source>thrifteeExamples</jta-data-source>
     <class>org.thriftee.examples.presidents.President</class>
+    <class>org.thriftee.examples.classicmodels.Customer</class>
+    <class>org.thriftee.examples.classicmodels.Employee</class>
+    <class>org.thriftee.examples.classicmodels.Office</class>
+    <class>org.thriftee.examples.classicmodels.OrderDetail</class>
+    <class>org.thriftee.examples.classicmodels.OrderDetailPK</class>
+    <class>org.thriftee.examples.classicmodels.Order</class>
+    <class>org.thriftee.examples.classicmodels.Payment</class>
+    <class>org.thriftee.examples.classicmodels.PaymentPK</class>
+    <class>org.thriftee.examples.classicmodels.ProductLine</class>
+    <class>org.thriftee.examples.classicmodels.Product</class>
     <properties>
       <property name="eclipselink.target-database" value="org.eclipse.persistence.platform.database.HSQLPlatform"/>
       <property name="eclipselink.ddl-generation" value="create-tables"/>

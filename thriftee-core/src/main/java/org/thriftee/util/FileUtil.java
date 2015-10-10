@@ -205,6 +205,18 @@ public class FileUtil {
       forceClosed(in);
     }
   }
+
+  public static Properties readProperties(URL url) throws IOException {
+    InputStream in = null;
+    try {
+      in = url.openStream();
+      Properties props = new Properties();
+      props.load(in);
+      return props;
+    } finally {
+      forceClosed(in);
+    }
+  }
   
   public static void writeProperties(File file, Properties props) throws IOException {
     writeProperties(file, props, null);

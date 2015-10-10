@@ -67,6 +67,7 @@
           <context>ex</context>
           <tomeeVersion>${tomee.version}</tomeeVersion>
           <removeTomeeWebapp>true</removeTomeeWebapp>
+          <tomeeClassifier>plume</tomeeClassifier>
           <simpleLog>true</simpleLog>
           <synchronization>
             <updateInterval>5</updateInterval>
@@ -77,10 +78,12 @@
               <extension>jsp</extension> 
             </extensions>
           </synchronization>
+          <!--
           <libs>
             <lib>org.eclipse.persistence:eclipselink:2.5.1</lib>
             <lib>remove:openjpa</lib>
-          </libs>
+            </libs>
+          -->
         </configuration>
       </plugin>
     </plugins>
