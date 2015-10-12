@@ -1,7 +1,7 @@
 package org.thriftee.tests;
 
-import org.thriftee.examples.presidents.PresidentService;
-import org.thriftee.examples.presidents.PresidentServiceBean;
+import org.thriftee.examples.classicmodels.services.OrderService;
+import org.thriftee.examples.classicmodels.services.OrderSessionBean;
 import org.thriftee.examples.usergroup.service.GroupService;
 import org.thriftee.examples.usergroup.service.GroupServiceImpl;
 import org.thriftee.examples.usergroup.service.UserService;
@@ -14,10 +14,10 @@ public class ExampleServiceLocator extends DefaultServiceLocator {
   public ExampleServiceLocator() throws ServiceLocatorException {
     UserService userSvc = new UserServiceImpl();
     GroupService groupSvc = new GroupServiceImpl(userSvc);
-    PresidentService pres = new PresidentServiceBean();
+    OrderService orderSvc = new OrderSessionBean();
     register(UserService.class, userSvc);
     register(GroupService.class, groupSvc);
-    register(PresidentService.class, pres);
+    register(OrderService.class, orderSvc);
   }
 
   @Override
@@ -30,8 +30,8 @@ public class ExampleServiceLocator extends DefaultServiceLocator {
     if (GroupService.class.equals(svcIntf)) {
       return (I) new GroupServiceImpl(new UserServiceImpl());
     }
-    if (PresidentService.class.equals(svcIntf)) {
-      return (I) new PresidentServiceBean();
+    if (OrderService.class.equals(svcIntf)) {
+      return (I) new OrderSessionBean();
     }
     return null;
   }

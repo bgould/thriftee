@@ -6,7 +6,6 @@
   <persistence-unit name="thrifteeExamples">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <jta-data-source>thrifteeExamples</jta-data-source>
-    <class>org.thriftee.examples.presidents.President</class>
     <class>org.thriftee.examples.classicmodels.Customer</class>
     <class>org.thriftee.examples.classicmodels.Employee</class>
     <class>org.thriftee.examples.classicmodels.Office</class>
@@ -20,8 +19,12 @@
     <properties>
       <property name="eclipselink.target-database" value="org.eclipse.persistence.platform.database.HSQLPlatform"/>
       <property name="eclipselink.ddl-generation" value="create-tables"/>
-      <property name="eclipselink.ddl-generation.output-mode" value="database"/>
-      <!-- <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema"/> -->
+      <property name="eclipselink.ddl-generation.output-mode" value="both"/>
+      <property name="eclipselink.application-location" value="/tmp/thriftee"/>
+      <property name="eclipselink.create-ddl-jdbc-file-name" value="create-tables.sql"/>
+      <property name="eclipselink.drop-ddl-jdbc-file-name" value="drop-tables.sql"/>
+      <!-- 
+      <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema"/> -->
     </properties>
   </persistence-unit>
 </persistence>

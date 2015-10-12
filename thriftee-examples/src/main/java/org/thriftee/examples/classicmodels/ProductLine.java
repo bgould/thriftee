@@ -3,6 +3,7 @@ package org.thriftee.examples.classicmodels;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
@@ -35,6 +36,7 @@ public class ProductLine implements Serializable {
   @Lob
   private byte[] image;
 
+  @Column(length=4000)
   private String textDescription;
 
   //bi-directional many-to-one association to Product

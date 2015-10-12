@@ -1,33 +1,46 @@
 package org.thriftee.examples.classicmodels;
 
 import java.io.Serializable;
-import javax.persistence.*;
+
+import javax.persistence.Embeddable;
+
+import com.facebook.swift.codec.ThriftField;
+import com.facebook.swift.codec.ThriftStruct;
 
 /**
  * The primary key class for the Payments database table.
  * 
  */
 @Embeddable
+@ThriftStruct("PaymentKey")
 public class PaymentPK implements Serializable {
-	//default serial version id, required for serializable classes.
+
+  //default serial version id, required for serializable classes.
 	private static final long serialVersionUID = 1L;
 
 	private int customerNumber;
 
 	private String checkNumber;
 
-	public PaymentPK() {
-	}
+	public PaymentPK() {}
+
+  @ThriftField(1)
 	public int getCustomerNumber() {
 		return this.customerNumber;
 	}
-	public void setCustomerNumber(int customerNumber) {
+
+  @ThriftField
+  public void setCustomerNumber(int customerNumber) {
 		this.customerNumber = customerNumber;
 	}
-	public String getCheckNumber() {
+
+  @ThriftField(2)
+  public String getCheckNumber() {
 		return this.checkNumber;
 	}
-	public void setCheckNumber(String checkNumber) {
+
+  @ThriftField
+  public void setCheckNumber(String checkNumber) {
 		this.checkNumber = checkNumber;
 	}
 
@@ -38,7 +51,7 @@ public class PaymentPK implements Serializable {
 		if (!(other instanceof PaymentPK)) {
 			return false;
 		}
-		PaymentPK castOther = (PaymentPK)other;
+		final PaymentPK castOther = (PaymentPK) other;
 		return 
 			(this.customerNumber == castOther.customerNumber)
 			&& this.checkNumber.equals(castOther.checkNumber);
@@ -49,7 +62,7 @@ public class PaymentPK implements Serializable {
 		int hash = 17;
 		hash = hash * prime + this.customerNumber;
 		hash = hash * prime + this.checkNumber.hashCode();
-		
 		return hash;
 	}
+
 }

@@ -1,9 +1,24 @@
 package org.thriftee.examples.classicmodels;
 
 import java.io.Serializable;
-import javax.persistence.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.facebook.swift.codec.ThriftField;
+import com.facebook.swift.codec.ThriftStruct;
 
 
 /**
@@ -13,114 +28,176 @@ import java.util.List;
 @Entity
 @Table(name="Orders")
 @NamedQuery(name="Order.findAll", query="SELECT o FROM Order o")
+@ThriftStruct
 public class Order implements Serializable {
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	@Id
-	private int orderNumber;
+  @Id
+  private int orderNumber;
 
-	@Lob
-	private String comments;
+  @Lob
+  private String comments;
 
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date orderDate;
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date orderDate;
 
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date requiredDate;
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date requiredDate;
 
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date shippedDate;
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date shippedDate;
 
-	private String status;
+  private String status;
 
-	//bi-directional many-to-one association to Customer
-	@ManyToOne
-	@JoinColumn(name="customerNumber")
-	private Customer customer;
+  //bi-directional many-to-one association to Customer
+  @ManyToOne
+  @JoinColumn(name="customerNumber")
+  private Customer customer;
 
-	//bi-directional many-to-one association to OrderDetail
-	@OneToMany(mappedBy="order")
-	private List<OrderDetail> orderDetails;
+  //bi-directional many-to-one association to OrderDetail
+  @OneToMany(mappedBy="order")
+  private List<OrderDetail> orderDetails;
 
-	public Order() {
-	}
+  public Order() {
+  }
 
-	public int getOrderNumber() {
-		return this.orderNumber;
-	}
+  @ThriftField(1)
+  public int getOrderNumber() {
+    return this.orderNumber;
+  }
 
-	public void setOrderNumber(int orderNumber) {
-		this.orderNumber = orderNumber;
-	}
+  @ThriftField
+  public void setOrderNumber(int orderNumber) {
+    this.orderNumber = orderNumber;
+  }
 
-	public String getComments() {
-		return this.comments;
-	}
+  @ThriftField(2)
+  public String getComments() {
+    return this.comments;
+  }
 
-	public void setComments(String comments) {
-		this.comments = comments;
-	}
+  @ThriftField
+  public void setComments(String comments) {
+    this.comments = comments;
+  }
 
-	public Date getOrderDate() {
-		return this.orderDate;
-	}
+  public Date getOrderDate() {
+    return this.orderDate;
+  }
 
-	public void setOrderDate(Date orderDate) {
-		this.orderDate = orderDate;
-	}
+  public void setOrderDate(Date orderDate) {
+    this.orderDate = orderDate;
+  }
 
-	public Date getRequiredDate() {
-		return this.requiredDate;
-	}
+  @ThriftField(name="orderDate", value=3)
+  public String getOrderDateString() {
+    return dateToString(getOrderDate());
+  }
 
-	public void setRequiredDate(Date requiredDate) {
-		this.requiredDate = requiredDate;
-	}
+  @ThriftField
+  public void setOrderDateString(String orderDateString) {
+    setOrderDate(dateFromString(orderDateString));
+  }
 
-	public Date getShippedDate() {
-		return this.shippedDate;
-	}
+  public Date getRequiredDate() {
+    return this.requiredDate;
+  }
 
-	public void setShippedDate(Date shippedDate) {
-		this.shippedDate = shippedDate;
-	}
+  public void setRequiredDate(Date requiredDate) {
+    this.requiredDate = requiredDate;
+  }
+  
+  @ThriftField(name="requiredDate", value=4)
+  public String getRequiredDateString() {
+    return dateToString(getRequiredDate());
+  }
 
-	public String getStatus() {
-		return this.status;
-	}
+  @ThriftField
+  public void setRequiredDateString(String requiredDate) {
+    setRequiredDate(dateFromString(requiredDate));
+  }
 
-	public void setStatus(String status) {
-		this.status = status;
-	}
+  public Date getShippedDate() {
+    return this.shippedDate;
+  }
 
-	public Customer getCustomer() {
-		return this.customer;
-	}
+  public void setShippedDate(Date shippedDate) {
+    this.shippedDate = shippedDate;
+  }
 
-	public void setCustomer(Customer customer) {
-		this.customer = customer;
-	}
+  @ThriftField(name="shippedDate", value=5)
+  public String getShippedDateString() {
+    return dateToString(getShippedDate());
+  }
 
-	public List<OrderDetail> getOrderDetails() {
-		return this.orderDetails;
-	}
+  @ThriftField
+  public void setShippedDateString(String shippedDate) {
+    setShippedDate(dateFromString(shippedDate));
+  }
 
-	public void setOrderDetails(List<OrderDetail> orderDetails) {
-		this.orderDetails = orderDetails;
-	}
+  @ThriftField(value=6)
+  public String getStatus() {
+    return this.status;
+  }
 
-	public OrderDetail addOrderDetail(OrderDetail orderDetail) {
-		getOrderDetails().add(orderDetail);
-		orderDetail.setOrder(this);
+  @ThriftField
+  public void setStatus(String status) {
+    this.status = status;
+  }
 
-		return orderDetail;
-	}
+  @ThriftField(value=7)
+  public Customer getCustomer() {
+    return this.customer;
+  }
 
-	public OrderDetail removeOrderDetail(OrderDetail orderDetail) {
-		getOrderDetails().remove(orderDetail);
-		orderDetail.setOrder(null);
+  @ThriftField
+  public void setCustomer(Customer customer) {
+    this.customer = customer;
+  }
 
-		return orderDetail;
-	}
+  @ThriftField(value=8)
+  public List<OrderDetail> getOrderDetails() {
+    return this.orderDetails;
+  }
+
+  @ThriftField
+  public void setOrderDetails(List<OrderDetail> orderDetails) {
+    this.orderDetails = orderDetails;
+  }
+
+  public OrderDetail addOrderDetail(OrderDetail orderDetail) {
+    getOrderDetails().add(orderDetail);
+    orderDetail.setOrder(this);
+
+    return orderDetail;
+  }
+
+  public OrderDetail removeOrderDetail(OrderDetail orderDetail) {
+    getOrderDetails().remove(orderDetail);
+    orderDetail.setOrder(null);
+
+    return orderDetail;
+  }
+
+  public static Date dateFromString(String s) {
+    if (s == null) {
+      return null;
+    } else {
+      final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      try {
+        return sdf.parse(s);
+      } catch (ParseException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  public static String dateToString(Date date) {
+    if (date != null) {
+      return String.format("%tF", date);
+    } else {
+      return null; 
+    }
+  }
 
 }

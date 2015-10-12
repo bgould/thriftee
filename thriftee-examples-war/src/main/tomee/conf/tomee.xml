@@ -1,9 +1,15 @@
 <tomee>
-	<Resource id="thrifeeExamples" type="DataSource">
-	JdbcDriver org.hsqldb.jdbcDriver    
-	JdbcUrl jdbc:hsqldb:mem:examples
-	UserName sa
-	Password     
-	JtaManaged true 
-	</Resource>
+  <Resource id="Examples Database" type="DataSource">
+    #JdbcDriver org.apache.derby.jdbc.EmbeddedDriver
+    #JdbcUrl jdbc:derby:memory:thrifteeExamples;create=true
+    #JdbcDriver com.mysql.jdbc.Driver
+    #JdbcUrl jdbc:mysql://localhost/ClassicModels
+    #UserName classicmodels
+    #Password classicmodels
+    JdbcDriver org.hsqldb.jdbcDriver    
+    JdbcUrl jdbc:hsqldb:mem:examples
+    UserName sa
+    Password     
+    JtaManaged true
+  </Resource>
 </tomee>

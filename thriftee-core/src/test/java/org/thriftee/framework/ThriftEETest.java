@@ -1,7 +1,6 @@
 package org.thriftee.framework;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Date;
 
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
@@ -13,8 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.thriftee.compiler.schema.ModuleSchema;
 import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.examples.presidents.Name;
-import org.thriftee.examples.presidents.President;
+import org.thriftee.examples.classicmodels.Customer;
 import org.thriftee.examples.usergroup.domain.User;
 import org.thriftee.examples.usergroup.service.GroupService;
 import org.thriftee.examples.usergroup.service.UserService;
@@ -69,25 +67,27 @@ public class ThriftEETest extends AbstractThriftEETest {
   @Test
   public void testWriteStruct() throws Exception {
 
-    ThriftCodec<President> presidentCodec = thrift().codecManager().getCodec(
-      President.class
+    ThriftCodec<Customer> customerCodec = thrift().codecManager().getCodec(
+      Customer.class
     );
-    Assert.assertNotNull(presidentCodec);
+    Assert.assertNotNull(customerCodec);
 
-    President prez = new President();
-    prez.setDied(new Date());
-    prez.setBorn(new Date());
-    prez.setName(new Name("Some", "F", "Guy"));
-    prez.setEducation("Some College");
-    prez.setPoliticalParty("New Year's");
-    prez.setTerm("4 years");
-    prez.setCareer("Party Animal");
-    prez.setId(44);
+    Customer cust = new Customer();
+    cust.setCustomerNumber(1);
+    cust.setCustomerName("Some F Guy");
+    cust.setPhone("555-555-5555");
+    cust.setAddressLine1("1234 Main St.");
+    cust.setAddressLine2("Suite 987");
+    cust.setCity("Anytown");
+    cust.setState("NY");
+    cust.setCountry("US");
+    cust.setPostalCode("12345");
+    cust.setCreditLimit(1000);
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     TTransport transport = new TIOStreamTransport(baos);
     TProtocol protocol = new TSimpleJSONProtocol(transport);
-    presidentCodec.write(prez, protocol);
+    customerCodec.write(cust, protocol);
 
     byte[] bytes = baos.toByteArray();
     Assert.assertTrue("byte array with result has length > 0", bytes.length > 0);

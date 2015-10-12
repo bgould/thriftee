@@ -6,9 +6,9 @@ import org.junit.Test;
 
 public class EndpointsResourceTest extends ResourceTestBase {
 
-  public static final String MODULE = "org_thriftee_examples_presidents";
+  public static final String MODULE = "org_thriftee_examples_classicmodels_services";
   
-  public static final String SERVICE = "PresidentService";
+  public static final String SERVICE = "OrderService";
 
   @Test public void testGet() {
     this.handleGet("/endpoints/");

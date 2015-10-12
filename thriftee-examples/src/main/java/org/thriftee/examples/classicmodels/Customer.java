@@ -191,10 +191,12 @@ public class Customer implements Serializable {
     this.state = state;
   }
 
+  @ThriftField(value=13, name="salesRep")
   public Employee getEmployee() {
     return this.employee;
   }
 
+  @ThriftField
   public void setEmployee(Employee employee) {
     this.employee = employee;
   }
