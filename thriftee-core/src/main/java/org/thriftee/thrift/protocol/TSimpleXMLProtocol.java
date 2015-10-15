@@ -4,22 +4,18 @@ import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
-import java.io.IOException;
+import java.nio.ByteBuffer;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.TTransport;
-import org.thriftee.thrift.transport.TTransportInputStream;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 public class TSimpleXMLProtocol extends AbstractXMLProtocol {
 
@@ -34,6 +30,11 @@ public class TSimpleXMLProtocol extends AbstractXMLProtocol {
   @Override
   public String readString() throws TException {
     return readCharacters();
+  }
+
+  @Override
+  public byte readByte() throws TException {
+    return Byte.valueOf(readCharacters());
   }
 
   @Override
@@ -56,11 +57,15 @@ public class TSimpleXMLProtocol extends AbstractXMLProtocol {
     return Double.valueOf(readCharacters());
   }
 
+  @Override
+  public ByteBuffer readBinary() throws TException {
+    return ByteBuffer.wrap(Base64.decodeBase64(readCharacters()));
+  }
+
   protected static final DocumentBuilderFactory documentBuilderFactory =
     DocumentBuilderFactory.newInstance();
 
   class SimpleBaseContext extends BaseContext {
-    private Document doc;
     SimpleBaseContext(ContextType type) {
       super(type);
     }
@@ -69,22 +74,6 @@ public class TSimpleXMLProtocol extends AbstractXMLProtocol {
     }
     @Override StructContext newStruct() throws TException {
       return new SimpleStructContext(this);
-    }
-    Document parseDoc() throws TException {
-      if (doc != null) {
-        throw new IllegalStateException("Existing DOM doc already found.");
-      }
-      try {
-        final DocumentBuilder b = documentBuilderFactory.newDocumentBuilder();
-        this.doc = b.parse(new TTransportInputStream(getTransport()));
-      } catch (SAXException e) {
-        throw new TException(e);
-      } catch (IOException e) {
-        throw new TException(e);
-      } catch (ParserConfigurationException e) {
-        throw new TException(e);
-      }
-      return this.doc;
     }
   }
 
@@ -98,18 +87,9 @@ public class TSimpleXMLProtocol extends AbstractXMLProtocol {
   }
 
   class SimpleStructContext extends StructContext {
-//    private Element element;
     SimpleStructContext(Context parent) {
       super(parent);
     }
-//      final SimpleBaseContext base = (SimpleBaseContext) base();
-//      if (this.parent instanceof SimpleBaseContext) {
-//        this.element = base.parseDoc().getDocumentElement();
-//      }
-//      if (this.element == null) {
-//        throw new IllegalStateException();
-//      }
-//      this.name = this.element.getTagName();
     @Override SimpleStructContext readStart() throws TException {
       try {
         int eventType = reader().next();
@@ -162,8 +142,13 @@ public class TSimpleXMLProtocol extends AbstractXMLProtocol {
         }
         if (eventType == START_ELEMENT) {
           this.name = reader().getLocalName();
-          this.id = readShortAttribute("fieldId");
-          this.type = readByteAttribute("type");
+          if ("_.".equals(this.name)) {
+            this.type = 0;
+            this.id = 0;
+          } else {
+            this.id = readShortAttribute("i");
+            this.type = readByteAttribute("type");
+          }
           return this;
         } else {
           throw new IllegalStateException();
@@ -207,42 +192,12 @@ public class TSimpleXMLProtocol extends AbstractXMLProtocol {
       super(field);
     }
     @Override SimpleListContext readStart() throws TException {
-      try {
-        int eventType = reader().next();
-        if (eventType == CHARACTERS) {
-          eventType = reader().next();
-        }
-        if (eventType == START_ELEMENT) {
-          final String localName = reader().getLocalName();
-          if (!"list".equals(localName)) {
-            throw new IllegalStateException();
-          }
-          this.size = readIntAttribute("size");
-          this.elemType = readByteAttribute("type");
-          return this;
-        } else {
-          throw new IllegalStateException();
-        }
-      } catch (XMLStreamException e) {
-        throw new TException(e);
-      }
+      readContainerStart(this);
+      return this;
     }
     @Override SimpleListContext readEnd() throws TException {
-      try {
-        int eventType = reader().next();
-        if (eventType == CHARACTERS) {
-          eventType = reader().next();
-        }
-        if (eventType == END_ELEMENT) {
-          final String localName = reader().getLocalName();
-          if (!"list".equals(localName)) {
-            throw new IllegalStateException("expected 'list': " + localName);
-          }
-        }
-        return this;
-      } catch (XMLStreamException e) {
-        throw new TException(e);
-      }
+      readContainerEnd(this);
+      return this;
     }
     @Override SimpleStructContext newStruct() throws TException {
       return new SimpleStructContext(this);
@@ -254,10 +209,12 @@ public class TSimpleXMLProtocol extends AbstractXMLProtocol {
       super(field);
     }
     @Override SimpleSetContext readStart() throws TException {
-      throw up();
+      readContainerStart(this);
+      return this;
     }
     @Override SimpleSetContext readEnd() throws TException {
-      throw up();
+      readContainerEnd(this);
+      return this;
     }
     @Override SimpleStructContext newStruct() throws TException {
       return new SimpleStructContext(this);
@@ -269,14 +226,40 @@ public class TSimpleXMLProtocol extends AbstractXMLProtocol {
       super(field);
     }
     @Override SimpleMapContext readStart() throws TException {
-      throw up();
+      readContainerStart(this);
+      return this;
     }
     @Override SimpleMapContext readEnd() throws TException {
-      throw up();
+      readContainerEnd(this);
+      return this;
     }
     @Override SimpleStructContext newStruct() throws TException {
       return new SimpleStructContext(this);
     }
+  }
+
+  private void readContainerStart(ContainerContext<?> ctx) throws TException {
+    final int etype = reader().getEventType();
+    if (etype == START_ELEMENT) {
+      final String ctype = readAttribute("ctype");
+      if (!(ctx.containerType.equals(ctype))) {
+        throw new IllegalStateException(
+          "Expected '" + ctx.containerType + "' but was '" + ctype + "'");
+      }
+      ctx.size = readIntAttribute("csize");
+      ctx.elemType = readByteAttribute("vtype");
+      if ("map".equals(ctype)) {
+        ((MapContext)ctx).keyType = readByteAttribute("ktype");
+      }
+    } else {
+      throw new IllegalStateException(
+        "Expected START_ELEMENT but was " + XML.streamEventToString(etype)
+      );
+    }
+  }
+
+  private void readContainerEnd(ContainerContext<?> ctx) throws TException {
+
   }
 
   public TSimpleXMLProtocol(TTransport trans) {
@@ -386,7 +369,6 @@ public class TSimpleXMLProtocol extends AbstractXMLProtocol {
         throw new IllegalArgumentException();
       }
     }
-
     public static String dumpCurrentState(XMLStreamReader reader) {
       try {
       return String.format(

@@ -1,15 +1,16 @@
 package org.thriftee.thrift.protocol;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -26,6 +27,7 @@ import org.thriftee.examples.classicmodels.Office;
 import org.thriftee.examples.classicmodels.Order;
 import org.thriftee.examples.classicmodels.OrderDetail;
 import org.thriftee.examples.classicmodels.OrderDetailPK;
+import org.thriftee.examples.protocols.Everything;
 import org.thriftee.tests.AbstractThriftEETest;
 
 public class TXMLProtocolTest extends AbstractThriftEETest {
@@ -35,36 +37,6 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
   private ByteArrayOutputStream outStream;
 
   private static final TProtocolFactory factory = new TSimpleXMLProtocol.Factory();
-
-  //@Test
-  public void testXmlParse() throws Exception {
-    TProtocol protocol = createOutProtocol(factory);
-    thrift().codecManager().write(Order.class, testStruct2(), protocol);
-
-    final String serialized = formatXml(new String(outStream.toByteArray()));
-    System.out.println(serialized);
-
-    XMLStreamReader reader = XMLInputFactory.newFactory().createXMLStreamReader(
-      new ByteArrayInputStream(serialized.getBytes()));
-    for (int etype = reader.getEventType(); reader.hasNext(); ) {
-      String typename = TXMLProtocol.XML.streamEventToString(etype);
-      String desc = "";
-      if (etype == XMLStreamConstants.START_ELEMENT) {
-        desc = " '" + reader.getLocalName() + "'";
-      } else if (etype == XMLStreamConstants.END_ELEMENT) {
-        desc = " '" + reader.getLocalName() + "'";
-      } else if (etype == XMLStreamConstants.CHARACTERS) {
-        String text = reader.getText();
-        if (!"".equals(text.trim())) {
-          desc = " '" + text + "'";
-        }
-      }
-      System.out.printf("event: %s%s (%s, %s)%n", typename, desc, etype, reader.hasNext());
-      if (reader.hasNext()) {
-        etype = reader.next();
-      }
-    }
-  }
 
   public void testWrite1() throws Exception {
     final TProtocol protocol = createOutProtocol(factory);
@@ -89,11 +61,14 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
   }
 
   @Test
+  public void testEverything() throws Exception {
+    testRoundtrip(Everything.class, everythingStruct(), factory);
+  }
+
   public void testRoundTrip1() throws Exception {
     testRoundtrip(Office.class, testStruct1(), factory);
   }
 
-  @Test
   public void testRoundTrip2() throws Exception {
     testRoundtrip(Order.class, testStruct2(), factory);
   }
@@ -115,12 +90,35 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
     final String rounded = formatXml(new String(outStream.toByteArray()));
     //final String rounded = new String(outStream.toByteArray());
     System.out.println(rounded);
+
+    assertEquals(
+      "result of first and second serialization should be identical", 
+      serialized, rounded
+    );  
   }
 
   public TProtocol createOutProtocol(TProtocolFactory protocolFactory) {
     outStream = new ByteArrayOutputStream();
     TTransport transport = new TIOStreamTransport(inStream, outStream);
     return protocolFactory.getProtocol(transport);
+  }
+
+  public Everything everythingStruct() {
+    Everything everything = new Everything();
+    everything.bite = 42;
+    everything.int32 = 64000;
+    everything.int16 = 1024;
+    everything.int64 = 10000000000L;
+    everything.str = "foobar";
+    everything.dbl = 10.4;
+    everything.bin = "secret_password".getBytes();
+
+    Map<String, String> str_str_map = new HashMap<String, String>();
+    str_str_map.put("foo", "bar");
+    str_str_map.put("graffle", "florp");
+    //everything.str_str_map = str_str_map;
+
+    return everything;
   }
 
   public Office testStruct1() {

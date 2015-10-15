@@ -8,6 +8,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TList;
@@ -100,27 +101,36 @@ public abstract class AbstractXMLProtocol extends TProtocol {
 
   @Override
   public void writeMapBegin(TMap map) throws TException {
-    writeStartElement("map");
+    final MapContext ctx = writectx.peek(FieldContext.class).newMap();
+    ctx.keyType = map.keyType;
+    ctx.elemType = map.valueType;
+    ctx.size = map.size;
+    ctx.push();
+    ctx.writeStart();
   }
 
   @Override
   public void writeMapEnd() throws TException {
-    writeEndElement();
+    writectx.peek(MapContext.class).writeEnd().pop();
   }
 
   @Override
   public void writeSetBegin(TSet set) throws TException {
-    writeStartElement("set");
+    final SetContext ctx = writectx.peek(FieldContext.class).newSet();
+    ctx.elemType = set.elemType;
+    ctx.size = set.size;
+    ctx.push();
+    ctx.writeStart();
   }
 
   @Override
   public void writeSetEnd() throws TException {
-    writeEndElement();
+    writectx.peek(SetContext.class).writeEnd().pop();
   }
 
   @Override
   public void writeBinary(ByteBuffer buffer) throws TException {
-    throw new UnsupportedOperationException();
+    writeCharacters(Base64.encodeBase64String(buffer.array()));
   }
 
   @Override
@@ -130,7 +140,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
 
   @Override
   public void writeByte(byte bite) throws TException {
-    throw up();
+    writeCharacters(Byte.toString(bite));
   }
 
   @Override
@@ -370,7 +380,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
           "new context's parent must match the current top of stack");
       }
       this.head = context;
-      this.head.debug("push");
+      //this.head.debug("push");
       return context;
     }
 
@@ -379,7 +389,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
         throw new IllegalStateException("Cannot pop the base context.");
       }
       final Context oldhead = this.head;
-      oldhead.debug(" pop");
+      //oldhead.debug(" pop");
       this.head = oldhead.parent;
       return oldhead;
     }
@@ -416,9 +426,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
       return this;
     }
     StructContext writeFieldStop() throws TException {
-      writeStartElement("field-stop");
-      writeAttribute("type", "0");
-      writeAttribute("fieldId", "-1");
+      writeStartElement("_.");
       writeEndElement();
       return this;
     }
@@ -446,7 +454,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
     }
     @Override FieldContext writeStart() throws TException {
       writeStartElement(name);
-      writeAttribute("fieldId", Short.toString(id));
+      writeAttribute("i", Short.toString(id));
       writeAttribute("type", Byte.toString(type));
       return this;
     }
@@ -483,13 +491,13 @@ public abstract class AbstractXMLProtocol extends TProtocol {
       return "<"+emitType.getSimpleName()+" type:"+elemType+" size:"+size+">";
     }
     @Override ContainerContext<T> writeStart() throws TException {
-      writeStartElement(containerType);
-      writeAttribute("size", Integer.toString(size));
-      writeAttribute("type", Byte.toString(elemType));
+      writeAttribute("ctype", containerType);
+      writeAttribute("csize", Integer.toString(size));
+      writeAttribute("vtype", Byte.toString(elemType));
       return this;
     }
     @Override ContainerContext<T> writeEnd() throws TException {
-      writeEndElement();
+      //writeEndElement();
       return this;
     }
   }
@@ -522,6 +530,11 @@ public abstract class AbstractXMLProtocol extends TProtocol {
     }
     @Override public String toString() {
       return "<TMap key:"+keyType+" type:"+elemType+" size:"+size+">";
+    }
+    @Override MapContext writeStart() throws TException {
+      super.writeStart();
+      writeAttribute("ktype", Byte.toString(keyType));
+      return this;
     }
   }
 
