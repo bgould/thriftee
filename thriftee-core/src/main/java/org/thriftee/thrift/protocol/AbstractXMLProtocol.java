@@ -213,7 +213,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
   @Override
   public TMap readMapBegin() throws TException {
     final MapContext ctx = readctx.peek(FieldContext.class).newMap();
-    ctx.push().readStart();
+    ctx.readStart().push();
     return ctx.emit();
   }
 
@@ -225,7 +225,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
   @Override
   public TSet readSetBegin() throws TException {
     final SetContext ctx = readctx.peek(FieldContext.class).newSet();
-    ctx.push().readStart();
+    ctx.readStart().push();
     return ctx.emit();
   }
 
