@@ -34,7 +34,7 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
 
   private ByteArrayOutputStream outStream;
 
-  private static final TProtocolFactory factory = new TXMLProtocol.Factory();
+  private static final TProtocolFactory factory = new TSimpleXMLProtocol.Factory();
 
   //@Test
   public void testXmlParse() throws Exception {
@@ -61,12 +61,34 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
       }
       System.out.printf("event: %s%s (%s, %s)%n", typename, desc, etype, reader.hasNext());
       if (reader.hasNext()) {
-       etype = reader.next();
+        etype = reader.next();
       }
     }
   }
-  
-  //@Test
+
+  public void testWrite1() throws Exception {
+    final TProtocol protocol = createOutProtocol(factory);
+    {
+      thrift().codecManager().write(Office.class, testStruct1(), protocol);
+      final String serialized = formatXml(new String(outStream.toByteArray()));
+      System.out.println(serialized);
+    }
+    outStream.reset();
+    {
+      thrift().codecManager().write(Office.class, testStruct1(), protocol);
+      final String serialized = formatXml(new String(outStream.toByteArray()));
+      System.out.println(serialized);
+    }
+  }
+
+  public void testWrite2() throws Exception {
+    TProtocol protocol = createOutProtocol(factory);
+    thrift().codecManager().write(Order.class, testStruct2(), protocol);
+    final String serialized = formatXml(new String(outStream.toByteArray()));
+    System.out.println(serialized);
+  }
+
+  @Test
   public void testRoundTrip1() throws Exception {
     testRoundtrip(Office.class, testStruct1(), factory);
   }
