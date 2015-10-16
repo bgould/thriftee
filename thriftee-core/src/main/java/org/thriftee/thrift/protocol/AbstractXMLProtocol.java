@@ -2,19 +2,11 @@ package org.thriftee.thrift.protocol;
 
 import java.nio.ByteBuffer;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-
-import org.apache.commons.codec.binary.Base64;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TList;
 import org.apache.thrift.protocol.TMap;
 import org.apache.thrift.protocol.TMessage;
-import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.protocol.TStruct;
@@ -22,8 +14,6 @@ import org.apache.thrift.protocol.TType;
 import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.thrift.transport.TTransportInputStream;
-import org.thriftee.thrift.transport.TTransportOutputStream;
 
 public abstract class AbstractXMLProtocol extends TProtocol {
 
@@ -31,7 +21,12 @@ public abstract class AbstractXMLProtocol extends TProtocol {
 
   /*--------------------------- Write Methods ------------------------------*/
   @Override
-  public void writeMessageBegin(TMessage arg0) throws TException {
+  public void writeMessageBegin(TMessage msg) throws TException {
+    final MessageContext ctx = writectx.base().newMessage();
+    ctx.read(msg);
+    ctx.push();
+    ctx.writeStart();
+    /*
     final String msgType;
     switch (arg0.type) {
     case TMessageType.CALL:      msgType = "call";      break;
@@ -45,32 +40,40 @@ public abstract class AbstractXMLProtocol extends TProtocol {
     } catch (XMLStreamException e) {
       throw wrap(e);
     }
+    */
   }
 
   @Override
   public void writeMessageEnd() throws TException {
-    writeEndElement();
+    writectx.peek(MessageContext.class).writeEnd().pop();
+    //writeEndElement();
   }
 
   @Override
   public void writeStructBegin(TStruct struct) throws TException {
-    final StructContext ctx = writectx.peek().newStruct();
-    ctx.name = struct.name;
-    ctx.push();
-    ctx.writeStart();
+    final StructContext structctx;
+    final Context ctx = writectx.peek();
+    if (ctx instanceof ValueHolderContext) {
+      structctx = ((ValueHolderContext)ctx).newStruct();
+    } else if (ctx instanceof BaseContext) {
+      structctx = ((BaseContext)ctx).newStruct();
+    } else {
+      throw new IllegalStateException();
+    }
+    structctx.read(struct);
+    structctx.push();
+    structctx.writeStart();
   }
 
   @Override
   public void writeStructEnd() throws TException {
-    writectx.peek().writeEnd().pop();
+    writectx.peek(StructContext.class).writeEnd().pop();
   }
 
   @Override
   public void writeFieldBegin(TField field) throws TException {
     final FieldContext ctx = writectx.peek(StructContext.class).newField();
-    ctx.id = field.id;
-    ctx.name = field.name;
-    ctx.type = field.type;
+    ctx.read(field);
     ctx.push();
     ctx.writeStart();
   }
@@ -87,9 +90,8 @@ public abstract class AbstractXMLProtocol extends TProtocol {
 
   @Override
   public void writeListBegin(TList list) throws TException {
-    final ListContext ctx = writectx.peek(FieldContext.class).newList();
-    ctx.elemType = list.elemType;
-    ctx.size = list.size;
+    final ListContext ctx = writectx.peek(ValueHolderContext.class).newList();
+    ctx.read(list);
     ctx.push();
     ctx.writeStart();
   }
@@ -101,10 +103,8 @@ public abstract class AbstractXMLProtocol extends TProtocol {
 
   @Override
   public void writeMapBegin(TMap map) throws TException {
-    final MapContext ctx = writectx.peek(FieldContext.class).newMap();
-    ctx.keyType = map.keyType;
-    ctx.elemType = map.valueType;
-    ctx.size = map.size;
+    final MapContext ctx = writectx.peek(ValueHolderContext.class).newMap();
+    ctx.read(map);
     ctx.push();
     ctx.writeStart();
   }
@@ -116,9 +116,8 @@ public abstract class AbstractXMLProtocol extends TProtocol {
 
   @Override
   public void writeSetBegin(TSet set) throws TException {
-    final SetContext ctx = writectx.peek(FieldContext.class).newSet();
-    ctx.elemType = set.elemType;
-    ctx.size = set.size;
+    final SetContext ctx = writectx.peek(ValueHolderContext.class).newSet();
+    ctx.read(set);
     ctx.push();
     ctx.writeStart();
   }
@@ -130,42 +129,42 @@ public abstract class AbstractXMLProtocol extends TProtocol {
 
   @Override
   public void writeBinary(ByteBuffer buffer) throws TException {
-    writeCharacters(Base64.encodeBase64String(buffer.array()));
+    writectx.peek(ValueHolderContext.class).writeBinary(buffer);
   }
 
   @Override
   public void writeBool(boolean bool) throws TException {
-    writeCharacters(Boolean.toString(bool));
+    writectx.peek(ValueHolderContext.class).writeBool(bool);
   }
 
   @Override
   public void writeByte(byte bite) throws TException {
-    writeCharacters(Byte.toString(bite));
+    writectx.peek(ValueHolderContext.class).writeByte(bite);
   }
 
   @Override
   public void writeDouble(double dbl) throws TException {
-    writeCharacters(Double.toString(dbl));
+    writectx.peek(ValueHolderContext.class).writeDouble(dbl);
   }
 
   @Override
-  public void writeI16(short arg0) throws TException {
-    writeCharacters(Short.toString(arg0));
+  public void writeI16(short n) throws TException {
+    writectx.peek(ValueHolderContext.class).writeI16(n);
   }
 
   @Override
-  public void writeI32(int arg0) throws TException {
-    writeCharacters(Integer.toString(arg0));
+  public void writeI32(int n) throws TException {
+    writectx.peek(ValueHolderContext.class).writeI32(n);
   }
 
   @Override
-  public void writeI64(long arg0) throws TException {
-    writeCharacters(Long.toString(arg0));
+  public void writeI64(long n) throws TException {
+    writectx.peek(ValueHolderContext.class).writeI64(n);
   }
 
   @Override
   public void writeString(String str) throws TException {
-    writeCharacters(str);
+    writectx.peek(ValueHolderContext.class).writeString(str);
   }
 
   /*--------------------------- Read Methods -------------------------------*/
@@ -181,7 +180,15 @@ public abstract class AbstractXMLProtocol extends TProtocol {
 
   @Override
   public TStruct readStructBegin() throws TException {
-    final StructContext struct = readctx.peek().newStruct();
+    final Context ctx = readctx.peek();
+    final StructContext struct;
+    if (ctx instanceof ValueHolderContext) {
+      struct = ((ValueHolderContext)ctx).newStruct();
+    } else if (ctx instanceof BaseContext) {
+      struct = ((BaseContext)ctx).newStruct();
+    } else {
+      throw new IllegalStateException();
+    }
     struct.readStart().push();
     return struct.emit();
   }
@@ -195,7 +202,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
   public TField readFieldBegin() throws TException {
     final FieldContext ctx = readctx.peek(StructContext.class).newField();
     ctx.readStart().push();
-    if (ctx.type == TType.STOP) {
+    if (ctx.fieldType() == TType.STOP) {
       ctx.readEnd().pop();
       return new TField();
     } else {
@@ -246,42 +253,42 @@ public abstract class AbstractXMLProtocol extends TProtocol {
   
   @Override
   public ByteBuffer readBinary() throws TException {
-    throw up();
+    return readctx.peek(ValueHolderContext.class).readBinary();
   }
 
   @Override
   public boolean readBool() throws TException {
-    throw up();
+    return readctx.peek(ValueHolderContext.class).readBool();
   }
 
   @Override
   public byte readByte() throws TException {
-    throw up();
+    return readctx.peek(ValueHolderContext.class).readByte();
   }
 
   @Override
   public double readDouble() throws TException {
-    throw up();
+    return readctx.peek(ValueHolderContext.class).readDouble();
   }
 
   @Override
   public String readString() throws TException {
-    throw up();
+    return readctx.peek(ValueHolderContext.class).readString();
   }
 
   @Override
   public short readI16() throws TException {
-    throw up();
+    return readctx.peek(ValueHolderContext.class).readI16();
   }
 
   @Override
   public int readI32() throws TException {
-    throw up();
+    return readctx.peek(ValueHolderContext.class).readI32();
   }
 
   @Override
   public long readI64() throws TException {
-    throw up();
+    return readctx.peek(ValueHolderContext.class).readI64();
   }
 
   /*--------------------------- Context API -------------------------------*/
@@ -290,50 +297,114 @@ public abstract class AbstractXMLProtocol extends TProtocol {
     WRITE;
   }
 
-  abstract class Context {
+  enum ContainerType {
+    LIST,
+    SET,
+    MAP;
+  }
 
-    final Context parent;
-    final BaseContext base;
-    Context(Context parent) {
+  interface Context {
+    Context parent();
+    BaseContext base();
+    ContextType type();
+    Context writeStart() throws TException;
+    Context readStart() throws TException;
+    Context writeEnd() throws TException;
+    Context readEnd() throws TException;
+    Context peek() throws TException;
+    Context push() throws TException;
+    Context pop() throws TException;
+    <T extends Context> T peek(Class<T> type);
+    <T extends Context> T pop(Class<T> type);
+  }
+
+  interface TypedContext<T> extends Context {
+    T emit();
+    void read(T obj);
+  }
+
+  interface ValueHolderContext extends Context {
+
+    StructContext newStruct() throws TException;
+    ListContext newList() throws TException;
+    SetContext newSet() throws TException;
+    MapContext newMap() throws TException;
+
+    void writeBinary(ByteBuffer buffer) throws TException;
+    void writeBool(boolean bool) throws TException;
+    void writeByte(byte bite) throws TException;
+    void writeDouble(double dbl) throws TException;
+    void writeI16(short arg0) throws TException;
+    void writeI32(int arg0) throws TException;
+    void writeI64(long arg0) throws TException;
+    void writeString(String str) throws TException;
+
+    ByteBuffer readBinary() throws TException;
+    boolean readBool() throws TException;
+    byte readByte() throws TException;
+    double readDouble() throws TException;
+    short readI16() throws TException;
+    int readI32() throws TException;
+    long readI64() throws TException;
+    String readString() throws TException;
+  
+  }
+
+  interface MessageContext extends TypedContext<TMessage> {
+  }
+
+  interface StructContext extends TypedContext<TStruct> {
+    FieldContext newField() throws TException;
+    StructContext writeFieldStop() throws TException;
+  }
+
+  interface FieldContext extends ValueHolderContext, TypedContext<TField> {
+    byte fieldType();
+  }
+
+  interface ContainerContext<T> extends ValueHolderContext, TypedContext<T> {
+    ContainerType containerType();
+  }
+
+  interface ListContext extends ContainerContext<TList> {}
+  
+  interface SetContext extends ContainerContext<TSet> {}
+  
+  interface MapContext extends ContainerContext<TMap> {}
+
+  abstract class AbstractContext implements Context {
+    private final Context parent;
+    private final BaseContext base;
+    AbstractContext(Context parent) {
       this.parent = parent;
       if (this instanceof BaseContext) {
         this.base = (BaseContext) this;
       } else {
-        this.base = this.parent.base;
+        this.base = this.parent.base();
       }
     }
-
-    abstract StructContext newStruct() throws TException;
-    
-    abstract Context writeStart() throws TException;
-    abstract Context readStart() throws TException;
-    
-    abstract Context writeEnd() throws TException;
-    abstract Context readEnd() throws TException;
-
-    protected final BaseContext base() {
-      if (this instanceof BaseContext) {
-        return (BaseContext) this;
-      } else {
-        return this.parent.base();
-      }
+    public final Context parent() {
+      return this.parent;
     }
-    protected final ContextType type() {
+    public final BaseContext base() {
+      return base;
+    }
+    public final ContextType type() {
       return base().type;
     }
-    Context peek() {
+    public Context peek() {
       return base().peek();
     }
-    Context pop() {
+    public Context pop() {
       return base().pop();
     }
-    Context push() {
+    public Context push() {
       return base().push(this);
     }
-    <T extends Context> T peek(Class<T> type) {
+    public <T extends Context> T peek(Class<T> type) {
       return _ensure(type, peek());
     }
-    <T extends Context> T pop(Class<T> type) {
+    public <T extends Context> T pop(Class<T> type) {
       return _ensure(type, pop());
     }
     final void debug(String op) {
@@ -343,7 +414,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
         if (op != null) {
           sb.append(' ').append(op).append(": ");
         }
-        for (Context top = peek().parent; top != null; top = top.parent) {
+        for (Context top = peek().parent(); top != null; top = top.parent()) {
           sb.append("  ");
         }
         sb.append(toString());
@@ -352,11 +423,9 @@ public abstract class AbstractXMLProtocol extends TProtocol {
     }
   }
 
-  abstract class BaseContext extends Context {
-
+  abstract class BaseContext extends AbstractContext {
     private Context head = this;
     private final ContextType type;
-
     BaseContext(ContextType type) {
       super(null);
       if (type == null) {
@@ -364,18 +433,15 @@ public abstract class AbstractXMLProtocol extends TProtocol {
       }
       this.type = type;
     }
-
-    @Override final Context writeStart() throws TException { throw up(); }
-    @Override final Context readStart() throws TException { throw up(); }
-    @Override final Context writeEnd() throws TException { throw up(); }
-    @Override final Context readEnd() throws TException { throw up(); }
-
-    @Override Context peek() {
+    public final BaseContext writeStart() throws TException { throw up(); }
+    public final BaseContext readStart() throws TException { throw up(); }
+    public final BaseContext writeEnd() throws TException { throw up(); }
+    public final BaseContext readEnd() throws TException { throw up(); }
+    public final Context peek() {
       return head;
     }
-
     <T extends Context> T push(final T context) {
-      if (context.parent != head) {
+      if (context.parent() != head) {
         throw new IllegalArgumentException(
           "new context's parent must match the current top of stack");
       }
@@ -383,159 +449,42 @@ public abstract class AbstractXMLProtocol extends TProtocol {
       //this.head.debug("push");
       return context;
     }
-
-    @Override Context pop() {
+    @Override public Context pop() {
       if (this.head == this) {
         throw new IllegalStateException("Cannot pop the base context.");
       }
       final Context oldhead = this.head;
       //oldhead.debug(" pop");
-      this.head = oldhead.parent;
+      this.head = oldhead.parent();
       return oldhead;
     }
-
+    abstract StructContext newStruct() throws TException;
     abstract MessageContext newMessage() throws TException;
-
   }
 
-  abstract class MessageContext extends Context {
-    MessageContext(Context parent) {
-      super(parent);
-    }
-    @Override MessageContext writeStart() throws TException { throw up(); }
-    @Override MessageContext writeEnd() throws TException { throw up(); }
-  }
+  public abstract class AbstractStructContext 
+      extends AbstractContext implements StructContext {
 
-  abstract class StructContext extends Context {
     String name;
-    StructContext(Context parent) {
+
+    AbstractStructContext(Context parent) {
       super(parent);
     }
-    TStruct emit() {
+
+    public void read(TStruct obj) {
+      this.name = obj.name;
+    }
+
+    public TStruct emit() {
       return new TStruct(name);
     }
+
     public String toString() {
       return "<TStruct name:'" + name + "'>";
     }
-    @Override StructContext writeStart() throws TException {
-      writeStartElement(name);
-      return this;
-    }
-    @Override StructContext writeEnd() throws TException {
-      writeEndElement();
-      return this;
-    }
-    StructContext writeFieldStop() throws TException {
-      writeStartElement("_.");
-      writeEndElement();
-      return this;
-    }
-    abstract FieldContext newField() throws TException;
-  }
 
-  abstract class FieldContext extends Context {
-    String name;
-    byte type;
-    short id;
-    FieldContext(StructContext struct) {
-      super(struct);
-      if (struct == null) {
-        throw new IllegalArgumentException("parent struct cannot be null.");
-      }
-    }
-    StructContext struct() {
-      return (StructContext) parent;
-    }
-    TField emit() {
-      return new TField(name, type, id);
-    }
-    public String toString() {
-      return emit().toString();
-    }
-    @Override FieldContext writeStart() throws TException {
-      writeStartElement(name);
-      writeAttribute("i", Short.toString(id));
-      writeAttribute("type", Byte.toString(type));
-      return this;
-    }
-    @Override FieldContext writeEnd() throws TException {
-      writeEndElement();
-      return this;
-    }
-    abstract ListContext newList() throws TException;
-    abstract SetContext newSet() throws TException;
-    abstract MapContext newMap() throws TException;
-  }
+    public abstract FieldContext newField() throws TException;
 
-  abstract class ContainerContext<T> extends Context {
-    byte elemType;
-    int size;
-    final Class<T> emitType;
-    final String containerType;
-    protected ContainerContext(
-        FieldContext field,
-        Class<T> emitType, 
-        String containerType) {
-      super(field);
-      this.emitType = emitType;
-      this.containerType = containerType;
-      if (field == null) {
-        throw new IllegalArgumentException("parent field cannot be null.");
-      }
-    }
-    final FieldContext field() {
-      return (FieldContext) parent;
-    }
-    abstract T emit();
-    public String toString() {
-      return "<"+emitType.getSimpleName()+" type:"+elemType+" size:"+size+">";
-    }
-    @Override ContainerContext<T> writeStart() throws TException {
-      writeAttribute("ctype", containerType);
-      writeAttribute("csize", Integer.toString(size));
-      writeAttribute("vtype", Byte.toString(elemType));
-      return this;
-    }
-    @Override ContainerContext<T> writeEnd() throws TException {
-      //writeEndElement();
-      return this;
-    }
-  }
-
-  abstract class ListContext extends ContainerContext<TList> {
-    ListContext(FieldContext field) {
-      super(field, TList.class, "list");
-    }
-    @Override TList emit() {
-      return new TList(elemType, size);
-    }
-  }
-
-  abstract class SetContext extends ContainerContext<TSet> {
-    SetContext(FieldContext field) {
-      super(field, TSet.class, "set");
-    }
-    @Override TSet emit() {
-      return new TSet(elemType, size);
-    }
-  }
-
-  abstract class MapContext extends ContainerContext<TMap> {
-    byte keyType;
-    MapContext(FieldContext field) {
-      super(field, TMap.class, "map");
-    }
-    @Override TMap emit() {
-      return new TMap(keyType, elemType, size);
-    }
-    @Override public String toString() {
-      return "<TMap key:"+keyType+" type:"+elemType+" size:"+size+">";
-    }
-    @Override MapContext writeStart() throws TException {
-      super.writeStart();
-      writeAttribute("ktype", Byte.toString(keyType));
-      return this;
-    }
   }
 
   private static <T extends Context> T _ensure(Class<T> type, Context ctx) {
@@ -548,6 +497,10 @@ public abstract class AbstractXMLProtocol extends TProtocol {
     );
   }
 
+  protected final BaseContext readctx;
+
+  protected final BaseContext writectx;
+
   protected AbstractXMLProtocol(TTransport trans) {
     super(trans);
     this.writectx = createBaseContext(ContextType.WRITE);
@@ -555,87 +508,6 @@ public abstract class AbstractXMLProtocol extends TProtocol {
   }
 
   protected abstract BaseContext createBaseContext(ContextType type);
-
-  protected XMLStreamWriter writer() throws XMLStreamException {
-    if (__writer == null) {
-      __writer = xmlOutputFactory().createXMLStreamWriter(
-        new TTransportOutputStream(getTransport())
-      );
-    }
-    return __writer;
-  }
-
-  protected XMLStreamReader reader() throws TException {
-    if (__reader == null) {
-      try {
-        __reader = xmlInputFactory().createXMLStreamReader(
-          new TTransportInputStream(getTransport())
-        );
-      } catch (XMLStreamException e) {
-        throw new TException(e);
-      }
-    }
-    return __reader;
-  }
-
-  protected final BaseContext readctx;
-
-  protected final BaseContext writectx;
-
-  private XMLStreamWriter __writer;
-
-  private XMLStreamReader __reader;
-
-  protected TException wrap(XMLStreamException e) throws TException {
-    throw new TException(e);
-  }
-
-  protected void writeStartElement(String name) throws TException {
-    try {
-      writer().writeStartElement(name);
-    } catch (XMLStreamException e) {
-      throw wrap(e);
-    }
-  }
-
-  protected void writeAttribute(String name, String value) throws TException {
-    try {
-      writer().writeAttribute(name, value);
-    } catch (XMLStreamException e) {
-      throw wrap(e);
-    }
-  }
-
-  protected void writeEndElement() throws TException {
-    try {
-      writer().writeEndElement();
-    } catch (XMLStreamException e) {
-      throw wrap(e);
-    }
-  }
-
-  protected void writeCharacters(String s) throws TException {
-    try {
-      writer().writeCharacters(s);
-    } catch (XMLStreamException e) {
-      throw wrap(e);
-    }
-  }
-
-  private static final XMLInputFactory XML_IN = XMLInputFactory.newFactory();
-  static {
-    XML_IN.setProperty(XMLInputFactory.IS_COALESCING, true);
-  }
-
-  protected XMLInputFactory xmlInputFactory() {
-    return XML_IN;
-  }
-
-  private static final XMLOutputFactory XML_OUT = XMLOutputFactory.newFactory();
-
-  protected XMLOutputFactory xmlOutputFactory() {
-    return XML_OUT;
-  }
 
   protected final UnsupportedOperationException up() {
     throw new UnsupportedOperationException();
