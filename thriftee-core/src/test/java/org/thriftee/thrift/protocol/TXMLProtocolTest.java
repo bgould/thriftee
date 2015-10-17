@@ -7,8 +7,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.transform.OutputKeys;
@@ -27,8 +29,9 @@ import org.thriftee.examples.classicmodels.Office;
 import org.thriftee.examples.classicmodels.Order;
 import org.thriftee.examples.classicmodels.OrderDetail;
 import org.thriftee.examples.classicmodels.OrderDetailPK;
-import org.thriftee.examples.protocols.Everything;
 import org.thriftee.tests.AbstractThriftEETest;
+import org.thriftee.thrift.protocol.Everything.Sparkle;
+import org.thriftee.thrift.protocol.Everything.Spinkle;
 
 public class TXMLProtocolTest extends AbstractThriftEETest {
 
@@ -36,7 +39,7 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
 
   private ByteArrayOutputStream outStream;
 
-  private static final TProtocolFactory factory = new TSimpleXMLProtocol.Factory();
+  private static final TProtocolFactory factory = new TXMLProtocol.Factory();
 
   public void testWrite1() throws Exception {
     final TProtocol protocol = createOutProtocol(factory);
@@ -113,10 +116,32 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
     everything.dbl = 10.4;
     everything.bin = "secret_password".getBytes();
 
-    Map<String, String> str_str_map = new HashMap<String, String>();
+    final Map<String, String> str_str_map = new HashMap<String, String>();
     str_str_map.put("foo", "bar");
     str_str_map.put("graffle", "florp");
-    //everything.str_str_map = str_str_map;
+ //   everything.str_str_map = str_str_map;
+
+    final List<String> str_list = new ArrayList<String>();
+    str_list.add("wibble");
+    str_list.add("snork");
+    str_list.add("spiffle");
+    everything.str_list = str_list;
+
+    final List<Spinkle> enum_list = new ArrayList<Spinkle>();
+    enum_list.add(Spinkle.HRRR);
+    enum_list.add(Spinkle.REWT);
+    everything.enum_list = enum_list;
+
+    final List<Sparkle> obj_list = new ArrayList<Sparkle>();
+    obj_list.add(new Sparkle("yarp", 89, Spinkle.REWT));
+    obj_list.add(new Sparkle("blat", 17, Spinkle.HRRR));
+    obj_list.add(new Sparkle("trop", 9, null));
+    everything.obj_list = obj_list;
+
+    final List<List<Integer>> int_list_list = new ArrayList<>();
+    int_list_list.add(Arrays.asList(new Integer[] { 1, 2, 3, 4, 5 }));
+    int_list_list.add(Arrays.asList(new Integer[] { 1, 1, 3, 5 }));
+//    everything.int_list_list = int_list_list;
 
     return everything;
   }

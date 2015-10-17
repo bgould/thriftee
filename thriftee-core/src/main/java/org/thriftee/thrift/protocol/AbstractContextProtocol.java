@@ -15,7 +15,7 @@ import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractXMLProtocol extends TProtocol {
+public abstract class AbstractContextProtocol extends TProtocol {
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -170,12 +170,14 @@ public abstract class AbstractXMLProtocol extends TProtocol {
   /*--------------------------- Read Methods -------------------------------*/
   @Override
   public TMessage readMessageBegin() throws TException {
-    throw up();
+    final MessageContext ctx = readctx.peek(BaseContext.class).newMessage();
+    ctx.readStart().push();
+    return ctx.emit();
   }
 
   @Override
   public void readMessageEnd() throws TException {
-    throw up();
+    readctx.peek().writeEnd().pop();
   }
 
   @Override
@@ -292,18 +294,21 @@ public abstract class AbstractXMLProtocol extends TProtocol {
   }
 
   /*--------------------------- Context API -------------------------------*/
-  enum ContextType {
+  public static enum ContextType {
     READ,
     WRITE;
   }
 
-  enum ContainerType {
+  public static enum ContainerType {
     LIST,
     SET,
     MAP;
+    public String strval() {
+      return name().toLowerCase();
+    }
   }
 
-  interface Context {
+  public interface Context {
     Context parent();
     BaseContext base();
     ContextType type();
@@ -316,14 +321,15 @@ public abstract class AbstractXMLProtocol extends TProtocol {
     Context pop() throws TException;
     <T extends Context> T peek(Class<T> type);
     <T extends Context> T pop(Class<T> type);
+    void debug(String prefix);
   }
 
-  interface TypedContext<T> extends Context {
+  public interface TypedContext<T> extends Context {
     T emit();
     void read(T obj);
   }
 
-  interface ValueHolderContext extends Context {
+  public interface ValueHolderContext extends Context {
 
     StructContext newStruct() throws TException;
     ListContext newList() throws TException;
@@ -350,29 +356,29 @@ public abstract class AbstractXMLProtocol extends TProtocol {
   
   }
 
-  interface MessageContext extends TypedContext<TMessage> {
+  public interface MessageContext extends TypedContext<TMessage> {
   }
 
-  interface StructContext extends TypedContext<TStruct> {
+  public interface StructContext extends TypedContext<TStruct> {
     FieldContext newField() throws TException;
     StructContext writeFieldStop() throws TException;
   }
 
-  interface FieldContext extends ValueHolderContext, TypedContext<TField> {
+  public interface FieldContext extends ValueHolderContext, TypedContext<TField> {
     byte fieldType();
   }
 
-  interface ContainerContext<T> extends ValueHolderContext, TypedContext<T> {
+  public interface ContainerContext<T> extends ValueHolderContext, TypedContext<T> {
     ContainerType containerType();
   }
 
-  interface ListContext extends ContainerContext<TList> {}
+  public interface ListContext extends ContainerContext<TList> {}
   
-  interface SetContext extends ContainerContext<TSet> {}
+  public interface SetContext extends ContainerContext<TSet> {}
   
-  interface MapContext extends ContainerContext<TMap> {}
+  public interface MapContext extends ContainerContext<TMap> {}
 
-  abstract class AbstractContext implements Context {
+  public abstract class AbstractContext implements Context {
     private final Context parent;
     private final BaseContext base;
     AbstractContext(Context parent) {
@@ -407,7 +413,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
     public <T extends Context> T pop(Class<T> type) {
       return _ensure(type, pop());
     }
-    final void debug(String op) {
+    public final void debug(String op) {
       if (LOG.isDebugEnabled()) {
         final StringBuilder sb = new StringBuilder();
         sb.append(type().name().toLowerCase());
@@ -418,12 +424,12 @@ public abstract class AbstractXMLProtocol extends TProtocol {
           sb.append("  ");
         }
         sb.append(toString());
-        LOG.debug(sb.toString());
+        System.out.println(sb.toString());
       }
     }
   }
 
-  abstract class BaseContext extends AbstractContext {
+  public abstract class BaseContext extends AbstractContext {
     private Context head = this;
     private final ContextType type;
     BaseContext(ContextType type) {
@@ -446,7 +452,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
           "new context's parent must match the current top of stack");
       }
       this.head = context;
-      //this.head.debug("push");
+      this.head.debug("push");
       return context;
     }
     @Override public Context pop() {
@@ -454,7 +460,7 @@ public abstract class AbstractXMLProtocol extends TProtocol {
         throw new IllegalStateException("Cannot pop the base context.");
       }
       final Context oldhead = this.head;
-      //oldhead.debug(" pop");
+      oldhead.debug(" pop");
       this.head = oldhead.parent();
       return oldhead;
     }
@@ -497,17 +503,17 @@ public abstract class AbstractXMLProtocol extends TProtocol {
     );
   }
 
+  protected abstract BaseContext createBaseContext(ContextType type);
+
   protected final BaseContext readctx;
 
   protected final BaseContext writectx;
 
-  protected AbstractXMLProtocol(TTransport trans) {
+  protected AbstractContextProtocol(TTransport trans) {
     super(trans);
     this.writectx = createBaseContext(ContextType.WRITE);
     this.readctx = createBaseContext(ContextType.READ);
   }
-
-  protected abstract BaseContext createBaseContext(ContextType type);
 
   protected final UnsupportedOperationException up() {
     throw new UnsupportedOperationException();

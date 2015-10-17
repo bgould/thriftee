@@ -1,8 +1,11 @@
 package org.thriftee.thrift.protocol;
 
+import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
+import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
+import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
+
 import java.nio.ByteBuffer;
 
-import javax.xml.stream.StreamFilter;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -10,454 +13,597 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TList;
 import org.apache.thrift.protocol.TMap;
 import org.apache.thrift.protocol.TMessage;
-import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TSet;
-import org.apache.thrift.protocol.TStruct;
 import org.apache.thrift.transport.TTransport;
 import org.thriftee.thrift.transport.TTransportInputStream;
 import org.thriftee.thrift.transport.TTransportOutputStream;
 
-public class TXMLProtocol extends TProtocol {
+public class TXMLProtocol extends AbstractContextProtocol {
 
   public static class Factory implements TProtocolFactory {
+
     private static final long serialVersionUID = 1017378360734059748L;
+
     @Override
     public TProtocol getProtocol(TTransport transport) {
       return new TXMLProtocol(transport);
     }
+
   }
 
-  @Override
-  public TField readFieldBegin() throws TException {
-    StructContext structCtx = readctx(StructContext.class);
-    try {
-      final XMLStreamReader r = reader();
-      int etype = r.getEventType();
-      //for (int etype = r.getEventType(); r.hasNext(); etype = r.next()) {
-      if (etype == XMLStreamConstants.CHARACTERS) {
-        etype = r.next();
-      }
-      if (etype == XMLStreamConstants.END_ELEMENT) {
-        System.out.print("sending stop field: "); dumpCurrentReadState();
-        return new TField();
-      }
-      if (etype == XMLStreamConstants.START_ELEMENT) {
-        FieldContext ctx = new FieldContext(structCtx);
-        ctx.name = readLocalName();
-        ctx.type = readByteAttribute("type");
-        ctx.id = readShortAttribute("fieldId");
-        return readnew(ctx).emit();
-      }
-      throw new IllegalStateException(
-        "Unexpected event type: " + XML.streamEventToString(etype));
-    } catch (XMLStreamException e) {
-      throw new TException(e);
+  public abstract class XMLValueHolderContext 
+      extends AbstractContext 
+      implements ValueHolderContext {
+
+    public XMLValueHolderContext(Context context) {
+      super(context);
     }
-  }
 
-  @Override
-  public void readFieldEnd() throws TException {
-    expectEndElement();
-    System.out.print("readFieldEnd called: ");
-    dumpCurrentReadState();
-    readpop(StructContext.class);
-  }
-
-  @Override
-  public ByteBuffer readBinary() throws TException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public boolean readBool() throws TException {
-    final String chars = readCharacters();
-    return Boolean.valueOf(chars);
-  }
-
-  @Override
-  public byte readByte() throws TException {
-    return Byte.valueOf(readCharacters());
-  }
-
-  @Override
-  public double readDouble() throws TException {
-    return Double.valueOf(readCharacters());
-  }
-
-  @Override
-  public short readI16() throws TException {
-    return Short.valueOf(readCharacters());
-  }
-
-  @Override
-  public int readI32() throws TException {
-    return Integer.valueOf(readCharacters());
-  }
-
-  @Override
-  public long readI64() throws TException {
-    return Long.valueOf(readCharacters());
-  }
-
-  @Override
-  public TList readListBegin() throws TException {
-    final FieldContext fieldCtx = readctx(FieldContext.class);
-    final ListContext ctx = new ListContext(fieldCtx);
-    final String elementName = expectStartElement();
-    if (!"list".equals(elementName)) {
-      throw new IllegalStateException(
-        "Expected 'list' element, but was actually '" + elementName + "'."
-      );
+    @Override
+    public void writeBinary(ByteBuffer buffer) throws TException {
+      writeCharacters(Base64.encodeBase64String(buffer.array()));
     }
-    ctx.elemType = readByteAttribute("type");
-    ctx.size = readIntAttribute("size");
-    try {
-      reader().next();
-    } catch (XMLStreamException e) {
-      throw new TException(e);
+
+    @Override
+    public void writeBool(boolean bool) throws TException {
+      writeCharacters(Boolean.toString(bool));
     }
-    return readnew(ctx).emit();
-  }
 
-  @Override
-  public void readListEnd() throws TException {
-    System.out.println("read list end");
-    readpop(FieldContext.class);
-  }
-
-  @Override
-  public TMap readMapBegin() throws TException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void readMapEnd() throws TException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public TMessage readMessageBegin() throws TException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void readMessageEnd() throws TException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public TSet readSetBegin() throws TException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void readSetEnd() throws TException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public String readString() throws TException {
-    return readCharacters();
-  }
-
-  @Override
-  public TStruct readStructBegin() throws TException {
-    final StructContext ctx = new StructContext(readctx(Context.class));
-    ctx.name = expectStartElement();
-    
-    try {
-      final XMLStreamReader r = reader();
-      r.next();
-      /*
-      for (int etype = r.getEventType(); r.hasNext(); etype = r.next()) {
-        if (etype == XMLStreamConstants.CHARACTERS) {
-          continue;
-        }
-        if (etype == XMLStreamConstants.START_ELEMENT) {
-          ctx.name = r.getLocalName();
-          r.next();
-          break;
-        }
-        throw new IllegalStateException("unknown readFieldBegin event: " + etype);
-      }
-      */
-    } catch (XMLStreamException e) {
-      throw new TException(e);
+    @Override
+    public void writeByte(byte bite) throws TException {
+      writeCharacters(Byte.toString(bite));
     }
-    return readnew(ctx).emit();
-  }
 
-  @Override
-  public void readStructEnd() throws TException {
-    System.out.println("readStructEnd() called: " + reader().getLocalName());
-    dumpCurrentReadState();
-    expectEndElement();
-    readpop(Context.class);
-  }
-
-  @Override
-  public void writeBinary(ByteBuffer buffer) throws TException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void writeBool(boolean bool) throws TException {
-    writeCharacters(Boolean.toString(bool));
-  }
-
-  @Override
-  public void writeByte(byte bite) throws TException {
-    // TODO Auto-generated method stub
-  }
-
-  @Override
-  public void writeDouble(double dbl) throws TException {
-    writeCharacters(Double.toString(dbl));
-  }
-
-  @Override
-  public void writeFieldBegin(TField arg0) throws TException {
-    writeStartElement(arg0.name);
-    writeAttribute("fieldId", Short.toString(arg0.id));
-    writeAttribute("type", Byte.toString(arg0.type));
-  }
-
-  @Override
-  public void writeFieldEnd() throws TException {
-    writeEndElement();
-  }
-
-  @Override
-  public void writeFieldStop() throws TException {
-//    writeStartElement(".stop");
-//    writeAttribute("type", Byte.toString(TType.STOP));
-//    writeEndElement();
-  }
-
-  @Override
-  public void writeI16(short arg0) throws TException {
-    writeCharacters(Short.toString(arg0));
-  }
-
-  @Override
-  public void writeI32(int arg0) throws TException {
-    writeCharacters(Integer.toString(arg0));
-  }
-
-  @Override
-  public void writeI64(long arg0) throws TException {
-    writeCharacters(Long.toString(arg0));
-  }
-
-  @Override
-  public void writeListBegin(TList list) throws TException {
-    writeStartElement("list");
-    writeAttribute("type", Byte.toString(list.elemType));
-    writeAttribute("size", Integer.toString(list.size));
-  }
-
-  @Override
-  public void writeListEnd() throws TException {
-    writeEndElement();
-  }
-
-  @Override
-  public void writeMapBegin(TMap map) throws TException {
-    writeStartElement("map");
-  }
-
-  @Override
-  public void writeMapEnd() throws TException {
-    writeEndElement();
-  }
-
-  @Override
-  public void writeMessageBegin(TMessage arg0) throws TException {
-    final String msgType;
-    switch (arg0.type) {
-    case TMessageType.CALL:      msgType = "call";      break;
-    case TMessageType.REPLY:     msgType = "reply";     break;
-    case TMessageType.EXCEPTION: msgType = "exception"; break;
-    case TMessageType.ONEWAY:    msgType = "oneway";    break;
-    default: throw new IllegalStateException("unknown msg type: " + arg0.type);
+    @Override
+    public void writeDouble(double dbl) throws TException {
+      writeCharacters(Double.toString(dbl));
     }
-    try {
-      writer().writeStartElement(msgType);
-    } catch (XMLStreamException e) {
-      throw wrap(e);
+
+    @Override
+    public void writeI16(short arg0) throws TException {
+      writeCharacters(Short.toString(arg0));
     }
-  }
 
-  @Override
-  public void writeMessageEnd() throws TException {
-    writeEndElement();
-  }
-
-  @Override
-  public void writeSetBegin(TSet set) throws TException {
-    writeStartElement("set");
-  }
-
-  @Override
-  public void writeSetEnd() throws TException {
-    writeEndElement();
-  }
-
-  @Override
-  public void writeString(String str) throws TException {
-    writeCharacters(str);
-  }
-
-  @Override
-  public void writeStructBegin(TStruct arg0) throws TException {
-    writeStartElement(arg0.name);
-  }
-
-  @Override
-  public void writeStructEnd() throws TException {
-    writeEndElement();
-  }
-
-  class Context {
-    final Context parent;
-    Context(Context parent) {
-      this.parent = parent;
+    @Override
+    public void writeI32(int arg0) throws TException {
+      writeCharacters(Integer.toString(arg0));
     }
-  }
 
-  class MessageContext extends Context {
-    MessageContext(Context parent) {
-      super(parent);
+    @Override
+    public void writeI64(long arg0) throws TException {
+      writeCharacters(Long.toString(arg0));
     }
-  }
 
-  class StructContext extends Context {
-    String name;
-    StructContext(Context parent) {
-      super(parent);
+    @Override
+    public void writeString(String str) throws TException {
+      writeCharacters(str);
     }
-    void read() throws TException {
+
+    @Override
+    public String readString() throws TException {
+      return readCharacters();
+    }
+
+    @Override
+    public byte readByte() throws TException {
+      return Byte.valueOf(readCharacters());
+    }
+
+    @Override
+    public short readI16() throws TException {
+      return Short.valueOf(readCharacters());
+    }
+
+    @Override
+    public int readI32() throws TException {
+      return Integer.valueOf(readCharacters());
+    }
+
+    @Override
+    public long readI64() throws TException {
+      return Long.valueOf(readCharacters());
+    }
+
+    @Override
+    public double readDouble() throws TException {
+      return Double.valueOf(readCharacters());
+    }
+
+    @Override
+    public ByteBuffer readBinary() throws TException {
+      return ByteBuffer.wrap(Base64.decodeBase64(readCharacters()));
+    }
+
+    @Override
+    public boolean readBool() throws TException {
+      return Boolean.valueOf(readCharacters());
+    }
+
+    protected void writeCharacters(String s) throws TException {
       try {
-        final XMLStreamReader r = reader();
-        for (int etype = r.getEventType(); r.hasNext(); etype = r.next()) {
-          if (etype == XMLStreamConstants.CHARACTERS) {
-            continue;
-          }
-          if (etype == XMLStreamConstants.START_ELEMENT) {
-            break;
-          }
-          throw new IllegalStateException("unknown event: " + etype);
+        writer().writeCharacters(s);
+      } catch (XMLStreamException e) {
+        throw wrap(e);
+      }
+    }
+
+    protected String readCharacters() throws TException {
+      try {
+        int etype = reader().getEventType();
+        if (etype == START_ELEMENT) {
+          etype = reader().next();
+        }
+        if (etype == CHARACTERS) {
+          return reader().getText();
+        }
+        throw new TException(
+          "expected CHARACTERS but was " + XML.streamEventToString(etype));
+      } catch (XMLStreamException e) {
+        throw new TException(e);
+      }
+    }
+
+    @Override 
+    public XMLListContext newList() throws TException {
+      return new XMLListContext(this);
+    }
+
+    @Override 
+    public XMLSetContext newSet() throws TException {
+      return new XMLSetContext(this);
+    }
+
+    @Override 
+    public XMLMapContext newMap() throws TException {
+      return new XMLMapContext(this);
+    }
+
+    @Override
+    public XMLStructContext newStruct() throws TException {
+      return new XMLStructContext(this);
+    }
+
+  }
+
+  public class XMLBaseContext extends BaseContext {
+
+    public XMLBaseContext(ContextType type) {
+      super(type);
+    }
+
+    @Override 
+    public MessageContext newMessage() throws TException {
+      return new XMLMessageContext(this);
+    }
+
+    @Override public StructContext newStruct() throws TException {
+      return new XMLStructContext(this);
+    }
+
+  }
+
+  public class XMLMessageContext 
+        extends AbstractContext 
+        implements MessageContext {
+
+    public XMLMessageContext(Context parent) {
+      super(parent);
+    }
+
+    @Override
+    public XMLMessageContext writeStart() throws TException {
+      throw up();
+    }
+
+    @Override
+    public XMLMessageContext readStart() throws TException {
+      throw up();
+    }
+
+    @Override
+    public XMLMessageContext writeEnd() throws TException {
+      throw up();
+    }
+
+    @Override
+    public XMLMessageContext readEnd() throws TException {
+      throw up();
+    }
+
+    @Override
+    public TMessage emit() {
+      throw up();
+    }
+
+    public void read(TMessage msg) {
+      throw up();
+    }
+
+  }
+
+  public class XMLStructContext 
+        extends AbstractStructContext 
+        implements StructContext {
+
+    public XMLStructContext(Context parent) {
+      super(parent);
+    }
+
+    @Override 
+    public StructContext writeStart() throws TException {
+      writeStartElement(name);
+      return this;
+    }
+
+    @Override
+    public StructContext writeEnd() throws TException {
+      writeEndElement();
+      return this;
+    }
+
+    @Override
+    public StructContext writeFieldStop() throws TException {
+      writeStartElement("_.");
+      writeEndElement();
+      return this;
+    }
+
+    @Override 
+    public XMLStructContext readStart() throws TException {
+      try {
+        int eventType = reader().next();
+        if (eventType == CHARACTERS) {
+          eventType = reader().next();
+        }
+        if (eventType == START_ELEMENT) {
+          this.name = reader().getLocalName();
+          return this;
+        } else {
+          throw new IllegalStateException();
         }
       } catch (XMLStreamException e) {
         throw new TException(e);
       }
-      name = reader().getLocalName();
     }
-    TStruct emit() {
-      return new TStruct(name);
+
+    @Override 
+    public XMLStructContext readEnd() throws TException {
+      try {
+        int eventType = reader().next();
+        if (eventType == CHARACTERS) {
+          eventType = reader().next();
+        }
+        if (eventType == END_ELEMENT) {
+          if (!this.name.equals(reader().getLocalName())) {
+            throw new IllegalStateException();
+          }
+        }
+        return this;
+      } catch (XMLStreamException e) {
+        throw new TException(e);
+      }
     }
-    public String toString() {
-      return "<TStruct name:'" + name + "'>";
+
+    @Override 
+    public XMLFieldContext newField() throws TException {
+      return new XMLFieldContext(this);
     }
+
   }
 
-  class FieldContext extends Context {
-    String name;
-    byte type;
-    short id;
-    FieldContext(StructContext struct) {
+  public class XMLFieldContext 
+      extends XMLValueHolderContext 
+      implements FieldContext {
+
+    private String name;
+    private byte type;
+    private short id;
+
+    public XMLFieldContext(StructContext struct) {
       super(struct);
       if (struct == null) {
         throw new IllegalArgumentException("parent struct cannot be null.");
       }
     }
-    StructContext struct() {
-      return (StructContext) parent;
+
+    @Override
+    public byte fieldType() {
+      return this.type;
     }
-    TField emit() {
+
+    @Override
+    public void read(TField field) {
+      this.name = field.name;
+      this.type = field.type;
+      this.id = field.id;
+    }
+
+    @Override
+    public TField emit() {
       return new TField(name, type, id);
     }
+
     public String toString() {
       return emit().toString();
     }
-  }
 
-  class ListContext extends Context {
-    byte elemType;
-    int size;
-    ListContext(FieldContext field) {
-      super(field);
-      if (field == null) {
-        throw new IllegalArgumentException("parent field cannot be null.");
+    @Override
+    public XMLFieldContext writeStart() throws TException {
+      writeStartElement(name);
+      writeAttribute("i", Short.toString(id));
+      writeAttribute("type", Byte.toString(type));
+      return this;
+    }
+
+    @Override
+    public XMLFieldContext writeEnd() throws TException {
+      writeEndElement();
+      return this;
+    }
+
+    @Override
+    public XMLFieldContext readStart() throws TException {
+      this.name = nextStartElement();
+      if ("_.".equals(this.name)) {
+        this.type = 0;
+        this.id = 0;
+      } else {
+        this.id = readShortAttribute("i");
+        this.type = readByteAttribute("type");
+      }
+      return this;
+    }
+
+    @Override
+    public XMLFieldContext readEnd() throws TException {
+      try {
+        int eventType = reader().next();
+        if (eventType == CHARACTERS) {
+          eventType = reader().next();
+        }
+        if (eventType == END_ELEMENT) {
+          if (!this.name.equals(reader().getLocalName())) {
+            throw new IllegalStateException();
+          }
+        }
+        return this;
+      } catch (XMLStreamException e) {
+        throw new TException(e);
       }
     }
-    FieldContext field() {
-      return (FieldContext) parent;
+
+  }
+
+
+  public abstract class XMLContainerContext<T> 
+      extends XMLValueHolderContext 
+      implements ContainerContext<T> {
+
+    protected byte elemType;
+    protected int size;
+    protected final Class<T> emitType;
+    protected final ContainerType containerType;
+
+    protected XMLContainerContext(
+        ValueHolderContext parent,
+        Class<T> emitType, 
+        ContainerType containerType) {
+      super(parent);
+      if (parent == null) {
+          throw new IllegalArgumentException("parent cannot be null.");
+      }
+      this.emitType = emitType;
+      this.containerType = containerType;
     }
-    TList emit() {
+
+    public String toString() {
+      return "<"+emitType.getSimpleName()+" type:"+elemType+" size:"+size+">";
+    }
+
+    @Override
+    public ContainerType containerType() {
+      return containerType;
+    }
+
+    @Override 
+    public ContainerContext<T> writeStart() throws TException {
+      writeAttribute("ctype", containerType().name().toLowerCase());
+      writeAttribute("csize", Integer.toString(size));
+      writeAttribute("vtype", Byte.toString(elemType));
+      return this;
+    }
+
+    @Override 
+    public ContainerContext<T> writeEnd() throws TException {
+      return this;
+    }
+
+    @Override 
+    public ContainerContext<T> readStart() throws TException {
+      final int etype = reader().getEventType();
+      final String containerType = containerType().strval();
+      if (etype == START_ELEMENT) {
+        final String ctype = readAttribute("ctype");
+        if (!(containerType.equals(ctype))) {
+          throw new IllegalStateException(
+            "Expected '" + containerType + "' but was '" + ctype + "'");
+        }
+        this.size = readIntAttribute("csize");
+        this.elemType = readByteAttribute("vtype");
+        if ("map".equals(ctype)) {
+          ((XMLMapContext)this).keyType = readByteAttribute("ktype");
+        }
+        System.out.println("container: " + toString());
+      } else {
+        throw new IllegalStateException(
+          "Expected START_ELEMENT but was " + XML.streamEventToString(etype)
+        );
+      }
+      return this;
+    }
+
+    @Override
+    public ContainerContext<T> readEnd() throws TException {
+      return this;
+    }
+
+  }
+
+  public class XMLListContext 
+      extends XMLContainerContext<TList> implements ListContext {
+
+    public XMLListContext(ValueHolderContext field) {
+      super(field, TList.class, ContainerType.LIST);
+    }
+
+    @Override
+    public void read(TList obj) {
+      this.elemType = obj.elemType;
+      this.size = obj.size;
+    }
+
+    @Override
+    public TList emit() {
       return new TList(elemType, size);
     }
+
+    @Override
+    protected void writeCharacters(String chars) throws TException {
+      writeStartElement("item");
+      super.writeCharacters(chars);
+      writeEndElement();
+    }
+
+    @Override
+    protected String readCharacters() throws TException {
+      nextStartElement("item");
+      final String result = super.readCharacters();
+      readerNext();
+      return result;
+    }
+  }
+
+  protected final String expectStartElement(String tagname) throws TException {
+    final String actualtag = expectStartElement();
+    if (!actualtag.equals(tagname)) {
+      throw new IllegalStateException(
+        "Expected '" + tagname + "' but was actually '" + actualtag + "'"
+      );
+    }
+    return actualtag;
+  }
+
+  protected final String expectStartElement() throws TException {
+    final int etype = (reader().getEventType() == CHARACTERS) 
+                    ? (readerNext())
+                    : (reader().getEventType());
+    if (etype == START_ELEMENT) {
+      return reader().getLocalName();
+    } else {
+      throw new IllegalStateException(
+        "Expected START_ELEMENT but was " + XML.streamEventToString(etype)
+      );
+    }
+  }
+
+  public class XMLSetContext 
+      extends XMLContainerContext<TSet> 
+      implements SetContext {
+
+    public XMLSetContext(ValueHolderContext field) {
+      super(field, TSet.class, ContainerType.SET);
+    }
+
+    @Override
+    public TSet emit() {
+      return new TSet(elemType, size);
+    }
+
+    @Override
+    public void read(TSet set) {
+      this.elemType = set.elemType;
+      this.size = set.size;
+    }
+
+    @Override
+    protected void writeCharacters(String chars) throws TException {
+      writeStartElement("item");
+      super.writeCharacters(chars);
+      writeEndElement();
+    }
+
+    @Override
+    protected String readCharacters() throws TException {
+      nextStartElement("item");
+      final String result = super.readCharacters();
+      readerNext();
+      return result;
+    }
+
+  }
+
+  public class XMLMapContext 
+      extends XMLContainerContext<TMap> 
+      implements MapContext {
+
+    private byte keyType;
+
+    public XMLMapContext(ValueHolderContext field) {
+      super(field, TMap.class, ContainerType.MAP);
+    }
+
+    @Override
+    public void read(TMap obj) {
+      this.elemType = obj.valueType;
+      this.keyType = obj.keyType;
+      this.size = obj.size;
+    }
+
+    @Override
+    public TMap emit() {
+      return new TMap(keyType, elemType, size);
+    }
+
+    @Override
     public String toString() {
-      return "<TList type:" + elemType + " size:" + size + ">";
+      return "<TMap key:"+keyType+" type:"+elemType+" size:"+size+">";
     }
-  }
 
-  protected Context readctx() {
-    return readContext;
-  }
-
-  protected static <T extends Context> T current(Class<T> type, Context ctx) {
-    if (type.isAssignableFrom(ctx.getClass())) {
-      return type.cast(ctx);
+    @Override
+    public MapContext writeStart() throws TException {
+      super.writeStart();
+      writeAttribute("ktype", Byte.toString(keyType));
+      return this;
     }
-    throw new IllegalArgumentException(
-      "Expected " + type.getSimpleName() + 
-      " but was actually " + ctx.getClass().getSimpleName()
-    );
-  }
 
-  protected <T extends Context> T readctx(Class<T> type) {
-    return current(type, readctx());
-  }
-
-  protected <T extends Context> T readnew(T newctx) {
-    for (Context top = newctx.parent; top != null; top = top.parent) {
-      System.out.print("  ");
-    }
-    System.out.println("new: " + newctx);
-    this.readContext = newctx;
-    return newctx;
-  }
-
-  protected <T extends Context> T readpop(Class<T> oldtype) {
-    for (Context top = readctx().parent; top != null; top = top.parent) {
-      System.out.print("  ");
-    }
-    System.out.println("pop: " + readctx());
-    T oldctx = current(oldtype, readctx().parent);
-    this.readContext = oldctx;
-    return oldctx;
   }
 
   public TXMLProtocol(TTransport trans) {
     super(trans);
   }
 
+  protected XMLStreamWriter writer() throws XMLStreamException {
+    if (__writer == null) {
+      __writer = xmlOutputFactory().createXMLStreamWriter(
+        new TTransportOutputStream(getTransport())
+      );
+    }
+    return __writer;
+  }
+
   protected XMLStreamReader reader() throws TException {
     if (__reader == null) {
       try {
-        __reader = DEFAULT_XML_IN.createFilteredReader(
-          DEFAULT_XML_IN.createXMLStreamReader(
-            new TTransportInputStream(getTransport())
-          )
-          , new TXMLProtocolStreamFilter()
+        __reader = xmlInputFactory().createXMLStreamReader(
+          new TTransportInputStream(getTransport())
         );
       } catch (XMLStreamException e) {
         throw new TException(e);
@@ -466,118 +612,84 @@ public class TXMLProtocol extends TProtocol {
     return __reader;
   }
 
-  protected String expectStartElement() throws TException {
-    try {
-      final XMLStreamReader r = reader();
-      dumpCurrentReadState();
-      if (r.getEventType() == XMLStreamConstants.CHARACTERS) {
-        r.next();
-        dumpCurrentReadState();
-      }
-      if (r.getEventType() == XMLStreamConstants.START_ELEMENT) {
-        return r.getLocalName();
-      }
-      throw new IllegalStateException(
-          "unknown startElement event: " + r.getEventType());
-    } catch (XMLStreamException e) {
-      throw new TException(e);
-    }
-  }
-  
-  protected void expectEndElement() throws TException {
-    try {
-      final XMLStreamReader r = reader();
-      int etype = r.getEventType();
-      if (etype == XMLStreamConstants.CHARACTERS) {
-        etype = r.next();
-      }
-      if (etype == XMLStreamConstants.END_ELEMENT) {
-        if (r.hasNext()) {
-          r.next();
-        }
-      } else {
-        throw new IllegalStateException("unknown endElement event: " + etype);
-      }
-    } catch (XMLStreamException e) {
-      throw new TException(e);
-    }
+  private XMLStreamWriter __writer;
+
+  private XMLStreamReader __reader;
+
+  protected TException wrap(XMLStreamException e) throws TException {
+    throw new TException(e);
   }
 
-  protected void consumeReader() throws TException {
+  protected void writeStartElement(String name) throws TException {
     try {
-      final XMLStreamReader r = reader();
-      for ( ; r.hasNext(); r.next()) {
-        dumpCurrentReadState();
-      }
-    } catch (XMLStreamException e) {
-      throw new TException(e);
-    }
-  }
-
-  /*
-  protected void nextStartElement() throws TException {
-    try {
-      for (final XMLStreamReader reader = reader(); reader.hasNext(); ) {
-        final int eventType = reader.next();
-        if (eventType == XMLStreamConstants.START_ELEMENT) {
-          return;
-        }
-      }
-      throw new IllegalStateException(
-        "Reached end of parsing without encountering START_ELEMENT"
-      );
-    } catch (XMLStreamException e) {
-      throw new TException(e);
-    }
-  }
-
-
-  protected boolean hasEndElementBeforeNextStartElement() throws TException {
-    boolean result = false;
-    try {
-      int eventType = reader().next();
-      if (eventType == XMLStreamConstants.CHARACTERS) {
-        eventType = reader().next();
-      }
-      if (eventType == XMLStreamConstants.START_ELEMENT) {
-        return false;
-      } else if (eventType == XMLStreamConstants.END_ELEMENT) {
-        return true;
-      } else {
-        throw new IllegalStateException("unknown event type: " + eventType);
-      }
-    } catch (XMLStreamException e) {
-      throw new TException(e);
-    }
-  }
-*/
-
-  protected XMLStreamWriter writer() throws XMLStreamException {
-    if (__writer == null) {
-      __writer = DEFAULT_XML_OUT.createXMLStreamWriter(
-        new TTransportOutputStream(getTransport())
-      );
-    }
-    return __writer;
-  }
-  
-  protected String readLocalName() throws TException {
-    return reader().getLocalName();
-    /*
-    try {
-      for (final XMLStreamReader reader = reader(); reader.hasNext(); ) {
-        final int eventType = reader.next();
-        if (eventType == XMLStreamConstants.START_ELEMENT) {
-          return reader.getLocalName();
-        }
-      }
-      throw new IllegalStateException(
-        "Reached end of parsing without encountering START_ELEMENT"
-      );
+      writer().writeStartElement(name);
     } catch (XMLStreamException e) {
       throw wrap(e);
     }
-    */
+  }
+
+  protected void writeAttribute(String name, String value) throws TException {
+    try {
+      writer().writeAttribute(name, value);
+    } catch (XMLStreamException e) {
+      throw wrap(e);
+    }
+  }
+
+  protected void writeEndElement() throws TException {
+    try {
+      writer().writeEndElement();
+    } catch (XMLStreamException e) {
+      throw wrap(e);
+    }
+  }
+
+  private static final XMLInputFactory XML_IN;
+  
+  private static final XMLOutputFactory XML_OUT;
+ 
+  static {
+
+    XML_IN = XMLInputFactory.newFactory();
+    XML_IN.setProperty(XMLInputFactory.IS_COALESCING, true);
+    
+    XML_OUT = XMLOutputFactory.newFactory();
+
+  }
+
+  protected XMLInputFactory xmlInputFactory() {
+    return XML_IN;
+  }
+
+  protected XMLOutputFactory xmlOutputFactory() {
+    return XML_OUT;
+  }
+
+  @Override
+  protected BaseContext createBaseContext(ContextType type) {
+    return new XMLBaseContext(type);
+  }
+
+  protected final String nextStartElement(String tagname) throws TException {
+    readerNext();
+    return expectStartElement(tagname);
+  }
+
+  protected final String nextStartElement() throws TException {
+    readerNext();
+    return expectStartElement();
+  }
+
+  protected final int readerEventType() throws TException {
+    return reader().getEventType();
+  }
+
+  protected final int readerNext() throws TException {
+    try {
+      return reader().next();
+    } catch (XMLStreamException e) {
+      throw new TException(e);
+    }
   }
 
   protected String readAttribute(String localName) throws TException {
@@ -624,93 +736,6 @@ public class TXMLProtocol extends TProtocol {
     }
   }
 
-  protected String readCharacters() throws TException {
-    try {
-      int etype = reader().getEventType();
-      if (etype == XMLStreamConstants.START_ELEMENT) {
-        etype = reader().next();
-      }
-      if (etype == XMLStreamConstants.CHARACTERS) {
-        return reader().getText();
-      }
-      throw new TException(
-        "expected CHARACTERS but was " + XML.streamEventToString(etype));
-    } catch (XMLStreamException e) {
-      throw new TException(e);
-    }
-  }
-
-  private static final XMLInputFactory DEFAULT_XML_IN = XMLInputFactory.newFactory();
-  static {
-    DEFAULT_XML_IN.setProperty(XMLInputFactory.IS_COALESCING, true);
-  }
-
-  private static final XMLOutputFactory DEFAULT_XML_OUT = XMLOutputFactory.newFactory();
-
-  private XMLStreamReader __reader;
-
-  private XMLStreamWriter __writer;
-
-  private Context readContext = new Context(null);
-
-  private Context writeContext = new Context(null);
-
-  protected TException wrap(XMLStreamException e) throws TException {
-    throw new TException(e);
-  }
-
-  protected void writeStartElement(String name) throws TException {
-    try {
-      writer().writeStartElement(name);
-    } catch (XMLStreamException e) {
-      throw wrap(e);
-    }
-  }
-
-  protected void writeAttribute(String name, String value) throws TException {
-    try {
-      writer().writeAttribute(name, value);
-    } catch (XMLStreamException e) {
-      throw wrap(e);
-    }
-  }
-
-  protected void writeEndElement() throws TException {
-    try {
-      writer().writeEndElement();
-    } catch (XMLStreamException e) {
-      throw wrap(e);
-    }
-  }
-
-  protected void writeCharacters(String s) throws TException {
-    try {
-      writer().writeCharacters(s);
-    } catch (XMLStreamException e) {
-      throw wrap(e);
-    }
-  }
-
-  private class TXMLProtocolStreamFilter implements StreamFilter {
-    @Override
-    public boolean accept(XMLStreamReader reader) {
-      switch (reader.getEventType()) {
-      case XMLStreamConstants.START_ELEMENT:
-      case XMLStreamConstants.END_ELEMENT:
-      case XMLStreamConstants.ATTRIBUTE:
-      case XMLStreamConstants.CHARACTERS:
-      case XMLStreamConstants.END_DOCUMENT:
-        return true;
-      default:
-        return false;
-      }
-    }
-  }
-
-  protected void dumpCurrentReadState() throws TException {
-    System.out.println(XML.dumpCurrentState(reader()));
-  }
-
   public static enum XML {
     Utils;
     public static String streamEventToString(int event) {
@@ -749,7 +774,6 @@ public class TXMLProtocol extends TProtocol {
         throw new IllegalArgumentException();
       }
     }
-
     public static String dumpCurrentState(XMLStreamReader reader) {
       try {
       return String.format(
