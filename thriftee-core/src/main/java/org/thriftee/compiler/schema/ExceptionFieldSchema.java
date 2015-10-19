@@ -16,7 +16,7 @@ public final class ExceptionFieldSchema extends AbstractFieldSchema<ExceptionSch
       Collection<ThriftAnnotation> _annotations,
       ISchemaType _type,
       Requiredness _required, 
-      Long _identifier) throws SchemaBuilderException {
+      Short _identifier) throws SchemaBuilderException {
     super(
       ExceptionSchema.class, 
       ExceptionFieldSchema.class, 

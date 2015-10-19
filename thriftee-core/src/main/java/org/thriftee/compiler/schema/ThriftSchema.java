@@ -39,7 +39,31 @@ public final class ThriftSchema extends BaseSchema<ThriftSchema, ThriftSchema> {
     public Map<String, ModuleSchema> getModules() {
         return this.modules;
     }
-    
+
+    public MethodSchema findMethod(MethodIdentifier id) {
+      final ModuleSchema module = getModules().get(id.getModuleName());
+      if (module == null) {
+        throw new IllegalArgumentException(
+          String.format("module '%s' not found", id.getModuleName())
+        );
+      }
+      final ServiceSchema service = module.getServices().get(id.getServiceName());
+      if (service == null) {
+        throw new IllegalArgumentException(String.format(
+          "service '%s' not found in module '%s'",
+          id.getServiceName(), id.getModuleName()
+        ));
+      }
+      final MethodSchema method = service.getMethods().get(id.getMethodName());
+      if (method == null) {
+        throw new IllegalArgumentException(String.format(
+          "service '%s.%s' does not have a method name '%s'",
+          id.getModuleName(), id.getServiceName(), id.getMethodName()
+        ));
+      }
+      return method;
+    }
+
     @Override
     SchemaContext getSchemaContext() {
         return this.schemaContext;

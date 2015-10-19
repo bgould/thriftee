@@ -19,7 +19,7 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
   
   public static final int THRIFT_INDEX_ANNOTATIONS = THRIFT_INDEX_REQUIRED + 1;
   
-  private final Integer identifier;
+  private final Short identifier;
 
   private final ISchemaType type;
 
@@ -35,11 +35,14 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
       Collection<ThriftAnnotation> _annotations,
       ISchemaType _type, 
       Requiredness _requiredness, 
-      Long _identifier) throws SchemaBuilderException {
+      Short _identifier) throws SchemaBuilderException {
     super(parentClass, thisClass, _parent, _name, _annotations);
     this.type = _type;
     this.requiredness = _requiredness;
-    this.identifier = verifyAndConvertToInteger(_identifier);
+    this.identifier = _identifier; 
+  }
+  
+  /*verifyAndConvertToInteger(_identifier);
   }
   
   private final Integer verifyAndConvertToInteger(Long _identifier) {
@@ -52,7 +55,7 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
     } else {
       return _identifier.intValue();
     }
-  }
+  }*/
   
   @ThriftField(THRIFT_INDEX_NAME)
   public String getName() {
@@ -60,7 +63,7 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
   }
 
   @ThriftField(THRIFT_INDEX_IDENTIFIER)
-  public Integer getIdentifier() {
+  public Short getIdentifier() {
     return identifier;
   }
 
@@ -92,7 +95,7 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
     
     private ISchemaType type;
     
-    private Long identifier;
+    private Short identifier;
     
     protected AbstractFieldBuilder(PB parentBuilder, Class<B> thisClass) {
       super(parentBuilder, thisClass);
@@ -108,13 +111,18 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
       return $this;
     }
     
+    public final B identifier(Short _identifier) {
+      this.identifier = _identifier;
+      return $this;
+    }
+    
     public final B identifier(Integer _identifier) {
-      this.identifier = _identifier.longValue();
+      this.identifier = _identifier.shortValue();
       return $this;
     }
     
     public final B identifier(Long _identifier) {
-      this.identifier = _identifier;
+      this.identifier = _identifier.shortValue();
       return $this;
     }
     
@@ -126,7 +134,7 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
       return this.required;
     }
     
-    protected final Long getIdentifier() {
+    protected final Short getIdentifier() {
       return this.identifier;
     }
     
