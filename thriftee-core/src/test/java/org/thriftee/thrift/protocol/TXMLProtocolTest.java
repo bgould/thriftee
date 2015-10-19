@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -19,11 +21,17 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.thrift.protocol.TField;
+import org.apache.thrift.protocol.TMessage;
+import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
+import org.apache.thrift.protocol.TStruct;
+import org.apache.thrift.protocol.TType;
 import org.apache.thrift.transport.TIOStreamTransport;
 import org.apache.thrift.transport.TTransport;
 import org.junit.Test;
+import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.examples.classicmodels.Customer;
 import org.thriftee.examples.classicmodels.Office;
 import org.thriftee.examples.classicmodels.Order;
@@ -65,7 +73,8 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
 
   @Test
   public void testEverything() throws Exception {
-    testRoundtrip(Everything.class, everythingStruct(), factory);
+    final Everything struct = everythingStruct();
+    testRoundtrip(Everything.class, struct, factory);
   }
 
   public void testRoundTrip1() throws Exception {
@@ -74,6 +83,65 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
 
   public void testRoundTrip2() throws Exception {
     testRoundtrip(Order.class, testStruct2(), factory);
+  }
+
+  @Test
+  public void testService() throws Exception {
+
+    final Class<Everything> cl = Everything.class;
+    final Everything o = everythingStruct();
+    final TProtocolFactory pf = factory;
+
+    final TProtocol protocol = createOutProtocol(pf);
+    final TMessage tmsg = new TMessage("grok", TMessageType.CALL, 0);
+    final TStruct args = new TStruct("grok_args");
+    final TField arg0 = new TField("arg0", TType.STRUCT, (short)1);
+    
+    protocol.writeMessageBegin(tmsg);
+    protocol.writeStructBegin(args);
+    protocol.writeFieldBegin(arg0);
+    thrift().codecManager().write(cl, o, protocol);
+    protocol.writeFieldEnd();
+    protocol.writeFieldStop();
+    protocol.writeStructEnd();
+    protocol.writeMessageEnd();
+
+    final String serialized = formatXml(new String(outStream.toByteArray()));
+    System.out.println("Request:\n-----------------------\n" + serialized);
+
+    inStream = new ByteArrayInputStream(serialized.getBytes());
+    final TProtocol protocol2 = createOutProtocol(pf);
+    final ServiceSchema universe = thrift().schema().
+      getModules().get("org_thriftee_thrift_protocol").
+      getServices().get("Universe");
+    thrift().processorFor(universe).process(protocol2, protocol2);
+
+    final String response = formatXml(new String(outStream.toByteArray()));
+    System.out.println("Response:\n-----------------------\n" + response);
+  
+    inStream = new ByteArrayInputStream(response.getBytes());
+    final TProtocol protocol3 = createOutProtocol(pf);
+    
+    TMessage rmsg = protocol3.readMessageBegin();
+    assertEquals(TMessageType.REPLY, rmsg.type);
+
+    TStruct result = protocol3.readStructBegin();
+    assertEquals("grok_result", result.name);
+
+    TField rfield = protocol3.readFieldBegin();
+    assertEquals("success", rfield.name);
+    assertEquals(TType.I32, rfield.type);
+
+    int answer = protocol3.readI32();
+    assertEquals(42, answer);
+    protocol3.readFieldEnd();
+    
+    TField stop = protocol3.readFieldBegin();
+    assertEquals(TType.STOP, stop.type);
+
+    protocol3.readStructEnd();
+    protocol3.readMessageEnd();
+
   }
 
   public <T> void testRoundtrip(
@@ -96,7 +164,7 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
 
     assertEquals(
       "result of first and second serialization should be identical", 
-      serialized, rounded
+      o, roundtrip
     );  
   }
 
@@ -119,7 +187,7 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
     final Map<String, String> str_str_map = new HashMap<String, String>();
     str_str_map.put("foo", "bar");
     str_str_map.put("graffle", "florp");
- //   everything.str_str_map = str_str_map;
+    everything.str_str_map = str_str_map;
 
     final List<String> str_list = new ArrayList<String>();
     str_list.add("wibble");
@@ -133,10 +201,20 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
     everything.enum_list = enum_list;
 
     final List<Sparkle> obj_list = new ArrayList<Sparkle>();
-    obj_list.add(new Sparkle("yarp", 89, Spinkle.REWT));
     obj_list.add(new Sparkle("blat", 17, Spinkle.HRRR));
+    obj_list.add(new Sparkle("yarp", 89, Spinkle.REWT));
     obj_list.add(new Sparkle("trop", 9, null));
     everything.obj_list = obj_list;
+
+    final Map<Integer, Sparkle> int_obj_map = new LinkedHashMap<>();
+    for (int i = 0, c = obj_list.size(); i < c; i++) {
+      int_obj_map.put(i + 1, obj_list.get(i));
+    }
+    everything.int_obj_map = int_obj_map;
+
+    everything.obj = obj_list.get(0);
+    everything.obj_set = new LinkedHashSet<>(obj_list);
+    everything.str_set = new LinkedHashSet<>(str_list);
 
     final List<List<Integer>> int_list_list = new ArrayList<>();
     int_list_list.add(Arrays.asList(new Integer[] { 1, 2, 3, 4, 5 }));

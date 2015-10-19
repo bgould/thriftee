@@ -16,6 +16,7 @@ import org.apache.thrift.protocol.TTupleProtocol;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
 import org.thriftee.framework.client.ClientTypeAlias;
+import org.thriftee.thrift.protocol.TXMLProtocol;
 import org.thriftee.util.New;
 
 public class ThriftEEConfig implements Serializable {
@@ -239,6 +240,7 @@ public class ThriftEEConfig implements Serializable {
       addProtocolTypeAlias("compact", new TCompactProtocol.Factory());
       addProtocolTypeAlias("json", new TJSONProtocol.Factory());
       addProtocolTypeAlias("tuple", new TTupleProtocol.Factory());
+      addProtocolTypeAlias("xml", new TXMLProtocol.Factory());
 
     }
 

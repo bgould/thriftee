@@ -55,6 +55,8 @@ public abstract class AbstractContextProtocol extends TProtocol {
     final Context ctx = writectx.peek();
     if (ctx instanceof ValueHolderContext) {
       structctx = ((ValueHolderContext)ctx).newStruct();
+    } else if (ctx instanceof MessageContext) {
+      structctx = ((MessageContext)ctx).newStruct();
     } else if (ctx instanceof BaseContext) {
       structctx = ((BaseContext)ctx).newStruct();
     } else {
@@ -177,7 +179,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
 
   @Override
   public void readMessageEnd() throws TException {
-    readctx.peek().writeEnd().pop();
+    readctx.peek().readEnd().pop();
   }
 
   @Override
@@ -186,12 +188,14 @@ public abstract class AbstractContextProtocol extends TProtocol {
     final StructContext struct;
     if (ctx instanceof ValueHolderContext) {
       struct = ((ValueHolderContext)ctx).newStruct();
+    } else if (ctx instanceof MessageContext) {
+      struct = ((MessageContext)ctx).newStruct();
     } else if (ctx instanceof BaseContext) {
       struct = ((BaseContext)ctx).newStruct();
     } else {
       throw new IllegalStateException();
     }
-    struct.readStart().push();
+    struct.push().readStart();
     return struct.emit();
   }
 
@@ -319,8 +323,10 @@ public abstract class AbstractContextProtocol extends TProtocol {
     Context peek() throws TException;
     Context push() throws TException;
     Context pop() throws TException;
-    <T extends Context> T peek(Class<T> type);
-    <T extends Context> T pop(Class<T> type);
+    void pushed() throws TException;
+    void popped() throws TException;
+    <T extends Context> T peek(Class<T> type) throws TException;
+    <T extends Context> T pop(Class<T> type) throws TException;
     void debug(String prefix);
   }
 
@@ -357,6 +363,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
   }
 
   public interface MessageContext extends TypedContext<TMessage> {
+    StructContext newStruct() throws TException;
   }
 
   public interface StructContext extends TypedContext<TStruct> {
@@ -401,18 +408,20 @@ public abstract class AbstractContextProtocol extends TProtocol {
     public Context peek() {
       return base().peek();
     }
-    public Context pop() {
+    public Context pop() throws TException {
       return base().pop();
     }
-    public Context push() {
+    public Context push() throws TException {
       return base().push(this);
     }
     public <T extends Context> T peek(Class<T> type) {
       return _ensure(type, peek());
     }
-    public <T extends Context> T pop(Class<T> type) {
+    public <T extends Context> T pop(Class<T> type) throws TException {
       return _ensure(type, pop());
     }
+    public void pushed() throws TException {}
+    public void popped() throws TException {}
     public final void debug(String op) {
       if (LOG.isDebugEnabled()) {
         final StringBuilder sb = new StringBuilder();
@@ -446,22 +455,30 @@ public abstract class AbstractContextProtocol extends TProtocol {
     public final Context peek() {
       return head;
     }
-    <T extends Context> T push(final T context) {
+    <T extends Context> T push(final T context) throws TException {
       if (context.parent() != head) {
         throw new IllegalArgumentException(
           "new context's parent must match the current top of stack");
       }
+      final Context oldhead = this.head;
       this.head = context;
-      this.head.debug("push");
+      oldhead.pushed();
+      if (LOG.isTraceEnabled()) {
+        context.debug("push: ");
+      }
       return context;
     }
-    @Override public Context pop() {
+    @Override
+    public Context pop() throws TException {
       if (this.head == this) {
         throw new IllegalStateException("Cannot pop the base context.");
       }
       final Context oldhead = this.head;
-      oldhead.debug(" pop");
+      if (LOG.isTraceEnabled()) {
+        oldhead.debug(" pop: ");
+      }
       this.head = oldhead.parent();
+      this.head.popped();
       return oldhead;
     }
     abstract StructContext newStruct() throws TException;

@@ -39,6 +39,10 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   }
 
+  public TXMLProtocol(TTransport trans) {
+    super(trans);
+  }
+
   public abstract class XMLValueHolderContext 
       extends AbstractContext 
       implements ValueHolderContext {
@@ -194,37 +198,59 @@ public class TXMLProtocol extends AbstractContextProtocol {
         extends AbstractContext 
         implements MessageContext {
 
+    private String name;
+    private byte type;
+    private int seqid;
+
     public XMLMessageContext(Context parent) {
       super(parent);
     }
 
     @Override
     public XMLMessageContext writeStart() throws TException {
-      throw up();
+      writeStartElement("message");
+      writeAttribute("name", name);
+      writeAttribute("type", Byte.toString(type));
+      writeAttribute("seqid", Integer.toString(seqid));
+      return this;
     }
 
     @Override
     public XMLMessageContext readStart() throws TException {
-      throw up();
+      nextStartElement();
+      this.name = readAttribute("name");
+      this.type = readByteAttribute("type");
+      this.seqid = readIntAttribute("seqid");
+      return this;
     }
 
     @Override
     public XMLMessageContext writeEnd() throws TException {
-      throw up();
+      writeEndElement();
+      return this;
     }
 
     @Override
     public XMLMessageContext readEnd() throws TException {
-      throw up();
+      nextEndElement();
+      return this;
     }
 
     @Override
     public TMessage emit() {
-      throw up();
+      return new TMessage(name, type, seqid);
     }
 
+    @Override
     public void read(TMessage msg) {
-      throw up();
+      this.name = msg.name;
+      this.seqid = msg.seqid;
+      this.type = msg.type;
+    }
+
+    @Override
+    public StructContext newStruct() {
+      return new XMLStructContext(this);
     }
 
   }
@@ -258,38 +284,14 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
     @Override 
     public XMLStructContext readStart() throws TException {
-      try {
-        int eventType = reader().next();
-        if (eventType == CHARACTERS) {
-          eventType = reader().next();
-        }
-        if (eventType == START_ELEMENT) {
-          this.name = reader().getLocalName();
-          return this;
-        } else {
-          throw new IllegalStateException();
-        }
-      } catch (XMLStreamException e) {
-        throw new TException(e);
-      }
+      this.name = nextStartElement();
+      return this;
     }
 
     @Override 
     public XMLStructContext readEnd() throws TException {
-      try {
-        int eventType = reader().next();
-        if (eventType == CHARACTERS) {
-          eventType = reader().next();
-        }
-        if (eventType == END_ELEMENT) {
-          if (!this.name.equals(reader().getLocalName())) {
-            throw new IllegalStateException();
-          }
-        }
-        return this;
-      } catch (XMLStreamException e) {
-        throw new TException(e);
-      }
+      nextEndElement();
+      return this;
     }
 
     @Override 
@@ -364,24 +366,11 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
     @Override
     public XMLFieldContext readEnd() throws TException {
-      try {
-        int eventType = reader().next();
-        if (eventType == CHARACTERS) {
-          eventType = reader().next();
-        }
-        if (eventType == END_ELEMENT) {
-          if (!this.name.equals(reader().getLocalName())) {
-            throw new IllegalStateException();
-          }
-        }
-        return this;
-      } catch (XMLStreamException e) {
-        throw new TException(e);
-      }
+      nextEndElement(this.name);
+      return this;
     }
 
   }
-
 
   public abstract class XMLContainerContext<T> 
       extends XMLValueHolderContext 
@@ -441,7 +430,6 @@ public class TXMLProtocol extends AbstractContextProtocol {
         if ("map".equals(ctype)) {
           ((XMLMapContext)this).keyType = readByteAttribute("ktype");
         }
-        System.out.println("container: " + toString());
       } else {
         throw new IllegalStateException(
           "Expected START_ELEMENT but was " + XML.streamEventToString(etype)
@@ -491,29 +479,6 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
   }
 
-  protected final String expectStartElement(String tagname) throws TException {
-    final String actualtag = expectStartElement();
-    if (!actualtag.equals(tagname)) {
-      throw new IllegalStateException(
-        "Expected '" + tagname + "' but was actually '" + actualtag + "'"
-      );
-    }
-    return actualtag;
-  }
-
-  protected final String expectStartElement() throws TException {
-    final int etype = (reader().getEventType() == CHARACTERS) 
-                    ? (readerNext())
-                    : (reader().getEventType());
-    if (etype == START_ELEMENT) {
-      return reader().getLocalName();
-    } else {
-      throw new IllegalStateException(
-        "Expected START_ELEMENT but was " + XML.streamEventToString(etype)
-      );
-    }
-  }
-
   public class XMLSetContext 
       extends XMLContainerContext<TSet> 
       implements SetContext {
@@ -555,6 +520,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
       implements MapContext {
 
     private byte keyType;
+    private int childCount;
 
     public XMLMapContext(ValueHolderContext field) {
       super(field, TMap.class, ContainerType.MAP);
@@ -584,12 +550,90 @@ public class TXMLProtocol extends AbstractContextProtocol {
       return this;
     }
 
-  }
+    @Override
+    public void writeCharacters(String s) throws TException {
+      final boolean isKey = childCount % 2 == 0;
+      if (isKey) {
+        writeStartElement("entry");
+        writeStartElement("key");
+        super.writeCharacters(s);
+        writeEndElement(); // key
+      } else {
+        writeStartElement("value");
+        super.writeCharacters(s);
+        writeEndElement(); // value
+        writeEndElement(); // entry
+      }
+      childCount++;
+    }
 
-  public TXMLProtocol(TTransport trans) {
-    super(trans);
-  }
+    @Override
+    public String readCharacters() throws TException {
+      final boolean isKey = childCount % 2 == 0;
+      final String result;
+      if (isKey) {
+        nextStartElement("entry");
+        nextStartElement("key");
+        result = super.readCharacters();
+        nextEndElement(); // end element key
+      } else {
+        nextStartElement("value");
+        result = super.readCharacters();
+        nextEndElement(); // end element value
+        nextEndElement(); // end element entry
+      }
+      childCount++;
+      return result;
+    }
 
+    @Override
+    public void pushed() throws TException {
+      final boolean isKey = childCount % 2 == 0;
+      switch (type()) {
+        case READ:
+          if (isKey) {
+            nextStartElement("entry");
+            nextStartElement("key");
+          } else {
+            nextStartElement("value");
+          }
+          break;
+        case WRITE:
+          if (isKey) {
+            writeStartElement("entry");
+            writeStartElement("key");
+          } else {
+            writeStartElement("value");
+          }
+          break;
+      }
+    }
+
+    @Override
+    public void popped() throws TException {
+      final boolean isKey = childCount % 2 == 0;
+      switch (type()) {
+      case READ:
+        if (isKey) {
+          nextEndElement("key");
+        } else {
+          nextEndElement("value");
+          nextEndElement("entry");
+        }
+        break;
+      case WRITE:
+        if (isKey) {
+          writeEndElement();
+        } else {
+          writeEndElement();
+          writeEndElement();
+        }
+        break;
+      }
+      childCount++;
+    }
+
+  }
   protected XMLStreamWriter writer() throws XMLStreamException {
     if (__writer == null) {
       __writer = xmlOutputFactory().createXMLStreamWriter(
@@ -670,6 +714,52 @@ public class TXMLProtocol extends AbstractContextProtocol {
     return new XMLBaseContext(type);
   }
 
+  protected final String expectStartElement(String tagname) throws TException {
+    final String actualtag = expectStartElement();
+    if (!actualtag.equals(tagname)) {
+      throw new IllegalStateException(
+        "Expected '" + tagname + "' but was actually '" + actualtag + "'"
+      );
+    }
+    return actualtag;
+  }
+
+  protected final String expectStartElement() throws TException {
+    final int etype = (reader().getEventType() == CHARACTERS) 
+                    ? (readerNext())
+                    : (reader().getEventType());
+    if (etype == START_ELEMENT) {
+      return reader().getLocalName();
+    } else {
+      throw new IllegalStateException(
+        "Expected START_ELEMENT but was " + XML.streamEventToString(etype)
+      );
+    }
+  }
+
+  protected final String expectEndElement(String tagname) throws TException {
+    final String actualtag = expectEndElement();
+    if (!actualtag.equals(tagname)) {
+      throw new IllegalStateException(
+        "Expected '" + tagname + "' but was actually '" + actualtag + "'"
+      );
+    }
+    return actualtag;
+  }
+
+  protected final String expectEndElement() throws TException {
+    final int etype = (reader().getEventType() == CHARACTERS) 
+                    ? (readerNext())
+                    : (reader().getEventType());
+    if (etype == END_ELEMENT) {
+      return reader().getLocalName();
+    } else {
+      throw new IllegalStateException(
+        "Expected END_ELEMENT but was " + XML.streamEventToString(etype)
+      );
+    }
+  }
+
   protected final String nextStartElement(String tagname) throws TException {
     readerNext();
     return expectStartElement(tagname);
@@ -678,6 +768,16 @@ public class TXMLProtocol extends AbstractContextProtocol {
   protected final String nextStartElement() throws TException {
     readerNext();
     return expectStartElement();
+  }
+
+  protected final String nextEndElement(String tagname) throws TException {
+    readerNext();
+    return expectEndElement(tagname);
+  }
+
+  protected final String nextEndElement() throws TException {
+    readerNext();
+    return expectEndElement();
   }
 
   protected final int readerEventType() throws TException {
