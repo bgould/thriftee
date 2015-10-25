@@ -183,6 +183,17 @@
         <groupId>net.sf.scannotation</groupId>
         <artifactId>scannotation</artifactId>
         <version>${scannotation.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>javassist</artifactId>
+            <groupId>javassist</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.javassist</groupId>
+        <artifactId>javassist</artifactId>
+        <version>${javassist.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.persistence</groupId>
@@ -209,6 +220,7 @@
     <restlet.version>2.2.2</restlet.version>
     <eclipselink.version>2.6.0</eclipselink.version>
     <scannotation.version>1.0.2</scannotation.version>
+    <javassist.version>3.20.0-GA</javassist.version>
     <json.version>20140107</json.version>
     <commons.lang.version>2.6</commons.lang.version>
     <logback.version>1.1.2</logback.version>

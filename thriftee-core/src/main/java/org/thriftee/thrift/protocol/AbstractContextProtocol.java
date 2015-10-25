@@ -304,11 +304,18 @@ public abstract class AbstractContextProtocol extends TProtocol {
   }
 
   public static enum ContainerType {
-    LIST,
-    SET,
-    MAP;
+    LIST(TType.LIST),
+    SET(TType.SET),
+    MAP(TType.MAP);
+    private final byte byteval;
+    ContainerType(byte byteval) {
+      this.byteval = byteval;
+    }
     public String strval() {
       return name().toLowerCase();
+    }
+    public byte byteval() {
+      return byteval;
     }
   }
 

@@ -227,7 +227,7 @@ public class ThriftEE {
       thriftUnions = searchFor(ThriftUnion.class, annotations);
       thriftEnums = searchFor(ThriftEnum.class, annotations);
     } catch (IOException e) {
-      throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_002);
+      throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_002, e.getMessage());
     }
 
     LOG.debug("Using bytecode compiler: {}", config.useBytecodeCompiler());

@@ -1,13 +1,16 @@
 package org.thriftee.thrift.protocol;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -25,12 +28,14 @@ import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TStruct;
 import org.apache.thrift.protocol.TType;
 import org.apache.thrift.transport.TIOStreamTransport;
 import org.apache.thrift.transport.TTransport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.examples.classicmodels.Customer;
 import org.thriftee.examples.classicmodels.Office;
@@ -40,28 +45,57 @@ import org.thriftee.examples.classicmodels.OrderDetailPK;
 import org.thriftee.tests.AbstractThriftEETest;
 import org.thriftee.thrift.protocol.Everything.Sparkle;
 import org.thriftee.thrift.protocol.Everything.Spinkle;
+import org.thriftee.thrift.protocol.TXMLProtocol.Variant;
+import org.xml.sax.SAXException;
 
+@RunWith(Parameterized.class)
 public class TXMLProtocolTest extends AbstractThriftEETest {
 
   private ByteArrayInputStream inStream;
 
   private ByteArrayOutputStream outStream;
 
-  private static final TProtocolFactory factory = new TXMLProtocol.Factory();
+  private final TXMLProtocol.Factory factory;
+
+  @Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+      { new TXMLProtocol.Factory(Variant.VERBOSE, true) },
+      { new TXMLProtocol.Factory(Variant.CONCISE, true) },
+    });
+  }
+
+  public TXMLProtocolTest(TXMLProtocol.Factory factory) {
+    this.factory = factory;
+  }
 
   public void testWrite1() throws Exception {
-    final TProtocol protocol = createOutProtocol(factory);
+    final TXMLProtocol protocol = createOutProtocol(factory);
     {
       thrift().codecManager().write(Office.class, testStruct1(), protocol);
       final String serialized = formatXml(new String(outStream.toByteArray()));
+      System.out.println("Serialized:\n-----------------------\n" + serialized);
       System.out.println(serialized);
+      validate(protocol, serialized);
     }
     outStream.reset();
     {
       thrift().codecManager().write(Office.class, testStruct1(), protocol);
       final String serialized = formatXml(new String(outStream.toByteArray()));
+      System.out.println("Serialized:\n-----------------------\n" + serialized);
       System.out.println(serialized);
+      validate(protocol, serialized);
     }
+  }
+
+  public void validate(TXMLProtocol protocol, String msg) throws SAXException, IOException {
+    System.out.print("Validating against " + protocol.schemaUrl() + " ...");
+    final String validationError = protocol.validate(msg);
+    if (validationError != null) {
+      System.out.println(" invalid!\n" + validationError + "\n");
+      fail(validationError);
+    }
+    System.out.println(" valid.\n\n");
   }
 
   public void testWrite2() throws Exception {
@@ -90,9 +124,8 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
 
     final Class<Everything> cl = Everything.class;
     final Everything o = everythingStruct();
-    final TProtocolFactory pf = factory;
 
-    final TProtocol protocol = createOutProtocol(pf);
+    final TXMLProtocol protocol = createOutProtocol(factory);
     final TMessage tmsg = new TMessage("grok", TMessageType.CALL, 0);
     final TStruct args = new TStruct("grok_args");
     final TField arg0 = new TField("arg0", TType.STRUCT, (short)1);
@@ -108,9 +141,10 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
 
     final String serialized = formatXml(new String(outStream.toByteArray()));
     System.out.println("Request:\n-----------------------\n" + serialized);
+    validate(protocol, serialized);
 
     inStream = new ByteArrayInputStream(serialized.getBytes());
-    final TProtocol protocol2 = createOutProtocol(pf);
+    final TXMLProtocol protocol2 = createOutProtocol(factory);
     final ServiceSchema universe = thrift().schema().
       getModules().get("org_thriftee_thrift_protocol").
       getServices().get("Universe");
@@ -118,14 +152,16 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
 
     final String response = formatXml(new String(outStream.toByteArray()));
     System.out.println("Response:\n-----------------------\n" + response);
-  
+    validate(protocol, response);
+
     inStream = new ByteArrayInputStream(response.getBytes());
-    final TProtocol protocol3 = createOutProtocol(pf);
+    final TProtocol protocol3 = createOutProtocol(factory);
     
     TMessage rmsg = protocol3.readMessageBegin();
     assertEquals(TMessageType.REPLY, rmsg.type);
 
-    TStruct result = protocol3.readStructBegin();
+   // TStruct result = 
+    protocol3.readStructBegin();
     //assertEquals("grok_result", result.name);
 
     TField rfield = protocol3.readFieldBegin();
@@ -145,22 +181,22 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
   }
 
   public <T> void testRoundtrip(
-      Class<T> cl, T o, TProtocolFactory pf) throws Exception {
-    TProtocol protocol = createOutProtocol(pf);
+      Class<T> cl, T o, TXMLProtocol.Factory pf) throws Exception {
+    TXMLProtocol protocol = createOutProtocol(factory);
     thrift().codecManager().write(cl, o, protocol);
 
     final String serialized = formatXml(new String(outStream.toByteArray()));
-    // final String serialized = new String(outStream.toByteArray());
-    System.out.println(serialized);
+    System.out.println("Serialized:\n-----------------------\n" + serialized);
+    validate(protocol, serialized);
 
     inStream = new ByteArrayInputStream(serialized.getBytes());
-    protocol = createOutProtocol(pf);
+    protocol = createOutProtocol(factory);
     T roundtrip = thrift().codecManager().read(cl, protocol);
     thrift().codecManager().write(cl, roundtrip, protocol);
     
     final String rounded = formatXml(new String(outStream.toByteArray()));
-    //final String rounded = new String(outStream.toByteArray());
-    System.out.println(rounded);
+    System.out.println("Round Trip:\n-----------------------\n" + rounded);
+    validate(protocol, rounded);
 
     assertEquals(
       "result of first and second serialization should be identical", 
@@ -168,10 +204,10 @@ public class TXMLProtocolTest extends AbstractThriftEETest {
     );  
   }
 
-  public TProtocol createOutProtocol(TProtocolFactory protocolFactory) {
+  public TXMLProtocol createOutProtocol(TXMLProtocol.Factory protocolFactory) {
     outStream = new ByteArrayOutputStream();
     TTransport transport = new TIOStreamTransport(inStream, outStream);
-    return protocolFactory.getProtocol(transport);
+    return (TXMLProtocol) protocolFactory.getProtocol(transport);
   }
 
   public Everything everythingStruct() {
