@@ -1,7 +1,5 @@
 package org.thriftee.compiler.schema.template;
 
-import static org.apache.thrift.protocol.TType.*;
-
 import java.nio.ByteBuffer;
 
 import org.apache.thrift.TException;

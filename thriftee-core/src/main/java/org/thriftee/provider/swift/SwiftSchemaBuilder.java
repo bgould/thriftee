@@ -1,8 +1,10 @@
 package org.thriftee.provider.swift;
 
+import static org.thriftee.compiler.schema.SchemaBuilderException.Messages.*;
+
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -16,10 +18,6 @@ import org.thriftee.util.New;
 
 import com.facebook.swift.parser.ThriftIdlParser;
 import com.facebook.swift.parser.model.Document;
-import com.google.common.io.CharSource;
-import com.google.common.io.Files;
-
-import static org.thriftee.compiler.schema.SchemaBuilderException.Messages.*;
 
 public class SwiftSchemaBuilder implements SchemaBuilder {
 
@@ -30,26 +28,28 @@ public class SwiftSchemaBuilder implements SchemaBuilder {
   
   @Override
   public ThriftSchema buildSchema(ThriftEE thrift) throws SchemaBuilderException {
-    
-    final Charset cs = Charset.forName("UTF-8");
+
     final Map<String, Document> documents = New.map();
     for (File idlFile : thrift.idlFiles()) {
       logger.trace("Parsing generated IDL: {}", idlFile.getName());
+      FileReader reader = null;
       try {
-        final CharSource input = Files.asCharSource(idlFile, cs);
-        final Document document = ThriftIdlParser.parseThriftIdl(input);
+        reader = new FileReader(idlFile);
+        final Document document = ThriftIdlParser.parseThriftIdl(reader);
         documents.put(idlFile.getName(), document);
       } catch (IOException e) {
         throw new SchemaBuilderException(e, SCHEMA_103, e.getMessage());
+      } finally {
+        if (reader != null) try { reader.close(); } catch (IOException e) {}
       }
       logger.trace("Parsing {} complete.", idlFile.getName());
     }
-    
+
     final Document global = documents.get("global.thrift");
     if (global == null) {
       throw new SchemaBuilderException(SCHEMA_100);
     }
-    
+
     final Builder builder = new Builder().name("ThriftEE");
     for (String include : global.getHeader().getIncludes()) {
       final Document module = documents.get(include);

@@ -12,6 +12,8 @@
   <name>thriftee-root</name>
   
   <modules>
+    <module>thriftee-idl-parser</module>
+    <module>thriftee-swift-generator</module>
     <module>thriftee-core</module>
     <module>thriftee-examples-war</module>
     <module>thriftee-examples</module>
@@ -66,6 +68,16 @@
       <dependency>
         <groupId>org.thriftee</groupId>
         <artifactId>thriftee-examples</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.thriftee</groupId>
+        <artifactId>thriftee-idl-parser</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.thriftee</groupId>
+        <artifactId>thriftee-swift-generator</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -159,11 +171,6 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>com.facebook.swift</groupId>
-        <artifactId>swift-generator</artifactId>
-        <version>${swift.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.json</groupId>
         <artifactId>json</artifactId>
         <version>${json.version}</version>
@@ -183,12 +190,14 @@
         <groupId>net.sf.scannotation</groupId>
         <artifactId>scannotation</artifactId>
         <version>${scannotation.version}</version>
+        <!--
         <exclusions>
           <exclusion>
             <artifactId>javassist</artifactId>
             <groupId>javassist</groupId>
           </exclusion>
         </exclusions>
+      -->
       </dependency>
       <dependency>
         <groupId>org.javassist</groupId>
