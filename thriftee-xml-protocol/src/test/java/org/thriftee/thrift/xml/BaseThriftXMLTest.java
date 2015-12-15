@@ -1,0 +1,412 @@
+package org.thriftee.thrift.xml;
+
+import static org.thriftee.thrift.xml.ThriftSchemaXMLTest.*;
+import static org.thriftee.thrift.xml.Transforms.*;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathException;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TMessage;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.TestName;
+import org.thriftee.thrift.xml.ThriftSchemaXML;
+import org.thriftee.thrift.xml.Transforms;
+import org.thriftee.thrift.xml.protocol.TXMLProtocolTest;
+import org.thriftee.thrift.xml.protocol.TestProtocol;
+import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
+import another.Blotto;
+import everything.EndOfTheUniverseException;
+import everything.Everything;
+import everything.Universe.grok_args;
+import everything.Universe.grok_result;
+
+public class BaseThriftXMLTest {
+
+  @Rule
+  public TestName testName = new TestName();
+
+  public static final File testDir = new File("target/tests");
+
+  public static final File testModelDir = new File(testDir, "models");
+
+  public static final File testSchemaDir = new File(testDir, "schemas");
+
+  public static final File testStructsDir = new File(testDir, "structs");
+
+  public static final Transforms Transforms = new Transforms();
+
+  private static Map<String, File> exportedWsdls = null;
+
+  private static Map<String, File> exportedModels = null;
+
+  private static Map<String, File> exportedSchemas = null;
+
+  private static Map<String, TestObject> exportedStructs = null;
+
+  public final String simpleName = getClass().getSimpleName();
+
+  protected final File testClassDir = new File("target/tests/" + simpleName);
+
+  protected File testMethodDir;
+
+  protected Variant variant() {
+    return Variant.VERBOSE;
+  }
+
+  public TestProtocol createOutProtocol(String s) {
+    return new TestProtocol(s, Variant.VERBOSE);
+  }
+
+  public TestProtocol createOutProtocol(File file) {
+    return createOutProtocol(readFileAsString(file));
+  }
+
+  public TestProtocol createOutProtocol() {
+    return createOutProtocol((String)null);
+  }
+
+  private static final TestObject[] objs = new TestObject[] {
+
+    new TestObject("everything", "everything", everythingStruct()),
+    new TestObject("blotto", "nothing_all_at_once", blotto()),
+
+    new TestCall("grok_args",   "everything", "Universe", grokArgs()   ),
+    new TestCall("grok_result", "everything", "Universe", grokResult() ),
+    new TestCall("grok_error",  "everything", "Universe", grokError()  ),
+
+  };
+
+  @BeforeClass
+  public synchronized static void beforeClass() throws Exception {
+    if (exportedModels == null || exportedSchemas == null) {
+      createDir("model", testModelDir);
+      createDir("schema", testSchemaDir);
+      createDir("structs", testStructsDir);
+      exportedModels  = exportModels(testModelDir);
+      exportedSchemas = exportSchemas(exportedModels, testSchemaDir);
+      exportedWsdls   = exportWsdls(exportedModels, testSchemaDir);
+      exportedStructs = exportStructs(objs, testStructsDir);
+    }
+  }
+
+  private static void createDir(String label, File dir) throws IOException {
+    if (dir.exists()) {
+      deleteRecursively(dir);
+    }
+    if (!dir.mkdirs()) {
+      throw new IOException("could not create " + label + "dir: " + dir);
+    }
+  }
+
+  @Before
+  public void createTestDir() throws IOException {
+    if (!testClassDir.exists()) {
+      if (!testClassDir.mkdirs()) {
+        throw new IOException("could not create test dir: " + testClassDir);
+      }
+    }
+    this.testMethodDir = new File(
+      testClassDir,
+      testName.getMethodName().replaceAll("[^a-zA-Z0-9]", "_")
+    );
+    if (testMethodDir.exists()) {
+      deleteRecursively(testMethodDir);
+    }
+    if (!testMethodDir.mkdirs()) {
+      throw new IOException("could not create directory: " + testMethodDir);
+    }
+  }
+
+  public static void deleteRecursively(File file) throws IOException {
+    if (!file.exists()) {
+      return;
+    }
+    if (file.isFile()) {
+      if (!file.delete()) {
+        throw new IOException("could not delete file: " + file);
+      }
+      return;
+    }
+    if (file.isDirectory()) {
+      for (File dirfile : file.listFiles()) {
+        deleteRecursively(dirfile);
+      }
+      if (!file.delete()) {
+        throw new IOException("could not remove directory: " + file);
+      }
+      return;
+    }
+    throw new IllegalStateException();
+  }
+
+  public static File modelFor(String module) {
+    if (!exportedModels.containsKey(module)) {
+      throw new IllegalArgumentException("No model file for '" + module + "'.");
+    }
+    return exportedModels.get(module);
+  }
+
+  public static URL urlToModelFor(String module) throws IOException {
+    return modelFor(module).toURI().toURL();
+  }
+
+  public static File schemaFor(String module) {
+    if (!exportedSchemas.containsKey(module)) {
+      throw new IllegalArgumentException("No xsd file for '" + module + "'.");
+    }
+    return exportedSchemas.get(module);
+  }
+
+  public static File wsdlFor(String module) {
+    if (!exportedWsdls.containsKey(module)) {
+      throw new IllegalArgumentException("No WSDL file for '" + module + "'.");
+    }
+    return exportedWsdls.get(module);
+  }
+
+  public static TestObject structFor(String name) {
+    if (!exportedStructs.containsKey(name)) {
+      throw new IllegalArgumentException("No struct object for '" + name + "'");
+    }
+    return exportedStructs.get(name);
+  }
+
+  public static File structDir() {
+    return testStructsDir;
+  }
+
+  public static Map<String, File> exportModels(File tmp) throws IOException {
+    final ThriftSchemaXML xml = new ThriftSchemaXML();
+    final Map<String, File> xmlFiles = new LinkedHashMap<>();
+    final List<File> idlFiles = Arrays.asList(
+      new File("src/test/thrift").listFiles(new FilenameFilter() {
+        public boolean accept(File dir, String name) {
+          return name.endsWith(".thrift");
+        }
+      })
+    );
+    for (final File idlfile : idlFiles) {
+      final String basename = idlfile.getName().replaceAll(".thrift$", "");
+      final File outfile = new File(tmp, basename + ".xml");
+      final StringWriter w = new StringWriter();
+      xml.export(idlfile, charset, new StreamResult(w));
+      try (FileWriter out = new FileWriter(outfile)) {
+        Transforms.formatXml(w.toString(), new StreamResult(out));
+      }
+      xmlFiles.put(basename, outfile);
+    }
+    return Collections.unmodifiableMap(xmlFiles);
+  }
+
+  public static Map<String, File> exportSchemas(
+      Map<String, File> models, 
+      File tmp) throws IOException {
+    final Map<String, File> xsdFiles = new TreeMap<>();
+    final Transformer trans = Transforms.newSchemaToXsdTransformer();
+    for (Entry<String, File> entry : models.entrySet()) {
+      final String basename = entry.getKey();
+      final File modelFile = entry.getValue();
+      final File schemaOutput = new File(tmp, basename + ".xsd");
+      final StreamSource source = new StreamSource(modelFile);
+      final StreamResult result = new StreamResult(schemaOutput);
+      try {
+        trans.transform(source, result);
+      } catch (TransformerException e) {
+        throw new IOException(e);
+      } finally {
+        trans.clearParameters();
+      }
+      xsdFiles.put(basename, schemaOutput);
+    }
+    return Collections.unmodifiableMap(xsdFiles);
+  }
+
+  public static Map<String, File> exportWsdls(
+      Map<String, File> models, 
+      File tmp) throws IOException {
+    final Map<String, File> wsdlFiles = new TreeMap<>();
+    for (Entry<String, File> entry : models.entrySet()) {
+      final String module = entry.getKey();
+      final File modelFile = entry.getValue();
+      final Set<String> services = serviceNamesFor(module, modelFile);
+      final Transformer trans = Transforms.newSchemaToWsdlTransformer();
+      for (String service : services) {
+        final String basename = module + "." + service;
+        final File wsdlOutput = new File(tmp, basename + ".wsdl");
+        trans.setParameter("service_module", module);
+        trans.setParameter("service_name", service);
+        final StreamSource source = new StreamSource(modelFile);
+        final StreamResult result = new StreamResult(wsdlOutput);
+        try {
+          trans.transform(source, result);
+        } catch (TransformerException e) {
+          throw new IOException(e);
+        } finally {
+          trans.clearParameters();
+        }
+        wsdlFiles.put(basename, wsdlOutput);
+      }
+    }
+    return Collections.unmodifiableMap(wsdlFiles);
+  }
+
+  public static Map<String, TestObject> exportStructs(
+        final TestObject[] structs, final File tmp
+      ) throws IOException, TException, TransformerException {
+    final Map<String, TestObject> testobjs = new TreeMap<>();
+    for (final TestObject obj : structs) {
+      final File dir = new File(tmp, obj.name);
+      if (!dir.mkdir()) {
+        throw new IOException("could not create directory: " + dir);
+      }
+      File outfile = null;
+      File simple = new File(dir, "simple.xml");
+      File streaming = new File(dir, "streaming.xml");
+      for (final Variant v : Variant.values()) {
+        final String variant = v.name().toLowerCase();
+        final TestProtocol oprot = new TestProtocol((byte[])null, v);
+        outfile = new File(dir, variant + ".xml");
+        if (obj instanceof TestCall) {
+          final TestCall call = (TestCall) obj;
+          oprot.writeMessageBegin(new TMessage(call.method, call.type, 1));
+          obj.obj.write(oprot);
+          oprot.writeMessageEnd();
+        } else {
+          obj.obj.write(oprot);
+        }
+        oprot.writeOutputTo(outfile);
+        testobjs.put(obj.name, obj);
+      }
+      transformToSimple(obj, outfile, simple);
+      transformToStreaming(obj, simple, streaming);
+    }
+    return Collections.unmodifiableMap(testobjs);
+  }
+
+  public static Everything everythingStruct() {
+    return TXMLProtocolTest.everythingStruct();
+  }
+
+  public static grok_args grokArgs() {
+    return new grok_args(everythingStruct());
+  }
+
+  public static grok_result grokResult() {
+    return new grok_result(42, null);
+  }
+
+  public static grok_result grokError() {
+    final grok_result result = new grok_result();
+    result.setEndOfIt(new EndOfTheUniverseException("it's over!!!"));
+    return result;
+  }
+
+  private static void transformToSimple(TestObject obj, File src, File tgt) 
+      throws IOException, TransformerException {
+    final Transformer trns = Transforms.newStreamingToSimpleTransformer();
+    addFormatting(trns);
+    trns.setParameter("schema", urlToModelFor(obj.module).toString());
+    trns.setParameter("root_module", obj.module);
+    if (obj instanceof TestCall) {
+      trns.setParameter("service_name", ((TestCall)obj).service);
+    } else {
+      trns.setParameter("root_struct", obj.struct);
+    }
+    trns.transform(new StreamSource(src), new StreamResult(tgt));
+  }
+
+  private static void transformToStreaming(TestObject obj, File src, File tgt) 
+      throws IOException, TransformerException {
+    final Transformer trns2 = Transforms.newSimpleToStreamingTransformer();
+    addFormatting(trns2);
+    trns2.setParameter("schema", urlToModelFor(obj.module).toString());
+    trns2.transform(new StreamSource(src), new StreamResult(tgt));
+  }
+  
+  private static Set<String> serviceNamesFor(String module, File modelFile)
+      throws IOException {
+    try {
+      final XPathFactory xpathFactory = XPathFactory.newInstance();
+      final String expr = String.format(
+        "/*[local-name()='idl']" + 
+        "/*[local-name()='document' and @name='%s']" + 
+        "/*[local-name()='service']/@name", 
+        module
+      );
+      final XPath xpath = xpathFactory.newXPath();
+      final XPathExpression expression = xpath.compile(expr);
+      try (FileReader reader = new FileReader(modelFile)) {
+        final Set<String> results = new LinkedHashSet<String>();
+        final NodeList services = (NodeList) expression.evaluate(
+          new InputSource(reader), XPathConstants.NODESET
+        );
+        for (int i = 0, c = services.getLength(); i < c; i++) {
+          results.add(services.item(i).getNodeValue());
+        }
+        return results;
+      }
+    } catch (XPathException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public static Collection<Object[]> testParameters() {
+    final List<Object[]> result = new ArrayList<>();
+    for (final TestObject obj : objs) {
+      result.add(new Object[] { obj });
+    }
+    return result;
+  }
+
+  public static String readFileAsString(File file) {
+    try {
+      final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      final byte[] buffer = new byte[1024];
+      final InputStream in = file.toURI().toURL().openStream();
+      for (int n = -1; (n = in.read(buffer)) > -1; ) {
+        baos.write(buffer, 0, n);
+      }
+      return new String(baos.toByteArray());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static Blotto blotto() {
+    return new Blotto(42, "fish");
+  }
+}
