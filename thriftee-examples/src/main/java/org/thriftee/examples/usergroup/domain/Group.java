@@ -11,26 +11,31 @@ public final class Group implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-	private String name;
+  private String name;
 
-	private List<User> members;
+  private List<User> members;
 
-	@ThriftField(1)
-	public String getName() {
-		return name;
-	}
+  @ThriftField(1)
+  public String getName() {
+    return name;
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	@ThriftField(2)
-	public List<User> getMembers() {
-		return members;
-	}
+  @ThriftField(2)
+  public List<User> getMembers() {
+    return members;
+  }
 
-	public void setMembers(List<User> members) {
-		this.members = members;
-	}
-	
+  public void setMembers(List<User> members) {
+    this.members = members;
+  }
+
+  @Override
+  public String toString() {
+    return "Group [name=" + name + ", members=" + members + "]";
+  }
+
 }

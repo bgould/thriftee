@@ -123,6 +123,7 @@ public class EndpointsResource extends FrameworkResource {
   protected Representation listModules() {
     final DirectoryListingModel directory = createDefaultModel();
     directory.getFiles().put("multiplex/", "multiplex/");
+    directory.getFiles().put("soap/", "soap/");
     for (ModuleSchema module : thrift().schema().getModules().values()) {
       if (module.getServices().size() > 0) {
         final String moduleName = module.getName() + "/";

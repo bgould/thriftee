@@ -1,10 +1,17 @@
 package org.thriftee.thrift.xml;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
@@ -21,6 +28,14 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathException;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 public class Transforms {
 
@@ -49,8 +64,48 @@ public class Transforms {
     return newInternalTransformer(XSL_TO_STREAM);
   }
 
+  public Transformer newSimpleToStreamingTransformer(
+      final File modelFile, final String module) {
+    final Transformer result = newSimpleToStreamingTransformer();
+    try {
+      result.setParameter("schema", modelFile.toURI().toURL().toString());
+      result.setParameter("root_module", module);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+    return result;
+  }
+
+  public void transformSimpleToStreaming(
+        final File modelFile, final String module, 
+        final Source src, final Result res
+      ) throws TransformerException {
+    newSimpleToStreamingTransformer(modelFile, module).transform(src, res);
+  }
+
   public Transformer newStreamingToSimpleTransformer() {
     return newInternalTransformer(XSL_TO_SIMPLE);
+  }
+
+  public Transformer newStreamingToSimpleTransformer(
+      final File modelFile, final String module, final String service) {
+    final Transformer result = newStreamingToSimpleTransformer();
+    try {
+      result.setParameter("schema", modelFile.toURI().toURL().toString());
+      result.setParameter("root_module", module);
+      result.setParameter("service_name", service);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+    return result;
+  }
+
+  public void transformStreamingToSimple(
+        final File modelFile, 
+        final String mod, final String svc, 
+        final Source src, final Result res
+      ) throws TransformerException {
+    newStreamingToSimpleTransformer(modelFile, mod, svc).transform(src, res);
   }
 
   public Transformer newSchemaToWsdlTransformer() {
@@ -120,6 +175,103 @@ public class Transforms {
       formatXml(new StreamSource(xmlFile.toURI().toURL().openStream()), result);
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  public Map<String, File> exportWsdls(File model, File tmp) throws IOException {
+    final Map<String, File> wsdlFiles = new TreeMap<>();
+    final Set<String> modules = moduleNamesFor(model);
+    for (final String module : modules) {
+      final Set<String> services = serviceNamesFor(module, model);
+      final Transformer trans = newSchemaToWsdlTransformer();
+      for (String service : services) {
+        final String basename = module + "." + service;
+        final File wsdlOutput = new File(tmp, basename + ".wsdl");
+        trans.setParameter("service_module", module);
+        trans.setParameter("service_name", service);
+        final StreamSource source = new StreamSource(model);
+        final StreamResult result = new StreamResult(wsdlOutput);
+        try {
+          trans.transform(source, result);
+        } catch (TransformerException e) {
+          throw new IOException(e);
+        } finally {
+          trans.clearParameters();
+        }
+        wsdlFiles.put(basename, wsdlOutput);
+      }
+    }
+    return Collections.unmodifiableMap(wsdlFiles);
+  }
+
+  public Map<String, File> exportSchemas(File model, File tmp) throws IOException {
+    final Map<String, File> xsdFiles = new TreeMap<>();
+    final Transformer trans = newSchemaToXsdTransformer();
+    final Set<String> modules = moduleNamesFor(model);
+    for (String module : modules) {
+      final File schemaOutput = new File(tmp, module + ".xsd");
+      final StreamSource source = new StreamSource(model);
+      final StreamResult result = new StreamResult(schemaOutput);
+      try {
+        trans.setParameter("root_module", module);
+        trans.transform(source, result);
+      } catch (TransformerException e) {
+        throw new IOException(e);
+      } finally {
+        trans.clearParameters();
+      }
+      xsdFiles.put(module, schemaOutput);
+    }
+    return Collections.unmodifiableMap(xsdFiles);
+  }
+
+  public Set<String> moduleNamesFor(File modelFile) throws IOException {
+    final XPathFactory xpathFactory = XPathFactory.newInstance();
+    try {
+      final String expr = String.format(
+        "/*[local-name()='idl']/*[local-name()='document']/@name"
+      );
+      final XPath xpath = xpathFactory.newXPath();
+      final XPathExpression expression = xpath.compile(expr);
+      try (FileReader reader = new FileReader(modelFile)) {
+        final Set<String> results = new LinkedHashSet<String>();
+        final NodeList services = (NodeList) expression.evaluate(
+          new InputSource(reader), XPathConstants.NODESET
+        );
+        for (int i = 0, c = services.getLength(); i < c; i++) {
+          results.add(services.item(i).getNodeValue());
+        }
+        return results;
+      }
+    } catch (XPathException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public Set<String> serviceNamesFor(String module, File modelFile)
+      throws IOException {
+    try {
+      final XPathFactory xpathFactory = XPathFactory.newInstance();
+      final String expr = String.format(
+        "/*[local-name()='idl']" + 
+        "/*[local-name()='document' and @name='%s']" + 
+        "/*[local-name()='service']/@name", 
+        module
+      );
+      final XPath xpath = xpathFactory.newXPath();
+      final XPathExpression expression = xpath.compile(expr);
+      try (FileReader reader = new FileReader(modelFile)) {
+        final Set<String> results = new LinkedHashSet<String>();
+        final NodeList services = (NodeList) expression.evaluate(
+          new InputSource(reader), XPathConstants.NODESET
+        );
+        for (int i = 0, c = services.getLength(); i < c; i++) {
+          results.add(services.item(i).getNodeValue());
+        }
+        return results;
+      }
+    } catch (XPathException e) {
+      throw new IOException(e);
     }
   }
 

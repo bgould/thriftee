@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
 import javax.ejb.Remote;
 import javax.ejb.Stateless;
 
@@ -17,10 +19,19 @@ public class GroupServiceImpl implements GroupService {
 
   private final Map<String, Group> testGroups = new HashMap<>();
 
-  private final UserService userService;
+  @EJB
+  private UserService userService;
 
   public GroupServiceImpl(UserService userService) {
     this.userService = userService;
+    init();
+  }
+
+  public GroupServiceImpl() {
+  }
+
+  @PostConstruct
+  public void init() {
     final String[][] groups = {
       { "Mammals", "aaardvark", "bbat", "ddolphin", "ffox", "hhamster", },
       { "Winged", "eeagle", "ggrasshopper", "bbat", },
@@ -49,7 +60,8 @@ public class GroupServiceImpl implements GroupService {
 
   @Override
   public Group find(String name) throws UserGroupException {
-    return testGroups.get(name);
+    final Group result = testGroups.get(name);
+    return result;
   }
 
   @Override

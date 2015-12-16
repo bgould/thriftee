@@ -45,9 +45,13 @@ import com.facebook.swift.parser.model.VoidType;
 
 public class SwiftTranslator {
 
-  public static ModuleSchema.Builder translate(ThriftSchema.Builder parentBuilder, String _name, Document _document) 
-      throws SchemaBuilderException {
+  public static ModuleSchema.Builder translate(
+        final ThriftSchema.Builder parentBuilder, 
+        final String _name, 
+        final Document _document
+      ) throws SchemaBuilderException {
     final ModuleSchema.Builder val = parentBuilder.addModule(_name);
+    val.addIncludes(_document.getHeader().getIncludes());
     final List<Definition> definitions = _document.getDefinitions();
     for (final Definition definition : definitions) {
       if (definition instanceof Service) {
@@ -62,7 +66,7 @@ public class SwiftTranslator {
         translate(val, (ThriftException) definition);
       } else {
         throw new SchemaBuilderException(
-          SchemaBuilderException.Messages.SCHEMA_102, 
+          SchemaBuilderException.Messages.SCHEMA_102,
           definition.getClass()
         );
       }
@@ -70,8 +74,13 @@ public class SwiftTranslator {
     return val;
   }
 
-  public static ExceptionSchema.Builder translate(final ModuleSchema.Builder parentBuilder, final ThriftException _exception) {
-    final ExceptionSchema.Builder val = parentBuilder.addException(_exception.getName());
+  public static ExceptionSchema.Builder translate(
+        final ModuleSchema.Builder parentBuilder, 
+        final ThriftException _exception
+      ) {
+    final ExceptionSchema.Builder val = parentBuilder.addException(
+      _exception.getName()
+    );
     final List<ThriftField> fields = _exception.getFields();
     for (int i = 0, c = fields.size(); i < c; i++) {
       final ThriftField field = fields.get(i);
@@ -80,7 +89,9 @@ public class SwiftTranslator {
     return val;
   }
 
-  public static UnionSchema.Builder translate(final ModuleSchema.Builder parentBuilder, final Union _union) {
+  public static UnionSchema.Builder translate(
+      final ModuleSchema.Builder parentBuilder, 
+      final Union _union) {
     final UnionSchema.Builder val = parentBuilder.addUnion(_union.getName());
     final List<ThriftField> fields = _union.getFields();
     for (int i = 0, c = fields.size(); i < c; i++) {
@@ -90,7 +101,9 @@ public class SwiftTranslator {
     return val;
   }
 
-  public static StructSchema.Builder translate(final ModuleSchema.Builder parentBuilder, final Struct _struct) {
+  public static StructSchema.Builder translate(
+      final ModuleSchema.Builder parentBuilder, 
+      final Struct _struct) {
     final StructSchema.Builder val = parentBuilder.addStruct(_struct.getName());
     final List<ThriftField> fields = _struct.getFields();
     for (int i = 0, c = fields.size(); i < c; i++) {
@@ -100,7 +113,9 @@ public class SwiftTranslator {
     return val;
   }
 
-  public static EnumSchema.Builder translate(ModuleSchema.Builder parentBuilder, IntegerEnum _enum) {
+  public static EnumSchema.Builder translate(
+      final ModuleSchema.Builder parentBuilder, 
+      final IntegerEnum _enum) {
     EnumSchema.Builder val = parentBuilder.addEnum(_enum.getName());
     final List<IntegerEnumField> fields = _enum.getFields();
     for (int i = 0, c = fields.size(); i < c; i++) {
@@ -110,7 +125,9 @@ public class SwiftTranslator {
     return val;
   }
 
-  public static EnumValueSchema.Builder translate(EnumSchema.Builder parentBuilder, IntegerEnumField _field) {
+  public static EnumValueSchema.Builder translate(
+      final EnumSchema.Builder parentBuilder, 
+      final IntegerEnumField _field) {
     EnumValueSchema.Builder val = parentBuilder.addEnumValue(_field.getName());
     if (_field.getExplicitValue().isPresent()) {
       // TODO: support explicit values for enum fields in schema model
@@ -119,7 +136,9 @@ public class SwiftTranslator {
     return val;
   }
 
-  public static ServiceSchema.Builder translate(ModuleSchema.Builder parentBuilder, Service _service) {
+  public static ServiceSchema.Builder translate(
+      final ModuleSchema.Builder parentBuilder, 
+      final Service _service) {
     ServiceSchema.Builder val = parentBuilder.addService(_service.getName());
     if (_service.getParent().isPresent()) {
       val.parentService(_service.getParent().get());
@@ -132,10 +151,13 @@ public class SwiftTranslator {
     return val;
   }
 
-  public static MethodSchema.Builder translate(ServiceSchema.Builder parentBuilder, ThriftMethod _method) {
-    MethodSchema.Builder val = parentBuilder.addMethod(_method.getName())
-                                            .oneway(_method.isOneway())
-                                            .returnType(translate(_method.getReturnType()));
+  public static MethodSchema.Builder translate(
+      ServiceSchema.Builder parentBuilder, 
+      ThriftMethod _method) {
+    final MethodSchema.Builder val = parentBuilder
+        .addMethod(_method.getName())
+        .oneway(_method.isOneway())
+        .returnType(translate(_method.getReturnType()));
     final List<ThriftField> arguments = _method.getArguments(); 
     for (int i = 0, c = arguments.size(); i < c; i++) {
       ThriftField field = arguments.get(i);

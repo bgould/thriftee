@@ -2,7 +2,7 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:idl="http://thrift.apache.org/xml/idl"
     xmlns:txp="http://thrift.apache.org/xml/protocol"
-    xmlns:soap="http://www.w3.org/2001/12/soap-envelope"
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
     exclude-result-prefixes="xsl idl soap">
 
   <xsl:output method="xml" omit-xml-declaration="yes" indent="no" />
@@ -84,26 +84,38 @@
     <xsl:param name="metadata" />
     <xsl:param name="message" select="current()/detail/txp:TApplicationException" />
     <xsl:element name="{$exception}" namespace="{$txp_ns}">
-      <xsl:attribute name="{$name_attr}" select="$metadata/@name" />
+      <xsl:attribute name="{$name_attr}">
+        <xsl:value-of select="$metadata/@name" />
+      </xsl:attribute>
       <xsl:apply-templates mode="add-seqid" select="$metadata" />
       <xsl:element name="{$struct}" namespace="{$txp_ns}">
         <xsl:if test="$include_names">
-          <xsl:attribute name="{$name_attr}" select="'TApplicationException'" />
+          <xsl:attribute name="{$name_attr}">
+            <xsl:value-of select="'TApplicationException'" />
+          </xsl:attribute>
         </xsl:if>
         <xsl:if test="$message/txp:message">
           <xsl:element name="{$string}" namespace="{$txp_ns}">
-            <xsl:attribute name="{$field}" select="1" />
+            <xsl:attribute name="{$field}">
+              <xsl:value-of select="1" />
+            </xsl:attribute>
             <xsl:if test="$include_names">
-              <xsl:attribute name="{$fname}" select="'message'" />
+              <xsl:attribute name="{$fname}">
+                <xsl:value-of select="'message'" />
+              </xsl:attribute>
             </xsl:if>
             <xsl:value-of select="$message/txp:message" />
           </xsl:element>
         </xsl:if>
         <xsl:if test="$message/txp:type">
           <xsl:element name="{$i32}" namespace="{$txp_ns}">
-            <xsl:attribute name="{$field}" select="2" />
+            <xsl:attribute name="{$field}">
+              <xsl:value-of select="2" />
+            </xsl:attribute>
             <xsl:if test="$include_names">
-              <xsl:attribute name="{$fname}" select="'type'" />
+              <xsl:attribute name="{$fname}">
+                <xsl:value-of select="'type'" />
+              </xsl:attribute>
             </xsl:if>
             <xsl:value-of select="$message/txp:type" />
           </xsl:element>
@@ -124,11 +136,15 @@
       <xsl:message terminate="yes">could not find typeinfo for <xsl:value-of select="concat('{', $ns, '}', $methodname)" /></xsl:message>
     </xsl:if>
     <xsl:element name="{$reply}" namespace="{$txp_ns}">
-      <xsl:attribute name="{$name_attr}" select="$methodname" />
+      <xsl:attribute name="{$name_attr}">
+        <xsl:value-of select="$methodname" />
+      </xsl:attribute>
       <xsl:apply-templates mode="add-seqid" select="$metadata" />
       <xsl:element name="{$struct}" namespace="{$txp_ns}">
         <xsl:if test="$include_names">
-          <xsl:attribute name="{$name_attr}" select="concat($methodname, '_result')" />
+          <xsl:attribute name="{$name_attr}">
+            <xsl:value-of select="concat($methodname, '_result')" />
+          </xsl:attribute>
         </xsl:if>
         <xsl:apply-templates mode="transform-fields" select="$message/*[1]">
           <xsl:with-param name="typeinfo" select="$typeinfo" />
@@ -150,11 +166,15 @@
       <xsl:message terminate="yes">could not find typeinfo for <xsl:value-of select="concat('{', $ns, '}', $methodname)" /></xsl:message>
     </xsl:if>
     <xsl:element name="{$call}" namespace="{$txp_ns}">
-      <xsl:attribute name="{$name_attr}" select="$methodname" />
+      <xsl:attribute name="{$name_attr}">
+        <xsl:value-of select="$methodname" />
+      </xsl:attribute>
       <xsl:apply-templates mode="add-seqid" select="$metadata" />
       <xsl:element name="{$struct}" namespace="{$txp_ns}">
         <xsl:if test="$include_names">
-          <xsl:attribute name="{$name_attr}" select="concat($methodname, '_args')" />
+          <xsl:attribute name="{$name_attr}">
+            <xsl:value-of select="concat($methodname, '_args')" />
+          </xsl:attribute>
         </xsl:if>
         <xsl:apply-templates mode="transform-fields" select="$message/*">
           <xsl:with-param name="typeinfo" select="$typeinfo" />
@@ -181,11 +201,15 @@
       <xsl:apply-templates mode="typename-for-typeinfo" select="$returntype" />
     </xsl:variable>
     <xsl:element name="{$reply}" namespace="{$txp_ns}">
-      <xsl:attribute name="{$name_attr}" select="$methodname" />
+      <xsl:attribute name="{$name_attr}">
+        <xsl:value-of select="$methodname" />
+      </xsl:attribute>
       <xsl:apply-templates mode="add-seqid" select="$metadata" />
       <xsl:element name="{$struct}" namespace="{$txp_ns}">
         <xsl:if test="$include_names">
-          <xsl:attribute name="{$name_attr}" select="concat($methodname, '_result')" />
+          <xsl:attribute name="{$name_attr}">
+            <xsl:value-of select="concat($methodname, '_result')" />
+          </xsl:attribute>
         </xsl:if>
         <xsl:apply-templates select="$returntype" mode="transform-field">
           <xsl:with-param name="data" select="$message" />
@@ -221,7 +245,9 @@
     <xsl:param name="data" />
     <xsl:variable name="typeinfo" select="current()" />
     <xsl:if test="$include_names">
-      <xsl:attribute name="name" select="$typeinfo/@name" />
+      <xsl:attribute name="name">
+        <xsl:value-of select="$typeinfo/@name" />
+      </xsl:attribute>
     </xsl:if>
     <xsl:apply-templates mode="transform-fields" select="$data/*/*">
       <xsl:with-param name="typeinfo" select="$typeinfo" />
@@ -232,7 +258,9 @@
     <xsl:param name="data" />
     <xsl:variable name="typeinfo" select="current()" />
     <xsl:if test="$include_names">
-      <xsl:attribute name="name" select="$typeinfo/@name" />
+      <xsl:attribute name="name">
+        <xsl:value-of select="$typeinfo/@name" />
+      </xsl:attribute>
     </xsl:if>
     <xsl:apply-templates mode="transform-fields" select="$data/*[1]/*">
       <xsl:with-param name="typeinfo" select="$typeinfo" />
@@ -279,9 +307,13 @@
       <xsl:apply-templates mode="typename-for-typeinfo" select="$typeinfo" />
     </xsl:variable>
     <xsl:element name="{$typename}" namespace="{$txp_ns}">
-      <xsl:attribute name="{$field}" select="$field-id" />  
+      <xsl:attribute name="{$field}">
+        <xsl:value-of select="$field-id" />
+      </xsl:attribute>  
       <xsl:if test="$include_names">
-        <xsl:attribute name="{$fname}" select="$field-name" />
+        <xsl:attribute name="{$fname}">
+          <xsl:value-of select="$field-name" />
+        </xsl:attribute>
       </xsl:if>
       <xsl:apply-templates select="$typeinfo" mode="transform-thrift-type">
         <xsl:with-param name="data" select="$data" />
@@ -295,8 +327,12 @@
     <xsl:variable name="valuetypename">
       <xsl:apply-templates mode="typename-for-typeinfo" select="$typeinfo/idl:elemType" />
     </xsl:variable>
-    <xsl:attribute name="size" select="count($data/*)" />
-    <xsl:attribute name="value" select="$valuetypename" />
+    <xsl:attribute name="size">
+      <xsl:value-of select="count($data/*)" />
+    </xsl:attribute>
+    <xsl:attribute name="value">
+      <xsl:value-of select="$valuetypename" />
+    </xsl:attribute>
     <xsl:apply-templates mode="transform-container-entry" select="$data/*">
       <xsl:with-param name="typeinfo" select="$typeinfo" />
       <xsl:with-param name="typename" select="$valuetypename" />
@@ -323,9 +359,15 @@
     <xsl:variable name="valuetypename">
       <xsl:apply-templates mode="typename-for-typeinfo" select="$typeinfo/idl:valueType" />
     </xsl:variable>
-    <xsl:attribute name="size" select="count($data/*) div 2" />
-    <xsl:attribute name="value" select="$valuetypename" />
-    <xsl:attribute name="key" select="$keytypename" />
+    <xsl:attribute name="size">
+      <xsl:value-of select="count($data/*) div 2" />
+    </xsl:attribute>
+    <xsl:attribute name="value">
+      <xsl:value-of select="$valuetypename" />
+    </xsl:attribute>
+    <xsl:attribute name="key">
+      <xsl:value-of select="$keytypename" />
+    </xsl:attribute>
     <xsl:apply-templates mode="transform-map-entry" select="$data/*[position() mod 2 = 1]">
       <xsl:with-param name="typeinfo" select="$typeinfo"/>
       <xsl:with-param name="keytypename" select="$keytypename" />

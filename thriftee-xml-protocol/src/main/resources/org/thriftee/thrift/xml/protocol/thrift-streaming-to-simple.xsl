@@ -2,7 +2,7 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:idl="http://thrift.apache.org/xml/idl"
     xmlns:txp="http://thrift.apache.org/xml/protocol"
-    xmlns:soap="http://www.w3.org/2001/12/soap-envelope"
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
     exclude-result-prefixes="xsl idl soap">
 
   <xsl:output method="xml" omit-xml-declaration="yes" indent="no" />
@@ -15,13 +15,13 @@
   <xsl:variable name="idl" select="document($schema)/idl:idl" />
 
   <xsl:template match="/txp:m1|/txp:call">
-    <xsl:apply-templates mode="match-service" select="$idl/idl:document[1]/idl:service[@name=$service_name]">
+    <xsl:apply-templates mode="match-service" select="$idl/idl:document[$root_module]/idl:service[@name=$service_name]">
       <xsl:with-param name="call" select="current()" />
     </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="/txp:m2|/txp:reply">
-    <xsl:apply-templates mode="match-service" select="$idl/idl:document[1]/idl:service[@name=$service_name]">
+    <xsl:apply-templates mode="match-service" select="$idl/idl:document[$root_module]/idl:service[@name=$service_name]">
       <xsl:with-param name="call" select="current()" />
     </xsl:apply-templates>
   </xsl:template>

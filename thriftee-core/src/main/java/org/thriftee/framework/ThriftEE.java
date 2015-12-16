@@ -1,14 +1,21 @@
 package org.thriftee.framework;
 
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
+
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
@@ -29,6 +36,9 @@ import org.thriftee.compiler.schema.ThriftSchemaService;
 import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.provider.swift.SwiftSchemaBuilder;
+import org.thriftee.thrift.xml.ThriftSchemaXML;
+import org.thriftee.thrift.xml.Transforms;
+import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 import org.thriftee.util.FileUtil;
 import org.thriftee.util.New;
 import org.thriftee.util.Strings;
@@ -47,6 +57,8 @@ import com.facebook.swift.service.ThriftService;
 import com.facebook.swift.service.ThriftServiceProcessor;
 
 public class ThriftEE {
+
+  public static final Charset XML_CHARSET = Charset.forName("UTF-8");
 
   private final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -94,6 +106,10 @@ public class ThriftEE {
     return this.clientsDir;
   }
 
+  public File wsdlClientDir() {
+    return this.wsdlClientDir;
+  }
+
   public File idlDir() {
     return this.idlDir;
   }
@@ -134,6 +150,14 @@ public class ThriftEE {
     return this.globalIdlFile;
   }
 
+  public File globalXmlFile() {
+    return this.globalXmlFile;
+  }
+
+  public Transforms xmlTransforms() {
+    return this.transforms;
+  }
+
   public TMultiplexedProcessor multiplexedProcessor() {
     LOG.debug("Building multiplexed processor");
     final TMultiplexedProcessor multiplex = new TMultiplexedProcessor();
@@ -160,6 +184,8 @@ public class ThriftEE {
 
   private final File clientsDir;
 
+  private final File wsdlClientDir;
+
   private final File idlDir;
 
   private final File thriftExecutable;
@@ -182,8 +208,10 @@ public class ThriftEE {
 
   private final File globalIdlFile;
 
+  private final File globalXmlFile;
+
   private final SortedMap<String, ClientTypeAlias> clientTypeAliases;
-  
+
   private final SortedMap<String, ProtocolTypeAlias> protocolTypeAliases;
 
   private final SortedMap<String, TProcessor> processors;
@@ -192,10 +220,14 @@ public class ThriftEE {
 
   private final ThriftSchema schema;
 
+  private final Transforms transforms;
+
   public ThriftEE(final ThriftEEConfig config) throws ThriftStartupException {
 
+    this.transforms = new Transforms();
     this.tempDir = new File(config.tempDir(), "thriftee");
     this.clientsDir = new File(this.tempDir, "clients");
+    this.wsdlClientDir = new File(this.clientsDir, "wsdl");
     this.idlDir = new File(tempDir, "idl");
     if (config.serviceLocator() != null) {
       this.serviceLocator = config.serviceLocator();
@@ -227,7 +259,7 @@ public class ThriftEE {
       thriftUnions = searchFor(ThriftUnion.class, annotations);
       thriftEnums = searchFor(ThriftEnum.class, annotations);
     } catch (IOException e) {
-      throw new ThriftStartupException(e, ThriftStartupMessage.STARTUP_002, e.getMessage());
+      throw new ThriftStartupException(e, STARTUP_002, e.getMessage());
     }
 
     LOG.debug("Using bytecode compiler: {}", config.useBytecodeCompiler());
@@ -265,11 +297,9 @@ public class ThriftEE {
     // TODO: consider making validation more robust 
     if (config.thriftLibDir() != null) {
       if (!config.thriftLibDir().exists()) {
-        throw new ThriftStartupException(
-          ThriftStartupMessage.STARTUP_005, config.thriftLibDir());
+        throw new ThriftStartupException(STARTUP_005, config.thriftLibDir());
       } else if (!(validateThriftLibraryDir(config.thriftLibDir()))) {
-        throw new ThriftStartupException(
-          ThriftStartupMessage.STARTUP_006, config.thriftLibDir());
+        throw new ThriftStartupException(STARTUP_006, config.thriftLibDir());
       } else {
         this.thriftLibDir = config.thriftLibDir();
       }
@@ -293,7 +323,7 @@ public class ThriftEE {
     } else {
       final String thriftOnPath = ThriftCommand.searchPathForThrift();
       if (thriftOnPath == null) {
-        throw new ThriftStartupException(ThriftStartupMessage.STARTUP_007);
+        throw new ThriftStartupException(STARTUP_007);
       }
       final File thriftExecutableFile = new File(thriftOnPath);
       this.thriftExecutable = thriftExecutableFile;
@@ -301,8 +331,7 @@ public class ThriftEE {
     try {
       this.thriftVersionString = getVersionString();
     } catch (ThriftCommandException e) {
-      throw new ThriftStartupException(
-          e, ThriftStartupMessage.STARTUP_008, e.getMessage());
+      throw new ThriftStartupException(e, STARTUP_008, e.getMessage());
     }
     LOG.info("Using Thrift executable: {}", this.thriftExecutable);
     LOG.info("Thrift version string: {}", this.thriftVersionString);
@@ -326,19 +355,9 @@ public class ThriftEE {
       createIdlZip("swift");
       createIdlZip("thrift");
     } catch (final IOException e) {
-      throw new ThriftStartupException(
-          e, ThriftStartupMessage.STARTUP_001, e.getMessage());
+      throw new ThriftStartupException(e, STARTUP_001, e.getMessage());
     }
     this.idlFiles = idlFiles;
-
-    //------------------------------------------------------------------//
-    // At this point we will parse the generated IDL and store the meta //
-    // model of the schema. Loosely typed clients or clients incapable  //
-    // of introspection can use the meta model as a sort of reflection. //
-    // ThriftEE specifically uses this to dynamically invoke services   //
-    // from the ThriftEE dashboard.                                     //
-    //------------------------------------------------------------------//
-
     File globalFile = null;
     for (int i = 0, c = idlFiles.length; globalFile == null && i < c; i++) {
       final File idlFile = idlFiles[i];
@@ -346,25 +365,69 @@ public class ThriftEE {
         globalFile = idlFile;
       }
     }
-
     if (globalFile == null) {
-      throw new ThriftStartupException(ThriftStartupMessage.STARTUP_004); 
-    } else {
-      this.globalIdlFile = globalFile;
-      try {
-        SchemaBuilder schemaBuilder = new SwiftSchemaBuilder();
-        this.schema = schemaBuilder.buildSchema(this);
-      } catch (SchemaBuilderException e) {
-        throw new ThriftStartupException(
-            e, ThriftStartupMessage.STARTUP_003, e.getMessage());
-      }
+      throw new ThriftStartupException(STARTUP_004); 
+    }
+    this.globalIdlFile = globalFile;
+
+    //------------------------------------------------------------------//
+    // Generate the XML artifacts for thrift-to-SOAP conversion         //
+    // TODO: this class is starting to smell bad; refactor to be leaner //
+    // TODO: refactor XML to be "just another client"                   //
+    //------------------------------------------------------------------//
+    LOG.debug("Exporting XML definitions from IDL files");
+    final File globalXml = new File(idlDir(), "global.xml");
+    final ThriftSchemaXML schemaxml = new ThriftSchemaXML();
+    final StreamResult globalXmlResult = new StreamResult(globalXml);
+    try {
+      final String str = schemaxml.export(globalIdlFile, XML_CHARSET);
+      transforms.formatXml(str, globalXmlResult);
+    } catch (IOException e) {
+      throw new ThriftStartupException(e, STARTUP_011, e.getMessage());
+    }
+    final String xmlValidationError;
+    try {
+      final URL xsdurl = schemaxml.schemaUrl();
+      final StreamSource source = new StreamSource(globalXml);
+      xmlValidationError = TXMLProtocol.XML.validate(xsdurl, source);
+    } catch (Exception e) {
+      throw new ThriftStartupException(e, STARTUP_012, e.getMessage());
+    }
+    if (xmlValidationError != null) {
+      throw new ThriftStartupException(STARTUP_013, xmlValidationError);
+    }
+    this.globalXmlFile = globalXml;
+    this.wsdlClientDir.mkdirs();
+    try {
+      transforms.exportSchemas(globalXmlFile, this.wsdlClientDir);
+      transforms.exportWsdls(globalXmlFile, this.wsdlClientDir);
+    } catch (IOException e) {
+      throw new ThriftStartupException(e, STARTUP_014, e.getMessage());
     }
 
+    //------------------------------------------------------------------//
+    // At this point we will parse the generated IDL and store the meta //
+    // model of the schema. Loosely typed clients or clients incapable  //
+    // of introspection can use the meta model as a sort of reflection. //
+    //------------------------------------------------------------------//
+    try {
+      SchemaBuilder schemaBuilder = new SwiftSchemaBuilder();
+      this.schema = schemaBuilder.buildSchema(this);
+    } catch (SchemaBuilderException e) {
+      throw new ThriftStartupException(e, STARTUP_003, e.getMessage());
+    }
+
+    //------------------------------------------------------------------//
+    // Export the client libraries                                      //
+    //------------------------------------------------------------------//
     LOG.debug("Exporting configured clients");
     for (final ClientTypeAlias alias : clientTypeAliases().values()) {
       generateClientLibrary(alias);
     }
 
+    //------------------------------------------------------------------//
+    // Register the thrift processors                                   //
+    //------------------------------------------------------------------//
     LOG.debug("Setting up thrift processor map");
     try {
       final ThriftSchemaService impl = new ThriftSchemaService.Impl(schema());

@@ -243,6 +243,16 @@ public class TXMLProtocol extends AbstractContextProtocol {
     return XML.validate(schemaUrl(), new StreamSource(new StringReader(str)));
   }
 
+  public void flush() throws TException {
+    if (__writer != null) {
+      try {
+        __writer.flush();
+      } catch (XMLStreamException e) {
+        throw new TException(e);
+      }
+    }
+  }
+
   public abstract class XMLValueHolderContext 
       extends AbstractContext 
       implements ValueHolderContext {
@@ -400,6 +410,11 @@ public class TXMLProtocol extends AbstractContextProtocol {
       return new XMLStructContext(this);
     }
 
+    @Override
+    public void popped() throws TException {
+      flush();
+    }
+
   }
 
   public class XMLMessageContext 
@@ -428,7 +443,12 @@ public class TXMLProtocol extends AbstractContextProtocol {
       final String msgname = nextStartElement();
       this.type = messageTypeToByte(msgname);
       this.name = readAttribute(variant.ATTRIBUTE_NAME);
-      this.seqid = readIntAttribute(variant.ATTRIBUTE_SEQID);
+      // TODO: seqid should always be required
+      if (reader().getAttributeValue(null, variant.ATTRIBUTE_SEQID) != null) {
+        this.seqid = readIntAttribute(variant.ATTRIBUTE_SEQID);
+      } else {
+        this.seqid = 1;
+      }
       return this;
     }
 

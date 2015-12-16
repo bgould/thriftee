@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Result;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.thriftee.thrift.xml.protocol.TXMLProtocol.XML;
@@ -57,6 +59,12 @@ public class ThriftSchemaXML {
   private Document document;
 
   private String module;
+
+  public String export(File root, Charset charset) throws IOException {
+    final StringWriter w = new StringWriter();
+    export(root, charset, new StreamResult(w));
+    return w.toString();
+  }
 
   public void export(File root, Charset charset, Result result)
       throws IOException {

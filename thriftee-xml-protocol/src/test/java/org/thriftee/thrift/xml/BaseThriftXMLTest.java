@@ -5,7 +5,6 @@ import static org.thriftee.thrift.xml.Transforms.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -17,22 +16,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.TreeMap;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathException;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TMessage;
@@ -40,13 +32,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
-import org.thriftee.thrift.xml.ThriftSchemaXML;
-import org.thriftee.thrift.xml.Transforms;
+import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 import org.thriftee.thrift.xml.protocol.TXMLProtocolTest;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 import another.Blotto;
 import everything.EndOfTheUniverseException;
@@ -233,53 +221,19 @@ public class BaseThriftXMLTest {
   }
 
   public static Map<String, File> exportSchemas(
-      Map<String, File> models, 
-      File tmp) throws IOException {
+      Map<String, File> models, File tmp) throws IOException {
     final Map<String, File> xsdFiles = new TreeMap<>();
-    final Transformer trans = Transforms.newSchemaToXsdTransformer();
     for (Entry<String, File> entry : models.entrySet()) {
-      final String basename = entry.getKey();
-      final File modelFile = entry.getValue();
-      final File schemaOutput = new File(tmp, basename + ".xsd");
-      final StreamSource source = new StreamSource(modelFile);
-      final StreamResult result = new StreamResult(schemaOutput);
-      try {
-        trans.transform(source, result);
-      } catch (TransformerException e) {
-        throw new IOException(e);
-      } finally {
-        trans.clearParameters();
-      }
-      xsdFiles.put(basename, schemaOutput);
+      xsdFiles.putAll(Transforms.exportSchemas(entry.getValue(), tmp));
     }
     return Collections.unmodifiableMap(xsdFiles);
   }
 
   public static Map<String, File> exportWsdls(
-      Map<String, File> models, 
-      File tmp) throws IOException {
+      Map<String, File> models, File tmp) throws IOException {
     final Map<String, File> wsdlFiles = new TreeMap<>();
     for (Entry<String, File> entry : models.entrySet()) {
-      final String module = entry.getKey();
-      final File modelFile = entry.getValue();
-      final Set<String> services = serviceNamesFor(module, modelFile);
-      final Transformer trans = Transforms.newSchemaToWsdlTransformer();
-      for (String service : services) {
-        final String basename = module + "." + service;
-        final File wsdlOutput = new File(tmp, basename + ".wsdl");
-        trans.setParameter("service_module", module);
-        trans.setParameter("service_name", service);
-        final StreamSource source = new StreamSource(modelFile);
-        final StreamResult result = new StreamResult(wsdlOutput);
-        try {
-          trans.transform(source, result);
-        } catch (TransformerException e) {
-          throw new IOException(e);
-        } finally {
-          trans.clearParameters();
-        }
-        wsdlFiles.put(basename, wsdlOutput);
-      }
+      wsdlFiles.putAll(Transforms.exportSchemas(entry.getValue(), tmp));
     }
     return Collections.unmodifiableMap(wsdlFiles);
   }
@@ -355,33 +309,6 @@ public class BaseThriftXMLTest {
     addFormatting(trns2);
     trns2.setParameter("schema", urlToModelFor(obj.module).toString());
     trns2.transform(new StreamSource(src), new StreamResult(tgt));
-  }
-  
-  private static Set<String> serviceNamesFor(String module, File modelFile)
-      throws IOException {
-    try {
-      final XPathFactory xpathFactory = XPathFactory.newInstance();
-      final String expr = String.format(
-        "/*[local-name()='idl']" + 
-        "/*[local-name()='document' and @name='%s']" + 
-        "/*[local-name()='service']/@name", 
-        module
-      );
-      final XPath xpath = xpathFactory.newXPath();
-      final XPathExpression expression = xpath.compile(expr);
-      try (FileReader reader = new FileReader(modelFile)) {
-        final Set<String> results = new LinkedHashSet<String>();
-        final NodeList services = (NodeList) expression.evaluate(
-          new InputSource(reader), XPathConstants.NODESET
-        );
-        for (int i = 0, c = services.getLength(); i < c; i++) {
-          results.add(services.item(i).getNodeValue());
-        }
-        return results;
-      }
-    } catch (XPathException e) {
-      throw new IOException(e);
-    }
   }
 
   public static Collection<Object[]> testParameters() {

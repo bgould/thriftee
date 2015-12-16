@@ -14,10 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.framework.ThriftEE;
 
-/*
- * 
- * @author bcg
- */
 public class ThriftApplication extends Application {
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
@@ -29,6 +25,8 @@ public class ThriftApplication extends Application {
   public ThriftApplication(Context context) {
     super(context);
     getMetadataService().setDefaultMediaType(MediaType.TEXT_PLAIN);
+    getMetadataService().addExtension("wsdl", MediaType.TEXT_XML);
+    getMetadataService().addExtension("xsd", MediaType.TEXT_XML, true);
   }
 
   private static final ThreadLocal<Response> currentResponse = new ThreadLocal<>();
@@ -56,6 +54,12 @@ public class ThriftApplication extends Application {
       "/endpoints/{module}/",
       "/endpoints/{module}/{service}/",
       "/endpoints/{module}/{service}/{protocol}"
+    );
+    attach(router, SOAPResource.class,
+      "/soap/",
+      "/soap/{module}/",
+      "/soap/{module}/{service}/",
+      "/soap/{module}/{service}/{filename}"
     );
     router.attach("/clients/", createClientsDirectory());
     router.attach("/idl/", createIdlDirectory());

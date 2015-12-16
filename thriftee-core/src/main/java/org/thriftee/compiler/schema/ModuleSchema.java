@@ -1,8 +1,11 @@
 package org.thriftee.compiler.schema;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.thriftee.compiler.schema.ModuleSchema.Builder;
 import org.thriftee.util.New;
@@ -13,40 +16,46 @@ import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct(builder=Builder.class)
 public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
-  
+
   public static final int THRIFT_INDEX_NAME = 1;
-  
-  public static final int THRIFT_INDEX_EXCEPTIONS = THRIFT_INDEX_NAME + 1;
-  
+
+  public static final int THRIFT_INDEX_INCLUDES = THRIFT_INDEX_NAME + 1;
+
+  public static final int THRIFT_INDEX_EXCEPTIONS = THRIFT_INDEX_INCLUDES + 1;
+
   public static final int THRIFT_INDEX_SERVICES = THRIFT_INDEX_EXCEPTIONS + 1;
-  
+
   public static final int THRIFT_INDEX_STRUCTS = THRIFT_INDEX_SERVICES + 1;
-  
+
   public static final int THRIFT_INDEX_UNIONS = THRIFT_INDEX_STRUCTS + 1;
-  
+
   public static final int THRIFT_INDEX_ENUMS = THRIFT_INDEX_UNIONS + 1;
 
   private static final long serialVersionUID = 1973580748761800425L;
 
   private final Map<String, ExceptionSchema> exceptions;
-  
+
   private final Map<String, ServiceSchema> services;
-  
+
   private final Map<String, StructSchema> structs;
-  
+
   private final Map<String, UnionSchema> unions;
-  
+
   private final Map<String, EnumSchema> enums;
-  
+
+  private final Set<String> includes;
+
   public ModuleSchema(
       ThriftSchema _parent,
-      String _name, 
+      String _name,
+      Collection<String> includes,
       Collection<ExceptionSchema.Builder> _exceptions,
       Collection<ServiceSchema.Builder> _services, 
       Collection<StructSchema.Builder> _structs,
       Collection<UnionSchema.Builder> _unions,
       Collection<EnumSchema.Builder> _enums) throws SchemaBuilderException {
     super(ThriftSchema.class, ModuleSchema.class, _parent, _name, null);
+    this.includes = Collections.unmodifiableSortedSet(new TreeSet<>(includes));
     this.exceptions = toMap(this, _exceptions);
     this.services = toMap(this, _services);
     this.structs = toMap(this, _structs);
@@ -58,12 +67,17 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
   public String getName() {
     return super.getName();
   }
-  
+
+  @ThriftField(THRIFT_INDEX_INCLUDES)
+  public Set<String> getIncludes() {
+    return includes;
+  }
+
   @ThriftField(THRIFT_INDEX_EXCEPTIONS)
   public Map<String, ExceptionSchema> getExceptions() {
     return exceptions;
   }
-  
+
   @ThriftField(THRIFT_INDEX_SERVICES)
   public Map<String, ServiceSchema> getServices() {
     return services;
@@ -73,7 +87,7 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
   public Map<String, StructSchema> getStructs() {
     return structs;
   }
-  
+
   @ThriftField(THRIFT_INDEX_UNIONS)
   public Map<String, UnionSchema> getUnions() {
     return unions;
@@ -83,28 +97,40 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
   public Map<String, EnumSchema> getEnums() {
     return enums;
   }
-  
+
   public static final class Builder extends AbstractSchemaBuilder<ThriftSchema, ModuleSchema, ThriftSchema.Builder, ModuleSchema.Builder> {
 
+    private final Set<String> includes = New.sortedSet();
+
     private final List<ExceptionSchema.Builder> exceptions = New.linkedList();
-    
+
     private final List<ServiceSchema.Builder> services = New.linkedList();
-    
+
     private final List<StructSchema.Builder> structs = New.linkedList();
-    
+
     private final List<UnionSchema.Builder> unions = New.linkedList();
-    
+
     private final List<EnumSchema.Builder> enums = New.linkedList();
-    
+
     public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
       this(null);
       throw new NoArgConstructorOnlyExistsForSwiftValidationException();
     }
-    
+
     Builder(ThriftSchema.Builder parentBuilder) {
       super(parentBuilder, ModuleSchema.Builder.class);
     }
-    
+
+    public Builder addInclude(String include) {
+      this.includes.add(include);
+      return this;
+    }
+
+    public Builder addIncludes(Collection<String> includes) {
+      this.includes.addAll(includes);
+      return this;
+    }
+
     public ExceptionSchema.Builder addException(final String _name) {
       ExceptionSchema.Builder result = new ExceptionSchema.Builder(this);
       this.exceptions.add(result);
@@ -141,6 +167,7 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
       final ModuleSchema result = new ModuleSchema(
         parent, 
         getName(), 
+        includes,
         exceptions,
         services,
         structs,
@@ -152,7 +179,15 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
 
     @Override
     protected String[] toStringFields() {
-      return new String[] { "name", "annotations", "services", "structs", "unions", "enums" };
+      return new String[] { 
+        "name",
+        "includes",
+        "annotations", 
+        "services", 
+        "structs", 
+        "unions", 
+        "enums"
+      };
     }
 
     @Override

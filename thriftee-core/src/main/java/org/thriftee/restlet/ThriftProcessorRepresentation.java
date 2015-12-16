@@ -56,12 +56,16 @@ public class ThriftProcessorRepresentation extends OutputRepresentation {
 
   @Override
   public void write(final OutputStream out) throws IOException {
+    if (out == null) {
+      throw new IllegalArgumentException("output stream cannot be null.");
+    }
     final InputStream in = inputEntity.getStream();
     final TTransport transport = new TIOStreamTransport(in, out);
     try {
       final TProtocol inProtocol = getInFactory().getProtocol(transport);
       final TProtocol outProtocol = getOutFactory().getProtocol(transport);
       if (getProcessor().process(inProtocol, outProtocol)) {
+        transport.flush();
         out.flush();
       } else {
         throw new IOException("TProcessor.process() returned false");

@@ -20,7 +20,7 @@
     <module>thriftee-examples</module>
     <module>thriftee-servlet</module>
   </modules>
-  
+
   <repositories>
     <repository>
       <id>maven-restlet</id>
@@ -74,6 +74,11 @@
       <dependency>
         <groupId>org.thriftee</groupId>
         <artifactId>thriftee-idl-parser</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.thriftee</groupId>
+        <artifactId>thriftee-xml-protocol</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -170,6 +175,11 @@
             <artifactId>js</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>net.sf.saxon</groupId>
+        <artifactId>Saxon-HE</artifactId>
+        <version>9.6.0-7</version>
       </dependency>
       <dependency>
         <groupId>org.json</groupId>
@@ -319,7 +329,23 @@
                     <exclude>*:annotations</exclude>
                   </excludes>
                 </artifactSet>
+                <filters>
+                  <filter>
+                    <artifact>net.sf.saxon:*</artifact>
+                    <excludes>
+                      <exclude>META-INF/services/*</exclude>
+                      <exclude>META-INF/*.SF</exclude>
+                      <exclude>META-INF/*.DSA</exclude>
+                      <exclude>META-INF/*.RSA</exclude>
+                      <exclude>META-INF/MANIFEST.MF</exclude>
+                    </excludes>
+                   </filter>
+                </filters>
                 <relocations>
+                  <relocation>
+                    <pattern>net.sf.saxon</pattern>
+                    <shadedPattern>thriftee.shaded.net.sf.saxon</shadedPattern>
+                  </relocation>
                   <relocation>
                     <pattern>com.google</pattern>
                     <shadedPattern>thriftee.shaded.com.google</shadedPattern>
@@ -417,14 +443,18 @@
                 </relocations>
                 <transformers>
                   <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-                  	<resource>ConverterHelper</resource>
+                    <resource>ConverterHelper</resource>
                   </transformer>
                   <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-                  	<resource>OSGI-INF/restlet.xml</resource>
+                    <resource>OSGI-INF/restlet.xml</resource>
                   </transformer>
                   <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                  	<resource>META-INF/services/org.restlet.engine.converter.ConverterHelper</resource>
-                  	<file>${basedir}/../src/main/shade/META-INF/services/org.restlet.engine.converter.ConverterHelper</file>
+                    <resource>META-INF/services/org.restlet.engine.converter.ConverterHelper</resource>
+                    <file>${basedir}/../src/main/shade/META-INF/services/org.restlet.engine.converter.ConverterHelper</file>
+                  </transformer>
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                    <resource>META-INF/services/javax.xml.transform.TransformerFactory</resource>
+                    <file>${basedir}/../src/main/shade/META-INF/services/javax.xml.transform.TransformerFactory</file>
                   </transformer>
                   <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
                     <!-- <addHeader>false</addHeader> -->
