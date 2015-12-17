@@ -1,12 +1,15 @@
 package org.thriftee.thrift.xml;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -34,6 +37,7 @@ import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.thrift.TByteArrayOutputStream;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
@@ -91,7 +95,7 @@ public class Transforms {
       final File modelFile, final String module, final String service) {
     final Transformer result = newStreamingToSimpleTransformer();
     try {
-      result.setParameter("schema", modelFile.toURI().toURL().toString());
+      result.setParameter("schema", "cache:" + modelFile.toURI().toURL().toString());
       result.setParameter("root_module", module);
       result.setParameter("service_name", service);
     } catch (MalformedURLException e) {
@@ -292,6 +296,8 @@ public class Transforms {
 
     private final Pattern resolverPattern = Pattern.compile("^thrift-.+xsl$");
 
+    private final Map<String, byte[]> cache = new ConcurrentHashMap<>();
+
     public InternalResourceResolver(URIResolver delegate) {
       super();
       this.delegate = delegate;
@@ -299,14 +305,21 @@ public class Transforms {
 
     public Source resolve(String href, String b) throws TransformerException {
       try {
-        final Matcher m = resolverPattern.matcher(href);
-        if (m.matches()) {
-          final ClassLoader cl = getClass().getClassLoader();
-          final String rsrc = XSL_BASE + "/" + href;
-          final URL url = cl.getResource(rsrc);
-          if (url != null) {
-            return new StreamSource(url.openStream());
+        final URL url;
+        if (href.startsWith("cache:")) {
+          url = new URL(href.substring(6));
+        } else {
+          final Matcher m = resolverPattern.matcher(href);
+          if (m.matches()) {
+            final ClassLoader cl = getClass().getClassLoader();
+            final String rsrc = XSL_BASE + "/" + href;
+            url = cl.getResource(rsrc);
+          } else {
+            url = null;
           }
+        }
+        if (url != null) {
+          return readCached(url);
         }
       } catch (IOException e) {
         throw new TransformerException(e);
@@ -314,5 +327,37 @@ public class Transforms {
       return delegate.resolve(href, b);
     }
 
+    private StreamSource readCached(URL url) throws IOException {
+      final String spec = url.toExternalForm();
+      if (!cache.containsKey(spec)) {
+        cache.put(spec, readFully(url));
+      }
+      return new StreamSource(new ByteArrayInputStream(cache.get(spec)));
+    }
+
+    private byte[] readFully(URL url) throws IOException {
+      final URLConnection conn = url.openConnection();
+      final int len = conn.getContentLength();
+      final InputStream in = conn.getInputStream();
+      try (final TByteArrayOutputStream out = new TByteArrayOutputStream(len)) {
+        final byte[] buffer = new byte[2048];
+        int bytesRead = 0;
+        for (int n = -1; (n = in.read(buffer)) > -1; bytesRead+=n) {
+          out.write(buffer, 0, n);
+        }
+        if (bytesRead != len) {
+          throw new IOException(
+            "content length should have been " + len + 
+            " but was actually " + bytesRead
+          );
+        } else if (out.get().length != bytesRead) {
+          throw new IOException(
+            "byte array size should have " + bytesRead + 
+            " but was actually " + out.get().length
+          );
+        }
+        return out.get();
+      }
+    }
   }
 }
