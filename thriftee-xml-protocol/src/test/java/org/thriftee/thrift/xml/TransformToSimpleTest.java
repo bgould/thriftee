@@ -8,9 +8,6 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -26,10 +23,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.thriftee.thrift.xml.Transformation.RootType;
+import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 import org.thriftee.thrift.xml.protocol.TXMLProtocolTest;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
 import org.thriftee.thrift.xml.protocol.UniverseImpl;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 
 import everything.EndOfTheUniverseException;
 import everything.Everything;
@@ -88,11 +86,14 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
 
     final File transformOutput = new File(testMethodDir, "output.xml");
     try (final FileWriter w = new FileWriter(transformOutput)) {
-      final Transformer trans = Transforms.newStreamingToSimpleTransformer();
-      trans.setParameter("root_struct", "Everything");
-      trans.setParameter("schema", 
-        new File(testModelDir, "everything.xml").toURI().toURL().toString());
-      trans.transform(new StreamSource(dataOutput), new StreamResult(w));
+      Transforms.transformStreamingToSimple(
+        schemaFile, 
+        "everything", 
+        RootType.STRUCT, 
+        "Everything", 
+        new StreamSource(dataOutput), 
+        new StreamResult(w)
+      );
       w.flush();
     }
 
@@ -117,11 +118,14 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
     Transforms.formatXml(callOutput, new StreamResult(System.out));
 
     try (final FileWriter w = new FileWriter(transformOutput)) {
-      final Transformer trans = Transforms.newStreamingToSimpleTransformer();
-      trans.setParameter("service_name", "Universe");
-      trans.setParameter("schema", schemaFile.toURI().toURL().toString());
-      trans.transform(new StreamSource(callOutput), new StreamResult(w));
-      w.flush();
+      Transforms.transformStreamingToSimple(
+        schemaFile, 
+        "everything", 
+        RootType.MESSAGE, 
+        "Universe", 
+        new StreamSource(callOutput), 
+        new StreamResult(w)
+      );
     }
 
     System.out.println("\ntransformed call:\n----------------");
@@ -138,11 +142,14 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
     Transforms.formatXml(replyOutput, new StreamResult(System.out));
 
     try (final FileWriter w = new FileWriter(transformOutput2)) {
-      final Transformer trans = Transforms.newStreamingToSimpleTransformer();
-      trans.setParameter("service_name", "Universe");
-      trans.setParameter("schema", schemaFile.toURI().toURL().toString());
-      trans.transform(new StreamSource(replyOutput), new StreamResult(w));
-      w.flush();
+      Transforms.transformStreamingToSimple(
+        schemaFile, 
+        "everything", 
+        RootType.MESSAGE, 
+        "Universe", 
+        new StreamSource(replyOutput), 
+        new StreamResult(w)
+      );
     }
 
     System.out.println("\ntransformed reply:\n----------------");
@@ -169,11 +176,14 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
     Transforms.formatXml(replyOutput, new StreamResult(System.out));
 
     try (final FileWriter w = new FileWriter(transformOutput)) {
-      final Transformer trans = Transforms.newStreamingToSimpleTransformer();
-      trans.setParameter("service_name", "Universe");
-      trans.setParameter("schema", schemaFile.toURI().toURL().toString());
-      trans.transform(new StreamSource(replyOutput), new StreamResult(w));
-      w.flush();
+      Transforms.transformStreamingToSimple(
+        schemaFile, 
+        "everything", 
+        RootType.MESSAGE, 
+        "Universe", 
+        new StreamSource(replyOutput), 
+        new StreamResult(w)
+      );
     }
 
     System.out.println("\ntransformed exception:\n----------------");
@@ -198,11 +208,14 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
     Transforms.formatXml(callOutput, new StreamResult(System.out));
 
     try (final FileWriter w = new FileWriter(transformOutput)) {
-      final Transformer trans = Transforms.newStreamingToSimpleTransformer();
-      trans.setParameter("service_name", "Universe");
-      trans.setParameter("schema", schemaFile.toURI().toURL().toString());
-      trans.transform(new StreamSource(callOutput), new StreamResult(w));
-      w.flush();
+      Transforms.transformStreamingToSimple(
+        schemaFile, 
+        "everything", 
+        RootType.MESSAGE, 
+        "Universe", 
+        new StreamSource(callOutput), 
+        new StreamResult(w)
+      );
     }
 
     System.out.println("\ntransformed call:\n----------------");
@@ -224,11 +237,14 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
     Transforms.formatXml(replyOutput, new StreamResult(System.out));
 
     try (final FileWriter w = new FileWriter(transformOutput2)) {
-      final Transformer trans = Transforms.newStreamingToSimpleTransformer();
-      trans.setParameter("service_name", "Universe");
-      trans.setParameter("schema", schemaFile.toURI().toURL().toString());
-      trans.transform(new StreamSource(replyOutput), new StreamResult(w));
-      w.flush();
+      Transforms.transformStreamingToSimple(
+        schemaFile, 
+        "everything", 
+        RootType.MESSAGE, 
+        "Universe", 
+        new StreamSource(replyOutput), 
+        new StreamResult(w)
+      );
     }
 
     System.out.println("\ntransformed reply:\n----------------");
@@ -251,10 +267,14 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
     long totalNanos = 0;
     for (int i =0 ; i < count; i++) {
       final long startNano = System.nanoTime();
-      final Transformer tr = Transforms.newSimpleToStreamingTransformer();
-      final Source source = new StreamSource(new StringReader(xml));
-      final Result result = new StreamResult(new StringWriter());
-      tr.transform(source, result);
+      Transforms.transformStreamingToSimple(
+        schemaFile, 
+        "everything", 
+        RootType.STRUCT, 
+        "Everything", 
+        new StreamSource(new StringReader(xml)), 
+        new StreamResult(new StringWriter())
+      );
       totalNanos += System.nanoTime() - startNano;
     }
 

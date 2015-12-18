@@ -34,7 +34,7 @@ public class TransformToStreamingTest extends BaseThriftXMLTest {
   public void structTest() throws Exception {
 
     // verbose.xml is the message before having any transformations applied
-    final File streamed = testobj.verboseXml();
+    final File streamed = testobj.conciseXml();
     final String frmtd1 = Transforms.formatXml(new StreamSource(streamed));
 
     // streaming.xml is the streaming protocol after round-tripping through xslt
@@ -48,11 +48,11 @@ public class TransformToStreamingTest extends BaseThriftXMLTest {
       // TODO: test 
       
     } else {
-      final TestProtocol iprot1 = new TestProtocol(frmtd1, Variant.VERBOSE);
+      final TestProtocol iprot1 = new TestProtocol(frmtd1, Variant.CONCISE);
       final TBase<?, ?> obj1 = (TBase<?,?>)testobj.obj.getClass().newInstance();
       obj1.read(iprot1);
 
-      final TestProtocol iprot2 = new TestProtocol(frmtd2, Variant.VERBOSE);
+      final TestProtocol iprot2 = new TestProtocol(frmtd2, Variant.CONCISE);
       final TBase<?, ?> obj2 = (TBase<?,?>)testobj.obj.getClass().newInstance();
       obj2.read(iprot2);
 

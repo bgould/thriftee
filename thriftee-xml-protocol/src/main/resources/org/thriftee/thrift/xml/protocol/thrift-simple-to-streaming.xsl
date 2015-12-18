@@ -14,6 +14,7 @@
   <xsl:variable name="idl" select="document($schema)/idl:idl" />
 
   <xsl:variable name="txp_ns" select="'http://thrift.apache.org/xml/protocol'" />
+  <!-- 
   <xsl:variable name="include_names" select="true()" />
   <xsl:variable name="call" select="'call'" />
   <xsl:variable name="reply" select="'reply'" />
@@ -21,7 +22,7 @@
   <xsl:variable name="exception" select="'exception'" />
   <xsl:variable name="struct" select="'struct'" />
   <xsl:variable name="field" select="'field'" />
-  <xsl:variable name="fname" select="'fname'" />
+  <xsl:variable name="fname_attr" select="'fname'" />
   <xsl:variable name="list" select="'list'" />
   <xsl:variable name="map" select="'map'" />
   <xsl:variable name="set" select="'set'" />
@@ -33,6 +34,31 @@
   <xsl:variable name="double" select="'double'" />
   <xsl:variable name="seqid_attr" select="'seqid'" />
   <xsl:variable name="name_attr" select="'name'" />
+   -->
+  <xsl:variable name="include_names" select="false()" />
+  <xsl:variable name="call"       select="'m1'" />
+  <xsl:variable name="reply"      select="'m2'" />
+  <xsl:variable name="oneway"     select="'m4'" />
+  <xsl:variable name="exception"  select="'m3'" />
+  <xsl:variable name="key_attr"   select="'k'" />
+  <xsl:variable name="value_attr" select="'v'" />
+  <xsl:variable name="type_attr"  select="'t'" />
+  <xsl:variable name="size_attr"  select="'z'" />
+  <xsl:variable name="name_attr"  select="'n'" />
+  <xsl:variable name="field_attr" select="'i'" />
+  <xsl:variable name="seqid_attr" select="'q'" />
+  <xsl:variable name="fname_attr" select="null" />
+  <xsl:variable name="i8"         select="'t3'" />
+  <xsl:variable name="double"     select="'t4'" />
+  <xsl:variable name="i16"        select="'t6'" />
+  <xsl:variable name="i32"        select="'t8'" />
+  <xsl:variable name="i64"        select="'t10'" />
+  <xsl:variable name="string"     select="'t11'" />
+  <xsl:variable name="struct"     select="'t12'" />
+  <xsl:variable name="map"        select="'t13'" />
+  <xsl:variable name="set"        select="'t14'" />
+  <xsl:variable name="list"       select="'t15'" />
+  <xsl:variable name="enum"       select="'t16'" />
 
   <xsl:template match="/">
     <xsl:apply-templates mode="resolve" />
@@ -96,11 +122,11 @@
         </xsl:if>
         <xsl:if test="$message/txp:message">
           <xsl:element name="{$string}" namespace="{$txp_ns}">
-            <xsl:attribute name="{$field}">
+            <xsl:attribute name="{$field_attr}">
               <xsl:value-of select="1" />
             </xsl:attribute>
             <xsl:if test="$include_names">
-              <xsl:attribute name="{$fname}">
+              <xsl:attribute name="{$fname_attr}">
                 <xsl:value-of select="'message'" />
               </xsl:attribute>
             </xsl:if>
@@ -109,11 +135,11 @@
         </xsl:if>
         <xsl:if test="$message/txp:type">
           <xsl:element name="{$i32}" namespace="{$txp_ns}">
-            <xsl:attribute name="{$field}">
+            <xsl:attribute name="{$field_attr}">
               <xsl:value-of select="2" />
             </xsl:attribute>
             <xsl:if test="$include_names">
-              <xsl:attribute name="{$fname}">
+              <xsl:attribute name="{$fname_attr}">
                 <xsl:value-of select="'type'" />
               </xsl:attribute>
             </xsl:if>
@@ -307,11 +333,11 @@
       <xsl:apply-templates mode="typename-for-typeinfo" select="$typeinfo" />
     </xsl:variable>
     <xsl:element name="{$typename}" namespace="{$txp_ns}">
-      <xsl:attribute name="{$field}">
+      <xsl:attribute name="{$field_attr}">
         <xsl:value-of select="$field-id" />
       </xsl:attribute>  
       <xsl:if test="$include_names">
-        <xsl:attribute name="{$fname}">
+        <xsl:attribute name="{$fname_attr}">
           <xsl:value-of select="$field-name" />
         </xsl:attribute>
       </xsl:if>
@@ -327,10 +353,10 @@
     <xsl:variable name="valuetypename">
       <xsl:apply-templates mode="typename-for-typeinfo" select="$typeinfo/idl:elemType" />
     </xsl:variable>
-    <xsl:attribute name="size">
+    <xsl:attribute name="{$size_attr}">
       <xsl:value-of select="count($data/*)" />
     </xsl:attribute>
-    <xsl:attribute name="value">
+    <xsl:attribute name="{$value_attr}">
       <xsl:value-of select="$valuetypename" />
     </xsl:attribute>
     <xsl:apply-templates mode="transform-container-entry" select="$data/*">
@@ -359,13 +385,13 @@
     <xsl:variable name="valuetypename">
       <xsl:apply-templates mode="typename-for-typeinfo" select="$typeinfo/idl:valueType" />
     </xsl:variable>
-    <xsl:attribute name="size">
+    <xsl:attribute name="{$size_attr}">
       <xsl:value-of select="count($data/*) div 2" />
     </xsl:attribute>
-    <xsl:attribute name="value">
+    <xsl:attribute name="{$value_attr}">
       <xsl:value-of select="$valuetypename" />
     </xsl:attribute>
-    <xsl:attribute name="key">
+    <xsl:attribute name="{$key_attr}">
       <xsl:value-of select="$keytypename" />
     </xsl:attribute>
     <xsl:apply-templates mode="transform-map-entry" select="$data/*[position() mod 2 = 1]">

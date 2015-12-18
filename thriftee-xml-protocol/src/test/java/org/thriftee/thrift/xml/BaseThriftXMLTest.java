@@ -1,7 +1,6 @@
 package org.thriftee.thrift.xml;
 
-import static org.thriftee.thrift.xml.ThriftSchemaXMLTest.*;
-import static org.thriftee.thrift.xml.Transforms.*;
+import static org.thriftee.thrift.xml.ThriftSchemaXMLTest.charset;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -21,7 +20,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -32,6 +30,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.thriftee.thrift.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 import org.thriftee.thrift.xml.protocol.TXMLProtocolTest;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
@@ -72,11 +71,11 @@ public class BaseThriftXMLTest {
   protected File testMethodDir;
 
   protected Variant variant() {
-    return Variant.VERBOSE;
+    return Variant.CONCISE;
   }
 
   public TestProtocol createOutProtocol(String s) {
-    return new TestProtocol(s, Variant.VERBOSE);
+    return new TestProtocol(s, Variant.CONCISE);
   }
 
   public TestProtocol createOutProtocol(File file) {
@@ -291,24 +290,24 @@ public class BaseThriftXMLTest {
 
   private static void transformToSimple(TestObject obj, File src, File tgt) 
       throws IOException, TransformerException {
-    final Transformer trns = Transforms.newStreamingToSimpleTransformer();
-    addFormatting(trns);
-    trns.setParameter("schema", urlToModelFor(obj.module).toString());
-    trns.setParameter("root_module", obj.module);
+    final StreamingToSimpleTransformation trns = Transforms.newStreamingToSimple();
+    trns.setFormatting(true);
+    trns.setModelFile(modelFor(obj.module));
+    trns.setModule(obj.module);
     if (obj instanceof TestCall) {
-      trns.setParameter("service_name", ((TestCall)obj).service);
+      trns.setRoot(RootType.MESSAGE, ((TestCall)obj).service);
     } else {
-      trns.setParameter("root_struct", obj.struct);
+      trns.setRoot(RootType.STRUCT, obj.struct);
     }
     trns.transform(new StreamSource(src), new StreamResult(tgt));
   }
 
   private static void transformToStreaming(TestObject obj, File src, File tgt) 
       throws IOException, TransformerException {
-    final Transformer trns2 = Transforms.newSimpleToStreamingTransformer();
-    addFormatting(trns2);
-    trns2.setParameter("schema", urlToModelFor(obj.module).toString());
-    trns2.transform(new StreamSource(src), new StreamResult(tgt));
+    SimpleToStreamingTransformation trns = Transforms.newSimpleToStreaming();
+    trns.setFormatting(true);
+    trns.setModelFile(modelFor(obj.module));
+    trns.transform(new StreamSource(src), new StreamResult(tgt));
   }
 
   public static Collection<Object[]> testParameters() {

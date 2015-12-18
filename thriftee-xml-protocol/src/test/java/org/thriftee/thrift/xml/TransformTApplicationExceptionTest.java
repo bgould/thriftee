@@ -1,13 +1,12 @@
 package org.thriftee.thrift.xml;
 
-import static org.junit.Assert.*;
-import static org.thriftee.thrift.xml.Transforms.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -20,6 +19,7 @@ import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TStruct;
 import org.apache.thrift.protocol.TType;
 import org.junit.Test;
+import org.thriftee.thrift.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
 
 public class TransformTApplicationExceptionTest extends BaseThriftXMLTest {
@@ -46,22 +46,26 @@ public class TransformTApplicationExceptionTest extends BaseThriftXMLTest {
     System.out.println(readFileAsString(verbose));
 
     try (FileWriter w = new FileWriter(simple)) {
-      final Transformer trans = Transforms.newStreamingToSimpleTransformer();
-      addFormatting(trans);
-      trans.setParameter("service_name", "Universe");
-      trans.setParameter("schema", urlToModelFor("everything").toString());
-      trans.transform(new StreamSource(verbose), new StreamResult(simple));
-      w.flush();
+      Transforms.transformStreamingToSimple(
+        modelFor("everything"), 
+        "everything", 
+        RootType.MESSAGE, 
+        "Universe", 
+        new StreamSource(verbose), 
+        new StreamResult(simple)
+      );
     }
 
     System.out.println("simple output:\n-----");
     System.out.println(readFileAsString(simple));
 
-    final Transformer trans = Transforms.newSimpleToStreamingTransformer();
-    addFormatting(trans);
-    trans.setParameter("service_name", "Universe");
-    trans.setParameter("schema", urlToModelFor("everything").toString());
-    trans.transform(new StreamSource(simple), new StreamResult(streaming));
+    Transforms.transformSimpleToStreaming(
+      modelFor("everything"), 
+      "everything", 
+      new StreamSource(simple), 
+      new StreamResult(streaming),
+      true
+    );
     System.out.println("\nstreaming output:\n----------------");
     System.out.println(readFileAsString(streaming));
 

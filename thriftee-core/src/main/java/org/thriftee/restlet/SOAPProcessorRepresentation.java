@@ -7,9 +7,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
@@ -22,6 +19,7 @@ import org.restlet.representation.StringRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.exceptions.ThriftMessage;
+import org.thriftee.thrift.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.Transforms;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
@@ -29,7 +27,7 @@ import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 public class SOAPProcessorRepresentation extends OutputRepresentation {
 
   private static final TXMLProtocol.Factory fctry = new TXMLProtocol.Factory(
-    Variant.VERBOSE, 
+    Variant.CONCISE, 
     false
   );
 
@@ -79,11 +77,12 @@ public class SOAPProcessorRepresentation extends OutputRepresentation {
         modelFile,
         moduleName,
         inSource,
-        inResult
+        inResult,
+        false
       );
-    } catch (TransformerException e) {
+    } catch (IOException e) {
       LOG.error("error transforming to streaming protocol", e);
-      throw new IOException(e);
+      throw e;
     }
 
     final StringBuffer inBuffer = inString.getBuffer();
@@ -93,21 +92,21 @@ public class SOAPProcessorRepresentation extends OutputRepresentation {
     final int len = baos.len();
 
     final InputStream outStream = new ByteArrayInputStream(response, 0, len);
-    final Source outSource = new StreamSource(outStream);
-    final Result outResult = new StreamResult(out);
+    final StreamSource outSource = new StreamSource(outStream);
+    final StreamResult outResult = new StreamResult(out);
     try {
       transforms.transformStreamingToSimple(
         modelFile,
         moduleName,
+        RootType.MESSAGE,
         serviceName,
         outSource,
         outResult
       );
-    } catch (TransformerException e) {
-      LOG.error("error transforming to simple protocol", e);
-      throw new IOException(e);
+    } catch (IOException e) {
+      LOG.error("error transforming to streaming protocol", e);
+      throw e;
     }
-
   }
 
   private ThriftProcessorRepresentation createDelegate(CharSequence seq) {

@@ -1,15 +1,17 @@
 package org.thriftee.thrift.xml;
 
-import java.io.ByteArrayInputStream;
+import static net.sf.saxon.s9api.Serializer.Property.INDENT;
+import static net.sf.saxon.s9api.Serializer.Property.OMIT_XML_DECLARATION;
+import static net.sf.saxon.s9api.Serializer.Property.SAXON_INDENT_SPACES;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -20,14 +22,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
 import javax.xml.transform.Source;
-import javax.xml.transform.Templates;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -37,17 +33,34 @@ import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.thrift.TByteArrayOutputStream;
+import org.thriftee.thrift.xml.Transformation.RootType;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import net.sf.saxon.Configuration;
+import net.sf.saxon.om.DocumentInfo;
+import net.sf.saxon.s9api.Destination;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.Serializer;
+import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.s9api.XsltCompiler;
+import net.sf.saxon.s9api.XsltExecutable;
+import net.sf.saxon.s9api.XsltTransformer;
+
 public class Transforms {
 
-  private final TransformerFactory factory;
+  private final Processor processor;
 
-  private final ConcurrentMap<URL, Templates> xsltCache;
+  private final ConcurrentMap<URL, XsltExecutable> xsltCache;
+
+  private final XsltCompiler compiler;
 
   public static final String XSL_BASE = "org/thriftee/thrift/xml/protocol";
+
+  public static final String XSL_FORMATTER = "pretty-print.xsl";
 
   public static final String XSL_TO_SIMPLE = "thrift-streaming-to-simple.xsl";
 
@@ -58,65 +71,83 @@ public class Transforms {
   public static final String XSL_TO_WSDL   = "thrift-model-to-wsdl.xsl";
 
   public Transforms() {
-    factory = TransformerFactory.newInstance();
-    final URIResolver resolver = factory.getURIResolver();
-    factory.setURIResolver(new InternalResourceResolver(resolver));
     xsltCache = new ConcurrentHashMap<>();
+    processor = new Processor(false);
+    compiler = processor.newXsltCompiler();
+    compiler.setURIResolver(
+      new InternalResourceResolver(compiler.getURIResolver())
+    );
   }
 
-  public Transformer newSimpleToStreamingTransformer() {
+  public void preload(File file) throws IOException {
+    final Configuration config = processor.getUnderlyingConfiguration();
+    try {
+      final DocumentInfo docinfo = config.buildDocument(new StreamSource(file));
+      final String uri = file.toURI().toURL().toString();
+      config.getGlobalDocumentPool().add(docinfo, uri);
+    } catch (net.sf.saxon.trans.XPathException e) {
+      throw new IOException(e);
+    }
+  }
+
+  XsltTransformer newSimpleToStreamingTransformer() {
     return newInternalTransformer(XSL_TO_STREAM);
   }
 
-  public Transformer newSimpleToStreamingTransformer(
-      final File modelFile, final String module) {
-    final Transformer result = newSimpleToStreamingTransformer();
-    try {
-      result.setParameter("schema", modelFile.toURI().toURL().toString());
-      result.setParameter("root_module", module);
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
-    }
-    return result;
+  public SimpleToStreamingTransformation newSimpleToStreaming() {
+    return new SimpleToStreamingTransformation(this);
+  }
+
+  public SimpleToStreamingTransformation newSimpleToStreaming(
+      final File modelFile, final String module, final boolean formatted) {
+    final SimpleToStreamingTransformation trns = newSimpleToStreaming();
+    trns.setModelFile(modelFile);
+    trns.setModule(module);
+    trns.setFormatting(formatted);
+    return trns;
   }
 
   public void transformSimpleToStreaming(
-        final File modelFile, final String module, 
-        final Source src, final Result res
-      ) throws TransformerException {
-    newSimpleToStreamingTransformer(modelFile, module).transform(src, res);
+        final File modelFile, 
+        final String module, 
+        final Source source, 
+        final StreamResult result,
+        boolean indent
+      ) throws IOException {
+    newSimpleToStreaming(modelFile, module, indent).transform(source, result);
   }
 
-  public Transformer newStreamingToSimpleTransformer() {
+  XsltTransformer newStreamingToSimpleTransformer() {
     return newInternalTransformer(XSL_TO_SIMPLE);
   }
 
-  public Transformer newStreamingToSimpleTransformer(
-      final File modelFile, final String module, final String service) {
-    final Transformer result = newStreamingToSimpleTransformer();
-    try {
-      result.setParameter("schema", "cache:" + modelFile.toURI().toURL().toString());
-      result.setParameter("root_module", module);
-      result.setParameter("service_name", service);
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
-    }
-    return result;
+  public StreamingToSimpleTransformation newStreamingToSimple() {
+    return new StreamingToSimpleTransformation(this);
+  }
+
+  public StreamingToSimpleTransformation newStreamingToSimple(
+        final File modelFile, final String module, 
+        final RootType rootType, final String rootName) {
+    final StreamingToSimpleTransformation trns = newStreamingToSimple();
+    trns.setModelFile(modelFile);
+    trns.setModule(module);
+    trns.setRoot(rootType, rootName);
+    return trns;
   }
 
   public void transformStreamingToSimple(
-        final File modelFile, 
-        final String mod, final String svc, 
-        final Source src, final Result res
-      ) throws TransformerException {
-    newStreamingToSimpleTransformer(modelFile, mod, svc).transform(src, res);
+        final File model, final String module, 
+        final RootType type, final String name, 
+        final Source source, final StreamResult result
+      ) throws IOException {
+    newStreamingToSimple(model, module, type, name).transform(source, result);
   }
 
-  public Transformer newSchemaToWsdlTransformer() {
+  public XsltTransformer newSchemaToWsdlTransformer() {
     return newInternalTransformer(XSL_TO_WSDL);
   }
 
-  public Transformer newSchemaToXsdTransformer() {
+  public XsltTransformer newSchemaToXsdTransformer() {
     return newInternalTransformer(XSL_TO_SCHEMA);
   }
 
@@ -130,7 +161,7 @@ public class Transforms {
     return url;
   }
 
-  protected Transformer newInternalTransformer(String s) {
+  protected XsltTransformer newInternalTransformer(String s) {
     try {
       return newTransformer(resolveInternalXsl(s));
     } catch (IOException e) {
@@ -138,43 +169,62 @@ public class Transforms {
     }
   }
 
-  public Transformer newTransformer(URL url) throws IOException {
+  public XsltTransformer newTransformer(URL url) throws IOException {
     try {
-      Templates templates = xsltCache.get(url);
+      XsltExecutable templates = xsltCache.get(url);
       if (templates == null) {
-        templates = factory.newTemplates(new StreamSource(url.openStream()));
+        templates = compiler.compile(new StreamSource(url.openStream()));
         xsltCache.putIfAbsent(url, templates);
       }
-      return templates.newTransformer();
-    } catch (TransformerConfigurationException e) {
-      throw new RuntimeException(e);
+      return templates.load();
+    } catch (SaxonApiException e) {
+      throw new IOException(e);
     }
   }
 
-  public void formatXml(Source source, Result result) {
+  public Serializer serializer(StreamResult result, boolean formatting) throws IOException {
+    if (result == null) {
+      throw new IllegalArgumentException("result cannot be null");
+    }
+    final Serializer out = processor.newSerializer();
+    if (result.getWriter() != null) {
+      out.setOutputWriter(result.getWriter());
+    } else if (result.getOutputStream() != null) {
+      out.setOutputStream(result.getOutputStream());
+    } else if (result.getSystemId() != null) {
+      try {
+        out.setOutputFile(new File(new URI(result.getSystemId())));
+      } catch (URISyntaxException e) {
+        throw new IOException(e);
+      }
+    } else {
+      throw new IllegalArgumentException(
+          "result must have either a writer, output stream, or systemId set");
+    }
+    out.setOutputProperty(OMIT_XML_DECLARATION, "yes");
+    if (formatting) {
+      out.setOutputProperty(INDENT, "yes");
+      out.setOutputProperty(SAXON_INDENT_SPACES, "2");
+    }
+    return out;
+  }
+
+  public void formatXml(Source source, StreamResult out) throws IOException {
     try {
-      final Transformer tr = factory.newTransformer();
-      tr.setOutputProperty(OutputKeys.INDENT, "yes");
-      tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-      tr.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-      tr.transform(source, result);
-    } catch (TransformerException e) {
-      throw new RuntimeException(e);
+      final XsltTransformer tr = newInternalTransformer(XSL_FORMATTER);
+      tr.setSource(source);
+      tr.setDestination(serializer(out, true));
+      tr.transform();
+    } catch (SaxonApiException e) {
+      throw new IOException(e);
     }
   }
 
-  public static Transformer addFormatting(Transformer tr) {
-    tr.setOutputProperty(OutputKeys.INDENT, "yes");
-    tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-    tr.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-    return tr;
-  }
-
-  public void formatXml(String xml, Result result) {
+  public void formatXml(String xml, StreamResult result) throws IOException {
     formatXml(new StreamSource(new StringReader(xml)), result);
   }
 
-  public void formatXml(File xmlFile, Result result) {
+  public void formatXml(File xmlFile, StreamResult result) throws IOException {
     try {
       formatXml(new StreamSource(xmlFile.toURI().toURL().openStream()), result);
     } catch (IOException e) {
@@ -182,22 +232,36 @@ public class Transforms {
     }
   }
 
+  public String formatXml(Source source) throws IOException {
+    final StringWriter w = new StringWriter();
+    final StreamResult result = new StreamResult(w);
+    formatXml(source, result);
+    return w.toString();
+  }
+
+  public String formatXml(String xml) throws IOException {
+    return formatXml(new StreamSource(new StringReader(xml)));
+  }
+
+  // TODO: turn this method into a subclass of Transformation
   public Map<String, File> exportWsdls(File model, File tmp) throws IOException {
     final Map<String, File> wsdlFiles = new TreeMap<>();
     final Set<String> modules = moduleNamesFor(model);
     for (final String module : modules) {
       final Set<String> services = serviceNamesFor(module, model);
-      final Transformer trans = newSchemaToWsdlTransformer();
+      final XsltTransformer trans = newSchemaToWsdlTransformer();
       for (String service : services) {
         final String basename = module + "." + service;
         final File wsdlOutput = new File(tmp, basename + ".wsdl");
-        trans.setParameter("service_module", module);
-        trans.setParameter("service_name", service);
+        trans.setParameter(q("service_module"), strval(module));
+        trans.setParameter(q("service_name"), strval(service));
         final StreamSource source = new StreamSource(model);
-        final StreamResult result = new StreamResult(wsdlOutput);
+        final Destination result = processor.newSerializer(wsdlOutput);
         try {
-          trans.transform(source, result);
-        } catch (TransformerException e) {
+          trans.setSource(source);
+          trans.setDestination(result);
+          trans.transform();
+        } catch (SaxonApiException e) {
           throw new IOException(e);
         } finally {
           trans.clearParameters();
@@ -208,18 +272,21 @@ public class Transforms {
     return Collections.unmodifiableMap(wsdlFiles);
   }
 
+  // TODO: turn this method into a subclass of Transformation
   public Map<String, File> exportSchemas(File model, File tmp) throws IOException {
     final Map<String, File> xsdFiles = new TreeMap<>();
-    final Transformer trans = newSchemaToXsdTransformer();
+    final XsltTransformer trans = newSchemaToXsdTransformer();
     final Set<String> modules = moduleNamesFor(model);
     for (String module : modules) {
       final File schemaOutput = new File(tmp, module + ".xsd");
       final StreamSource source = new StreamSource(model);
-      final StreamResult result = new StreamResult(schemaOutput);
+      final Destination result = processor.newSerializer(schemaOutput);
       try {
-        trans.setParameter("root_module", module);
-        trans.transform(source, result);
-      } catch (TransformerException e) {
+        trans.setParameter(q("root_module"), strval(module));
+        trans.setSource(source);
+        trans.setDestination(result);
+        trans.transform();
+      } catch (SaxonApiException e) {
         throw new IOException(e);
       } finally {
         trans.clearParameters();
@@ -229,6 +296,7 @@ public class Transforms {
     return Collections.unmodifiableMap(xsdFiles);
   }
 
+  // TODO: use s9api instead of JAXP
   public Set<String> moduleNamesFor(File modelFile) throws IOException {
     final XPathFactory xpathFactory = XPathFactory.newInstance();
     try {
@@ -252,6 +320,7 @@ public class Transforms {
     }
   }
 
+  // TODO: use s9api instead of JAXP
   public Set<String> serviceNamesFor(String module, File modelFile)
       throws IOException {
     try {
@@ -279,15 +348,12 @@ public class Transforms {
     }
   }
 
-  public String formatXml(Source source) {
-    final StringWriter w = new StringWriter();
-    final StreamResult result = new StreamResult(w);
-    formatXml(source, result);
-    return w.toString();
+  private static final QName q(String localName) {
+    return new QName(localName);
   }
 
-  public String formatXml(String xml) {
-    return formatXml(new StreamSource(new StringReader(xml)));
+  private static final XdmValue strval(String s) {
+    return new XdmAtomicValue(s);
   }
 
   public static class InternalResourceResolver implements URIResolver {
@@ -296,7 +362,7 @@ public class Transforms {
 
     private final Pattern resolverPattern = Pattern.compile("^thrift-.+xsl$");
 
-    private final Map<String, byte[]> cache = new ConcurrentHashMap<>();
+//    private final Map<String, byte[]> cache = new ConcurrentHashMap<>();
 
     public InternalResourceResolver(URIResolver delegate) {
       super();
@@ -306,9 +372,9 @@ public class Transforms {
     public Source resolve(String href, String b) throws TransformerException {
       try {
         final URL url;
-        if (href.startsWith("cache:")) {
-          url = new URL(href.substring(6));
-        } else {
+//        if (href.startsWith("cache:")) {
+//          url = new URL(href.substring(6));
+//        } else {
           final Matcher m = resolverPattern.matcher(href);
           if (m.matches()) {
             final ClassLoader cl = getClass().getClassLoader();
@@ -317,16 +383,17 @@ public class Transforms {
           } else {
             url = null;
           }
-        }
+//        }
         if (url != null) {
-          return readCached(url);
+//          return readCached(url);
+          return new StreamSource(url.openStream());
         }
       } catch (IOException e) {
         throw new TransformerException(e);
       }
       return delegate.resolve(href, b);
     }
-
+/*
     private StreamSource readCached(URL url) throws IOException {
       final String spec = url.toExternalForm();
       if (!cache.containsKey(spec)) {
@@ -359,5 +426,6 @@ public class Transforms {
         return out.get();
       }
     }
+*/
   }
 }

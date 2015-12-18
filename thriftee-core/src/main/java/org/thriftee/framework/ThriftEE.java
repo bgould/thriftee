@@ -399,6 +399,7 @@ public class ThriftEE {
     this.globalXmlFile = globalXml;
     this.wsdlClientDir.mkdirs();
     try {
+      transforms.preload(globalXmlFile);
       transforms.exportSchemas(globalXmlFile, this.wsdlClientDir);
       transforms.exportWsdls(globalXmlFile, this.wsdlClientDir);
     } catch (IOException e) {
