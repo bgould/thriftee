@@ -52,6 +52,7 @@ struct Everything {
   18: set<string> str_set;
   19: set<Spirfle> obj_set;
   20: nothing_all_at_once.Blotto smork;
+  21: map<Spinkle, list<Spirfle>> enum_list_map;
 }
 
 exception EndOfTheUniverseException {

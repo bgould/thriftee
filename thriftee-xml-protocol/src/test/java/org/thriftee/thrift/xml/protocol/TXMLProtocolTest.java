@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 import org.xml.sax.SAXException;
 
@@ -221,6 +220,12 @@ public class TXMLProtocolTest {
 
     everything.smork = new Blotto(42, "happelsmack");
 
+    Map<Spinkle, List<Spirfle>> enum_list_map = new HashMap<>();
+    List<Spirfle> spirfles = new ArrayList<>();
+    spirfles.add(new Spirfle("fink", 2, null, 34, null, null));
+    enum_list_map.put(Spinkle.HRRR, spirfles);
+    everything.enum_list_map = enum_list_map;
+    
     return everything;
   }
 

@@ -223,7 +223,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
 
   @Override
   public TList readListBegin() throws TException {
-    final ListContext ctx = readctx.peek(FieldContext.class).newList();
+    final ListContext ctx = readctx.peek(ValueHolderContext.class).newList();
     ctx.readStart().push();
     return ctx.emit();
   }
@@ -235,7 +235,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
 
   @Override
   public TMap readMapBegin() throws TException {
-    final MapContext ctx = readctx.peek(FieldContext.class).newMap();
+    final MapContext ctx = readctx.peek(ValueHolderContext.class).newMap();
     ctx.readStart().push();
     return ctx.emit();
   }
@@ -247,7 +247,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
 
   @Override
   public TSet readSetBegin() throws TException {
-    final SetContext ctx = readctx.peek(FieldContext.class).newSet();
+    final SetContext ctx = readctx.peek(ValueHolderContext.class).newSet();
     ctx.readStart().push();
     return ctx.emit();
   }
@@ -427,21 +427,19 @@ public abstract class AbstractContextProtocol extends TProtocol {
     public <T extends Context> T pop(Class<T> type) throws TException {
       return _ensure(type, pop());
     }
-    public void pushed() throws TException {}
-    public void popped() throws TException {}
+    public void pushed() throws TException { } // debug("push: "); }
+    public void popped() throws TException { } // debug("pop:  "); }
     public final void debug(String op) {
-      if (LOG.isDebugEnabled()) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(type().name().toLowerCase());
-        if (op != null) {
-          sb.append(' ').append(op).append(": ");
-        }
-        for (Context top = peek().parent(); top != null; top = top.parent()) {
-          sb.append("  ");
-        }
-        sb.append(toString());
-        System.out.println(sb.toString());
+      final StringBuilder sb = new StringBuilder();
+      sb.append(type().name().toLowerCase());
+      if (op != null) {
+        sb.append(' ').append(op).append(": ");
       }
+      for (Context top = peek().parent(); top != null; top = top.parent()) {
+        sb.append("  ");
+      }
+      sb.append(toString());
+      System.out.println(sb.toString());
     }
   }
 

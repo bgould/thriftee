@@ -659,6 +659,9 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
     @Override 
     public ContainerContext<T> writeStart() throws TException {
+      if (parent() instanceof ContainerContext<?>) {
+        writeStartElement(byteToElement(containerType.byteval()));
+      }
       writeAttribute(variant.ATTRIBUTE_SIZE, Integer.toString(size));
       writeAttribute(variant.ATTRIBUTE_VALUE_TYPE, byteToElement(elemType));
       return this;
@@ -666,12 +669,20 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
     @Override 
     public ContainerContext<T> writeEnd() throws TException {
+      if (parent() instanceof ContainerContext<?>) {
+        writeEndElement();
+      }
       return this;
     }
 
     @Override 
     public ContainerContext<T> readStart() throws TException {
-      final String name = expectStartElement();
+      final String name;
+      if (parent() instanceof ContainerContext<?>) {
+        name = nextStartElement();
+      } else {
+        name = expectStartElement();
+      }
       final byte xtype = containerType.byteval();
       final byte ctype = elementToByte(name);
       if (xtype != ctype) {
@@ -690,6 +701,9 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
     @Override
     public ContainerContext<T> readEnd() throws TException {
+      if (parent() instanceof ContainerContext<?>) {
+        nextEndElement();
+      }
       return this;
     }
 

@@ -60,7 +60,7 @@
 
   <complexType name="ServiceType">
     <sequence>
-      <element name="method" minOccurs="1" maxOccurs="unbounded" type="tns:MethodType" />
+      <element name="method" minOccurs="0" maxOccurs="unbounded" type="tns:MethodType" />
     </sequence>
     <attribute name="name" type="string" use="required" />
     <attribute name="targetNamespace" type="string" use="required" />
