@@ -45,7 +45,7 @@ public class TXMLProtocolTest {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
       { Variant.VERBOSE },
-      { Variant.CONCISE },
+      //{ Variant.CONCISE },
     });
   }
 
@@ -154,7 +154,7 @@ public class TXMLProtocolTest {
     T roundtrip = cl.newInstance();
     roundtrip.read(protocol);
     assertEquals(
-      "result of first and second serialization should be identical", 
+      "object read from serialized form should equal input object", 
       o, roundtrip
     );
 
@@ -163,6 +163,8 @@ public class TXMLProtocolTest {
     System.out.println("Round Trip:\n-----------------------\n" + rounded);
     validate(protocol, rounded);
 
+    //assertEquals(serialized, rounded);
+    
   }
 
   public TestProtocol createOutProtocol(String s) {
@@ -216,7 +218,7 @@ public class TXMLProtocolTest {
     final List<List<Integer>> int_list_list = new ArrayList<>();
     int_list_list.add(Arrays.asList(new Integer[] { 1, 2, 3, 4, 5 }));
     int_list_list.add(Arrays.asList(new Integer[] { 1, 1, 3, 5 }));
-    //everything.int_list_list = int_list_list;
+    everything.int_list_list = int_list_list;
 
     everything.smork = new Blotto(42, "happelsmack");
 
@@ -225,7 +227,9 @@ public class TXMLProtocolTest {
     spirfles.add(new Spirfle("fink", 2, null, 34, null, null));
     enum_list_map.put(Spinkle.HRRR, spirfles);
     everything.enum_list_map = enum_list_map;
-    
+
+    everything.empty = "";
+
     return everything;
   }
 
