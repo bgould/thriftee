@@ -1,10 +1,4 @@
 /*!
- * Bootstrap v3.2.0 (http://getbootstrap.com)
- * Copyright 2011-2014 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- */
-
-/*!
  * Generated using the Bootstrap Customizer (http://getbootstrap.com/customize/?id=dbe293b181d29301523e)
  * Config saved to config.json and https://gist.github.com/dbe293b181d29301523e
  */

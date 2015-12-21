@@ -10,7 +10,9 @@
   <packaging>pom</packaging>
   
   <name>thriftee-root</name>
-  
+
+  <inceptionYear>2013</inceptionYear>
+
   <modules>
     <module>thriftee-idl-parser</module>
     <module>thriftee-swift-generator</module>
@@ -304,6 +306,30 @@
           </configuration>
         </plugin>
         <plugin>
+          <groupId>com.mycila</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>2.11</version>
+          <configuration>
+            <header>../src/main/license/APACHE-2.txt</header>
+            <excludes>
+              <exclude>**/README</exclude>
+              <exclude>src/test/resources/**</exclude>
+              <exclude>src/main/webapp/assets/**</exclude>
+              <exclude>src/main/resources/**</exclude>
+            </excludes>
+            <mapping>
+              <java>SLASHSTAR_STYLE</java>
+            </mapping>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
           <version>2.4</version>
@@ -330,27 +356,7 @@
                     <exclude>net.sf.saxon:*</exclude>
                   </excludes>
                 </artifactSet>
-                <!--
-                <filters>
-                  <filter>
-                    <artifact>net.sf.saxon:*</artifact>
-                    <excludes>
-                      <exclude>META-INF/services/*</exclude>
-                      <exclude>META-INF/*.SF</exclude>
-                      <exclude>META-INF/*.DSA</exclude>
-                      <exclude>META-INF/*.RSA</exclude>
-                      <exclude>META-INF/MANIFEST.MF</exclude>
-                    </excludes>
-                   </filter>
-                </filters>
-                -->
                 <relocations>
-                  <!--
-                  <relocation>
-                    <pattern>net.sf.saxon</pattern>
-                    <shadedPattern>thriftee.shaded.net.sf.saxon</shadedPattern>
-                  </relocation>
-                  -->
                   <relocation>
                     <pattern>com.google</pattern>
                     <shadedPattern>thriftee.shaded.com.google</shadedPattern>
@@ -457,12 +463,6 @@
                     <resource>META-INF/services/org.restlet.engine.converter.ConverterHelper</resource>
                     <file>${basedir}/../src/main/shade/META-INF/services/org.restlet.engine.converter.ConverterHelper</file>
                   </transformer>
-                  <!--
-                  <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                    <resource>META-INF/services/javax.xml.transform.TransformerFactory</resource>
-                    <file>${basedir}/../src/main/shade/META-INF/services/javax.xml.transform.TransformerFactory</file>
-                  </transformer>
-                  -->
                   <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
                     <!-- <addHeader>false</addHeader> -->
                   </transformer>
