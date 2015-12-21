@@ -105,10 +105,6 @@ public class Transforms {
     }
   }
 
-  XsltTransformer newSimpleToStreamingTransformer() {
-    return newInternalTransformer(XSL_TO_STREAM);
-  }
-
   public SimpleToStreamingTransformation newSimpleToStreaming() {
     return new SimpleToStreamingTransformation(this);
   }
@@ -130,10 +126,6 @@ public class Transforms {
         boolean indent
       ) throws IOException {
     newSimpleToStreaming(modelFile, module, indent).transform(source, result);
-  }
-
-  XsltTransformer newStreamingToSimpleTransformer() {
-    return newInternalTransformer(XSL_TO_SIMPLE);
   }
 
   public StreamingToSimpleTransformation newStreamingToSimple() {
@@ -158,11 +150,19 @@ public class Transforms {
     newStreamingToSimple(model, module, type, name).transform(source, result);
   }
 
-  public XsltTransformer newSchemaToWsdlTransformer() {
+  XsltTransformer newSimpleToStreamingTransformer() {
+    return newInternalTransformer(XSL_TO_STREAM);
+  }
+
+  XsltTransformer newStreamingToSimpleTransformer() {
+    return newInternalTransformer(XSL_TO_SIMPLE);
+  }
+
+  XsltTransformer newSchemaToWsdlTransformer() {
     return newInternalTransformer(XSL_TO_WSDL);
   }
 
-  public XsltTransformer newSchemaToXsdTransformer() {
+  XsltTransformer newSchemaToXsdTransformer() {
     return newInternalTransformer(XSL_TO_SCHEMA);
   }
 
@@ -178,13 +178,13 @@ public class Transforms {
 
   protected XsltTransformer newInternalTransformer(String s) {
     try {
-      return newTransformer(resolveInternalXsl(s));
+      return cachedTransformer(resolveInternalXsl(s));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public XsltTransformer newTransformer(URL url) throws IOException {
+  protected XsltTransformer cachedTransformer(URL url) throws IOException {
     try {
       XsltExecutable templates = xsltCache.get(url);
       if (templates == null) {
@@ -197,7 +197,10 @@ public class Transforms {
     }
   }
 
-  public Serializer serializer(StreamResult result, boolean formatting) throws IOException {
+  public Serializer serializer(
+        final StreamResult result, 
+        final boolean formatting
+      ) throws IOException {
     if (result == null) {
       throw new IllegalArgumentException("result cannot be null");
     }
