@@ -18,7 +18,6 @@ package org.thriftee.restlet;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Context;
@@ -34,8 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.framework.ThriftEE;
 import org.thriftee.util.New;
-
-import com.facebook.swift.codec.ThriftCodecManager;
+import org.thriftee.util.Strings;
 
 import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.Configuration;
@@ -44,8 +42,6 @@ import freemarker.template.ObjectWrapper;
 public abstract class FrameworkResource extends ServerResource {
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
-
-  //static final String servletCtxAttr = "org.restlet.ext.servlet.ServletContext";
 
   public static final String APP_CTX_ATTR = "org.thriftee.app.attr";
   
@@ -95,7 +91,7 @@ public abstract class FrameworkResource extends ServerResource {
   }
 
   public static String resourceRemainingPart() {
-    return StringUtils.trimToEmpty(resourceRef().getRemainingPart());
+    return Strings.trimToEmpty(resourceRef().getRemainingPart());
   }
 
   public static ThriftEE thrift(final Context ctx) {
@@ -104,10 +100,6 @@ public abstract class FrameworkResource extends ServerResource {
 
   protected ThriftEE thrift() {
     return thrift(getContext());
-  }
-  
-  protected ThriftCodecManager codecManager() {
-    return thrift().codecManager();
   }
 
   private static final String prefix = "/org/thriftee/restlet/templates";

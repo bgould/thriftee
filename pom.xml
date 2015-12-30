@@ -1,6 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
  
   <modelVersion>4.0.0</modelVersion>
   
@@ -14,10 +13,12 @@
   <inceptionYear>2013</inceptionYear>
 
   <modules>
-    <module>thriftee-idl-parser</module>
-    <module>thriftee-swift-generator</module>
+    <!--    <module>thriftee-idl-parser</module>
+      <module>thriftee-swift-generator</module> -->
     <module>thriftee-xml-protocol</module>
+    <module>thriftee-core-api</module>
     <module>thriftee-core</module>
+    <module>thriftee-provider-swift</module>
     <module>thriftee-examples-war</module>
     <module>thriftee-examples</module>
     <module>thriftee-servlet</module>
@@ -65,6 +66,11 @@
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
+        <artifactId>thriftee-core-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.thriftee</groupId>
         <artifactId>thriftee-core</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -85,8 +91,18 @@
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
-        <artifactId>thriftee-swift-generator</artifactId>
+        <artifactId>thriftee-provider-swift</artifactId>
         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.facebook.swift</groupId>
+        <artifactId>swift-generator</artifactId>
+        <version>${swift.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.facebook.swift</groupId>
+        <artifactId>swift-idl-parser</artifactId>
+        <version>${swift.version}</version>
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>

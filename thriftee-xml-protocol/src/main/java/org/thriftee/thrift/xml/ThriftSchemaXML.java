@@ -15,10 +15,11 @@
  */
 package org.thriftee.thrift.xml;
 
-import static javax.xml.bind.DatatypeConverter.*;
+import static com.facebook.swift.parser.ThriftIdlParser.parseThriftIdl;
+import static com.google.common.io.Files.asCharSource;
+import static javax.xml.bind.DatatypeConverter.printLong;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -41,7 +42,6 @@ import javax.xml.transform.stream.StreamSource;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol.XML;
 import org.xml.sax.SAXException;
 
-import com.facebook.swift.parser.ThriftIdlParser;
 import com.facebook.swift.parser.model.AbstractStruct;
 import com.facebook.swift.parser.model.BaseType;
 import com.facebook.swift.parser.model.Const;
@@ -64,6 +64,7 @@ import com.facebook.swift.parser.model.TypeAnnotation;
 import com.facebook.swift.parser.model.Typedef;
 import com.facebook.swift.parser.model.Union;
 import com.facebook.swift.parser.model.VoidType;
+import com.google.common.base.Charsets;
 
 public class ThriftSchemaXML {
 
@@ -95,9 +96,7 @@ public class ThriftSchemaXML {
         final File file = filesToInclude.poll();
         module = moduleNameFor(file);
         if (!alreadyIncluded.contains(module)) {
-          try (FileReader reader = new FileReader(file)) {
-            document = ThriftIdlParser.parseThriftIdl(reader);
-          }
+          document = parseThriftIdl(asCharSource(file, Charsets.UTF_8));
           writer.writeStartElement("idl", "document", NS);
           writer.writeAttribute("targetNamespace", namespaceUri());
           writer.writeNamespace(module, namespaceUri());
@@ -142,7 +141,7 @@ public class ThriftSchemaXML {
   }
 
   protected String namespaceUri() {
-    return "http://thrift.apache.org/ns/" + module;
+    return "http://thrift.apache.org/xml/ns/" + module;
   }
 
   protected String namespaceUri(String serviceName) {

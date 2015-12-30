@@ -21,25 +21,40 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.util.FileUtil;
+import org.thriftee.util.Strings;
 
 public class ThriftCommandRunner {
 
   private final ThriftCommand thriftCommand;
-  
+
   private final Logger LOG = LoggerFactory.getLogger(getClass());
-  
+
   public static ThriftCommandRunner instanceFor(ThriftCommand cmd) {
     return new ThriftCommandRunner(cmd);
   }
-  
+
   ThriftCommandRunner(ThriftCommand thriftCommand) {
     this.thriftCommand = thriftCommand;
   }
-  
+
+  public ExecutionResult executeCommand() throws ThriftCommandException {
+    final ExecutionResult result;
+    try {
+      result = execute(thriftCommand.command());
+    } catch (IOException e) {
+      throw new ThriftCommandException(e, COMMAND_301, e.getMessage());
+    }
+    if (result.interrupted) {
+      throw new ThriftCommandException(COMMAND_303, result);
+    } else if (result.exitCode != 0) {
+      throw new ThriftCommandException(COMMAND_302, result);
+    }
+    return result;
+  }
+
   public String executeVersion() throws ThriftCommandException {
     ExecutionResult result = null;
     try {
@@ -52,12 +67,12 @@ public class ThriftCommandRunner {
     } else if (result.exitCode != 0) {
       throw new ThriftCommandException(COMMAND_102, result);
     }
-    if (StringUtils.isNotBlank(result.errString())) {
-      LOG.warn("output on stderr for Thrift 'version' command: {}", result.errString());
+    if (Strings.isNotBlank(result.errString)) {
+      LOG.warn("stderr for Thrift 'version' command: {}", result.errString);
     }
-    return result.outString();
+    return result.outString;
   }
-  
+
   public String executeHelp() throws ThriftCommandException {
     ExecutionResult result = null;
     try {
@@ -67,15 +82,15 @@ public class ThriftCommandRunner {
     }
     if (result.interrupted) {
       throw new ThriftCommandException(COMMAND_203, result);
-    } else if (result.exitCode != 0) {
-      throw new ThriftCommandException(COMMAND_202, result);
+    } else if (result.exitCode != 1) {
+      throw new ThriftCommandException(COMMAND_202, result.exitCode);
     }
-    if (StringUtils.isNotBlank(result.errString())) {
-      LOG.warn("output on stderr for Thrift 'help' command: {}", result.errString());
+    if (Strings.isNotBlank(result.outString)) {
+      LOG.warn("stdout for Thrift 'help' command: {}", result.outString);
     }
-    return result.outString();
+    return result.errString;
   }
-  
+
   ExecutionResult execute(final List<String> command) throws IOException {
     
     LOG.trace("executing: {}", command);
@@ -120,37 +135,25 @@ public class ThriftCommandRunner {
     return new ExecutionResult(exit, interrupted, outString, errString);
   }
   
-  static final class ExecutionResult {
+  public static final class ExecutionResult {
 
-    private final String outString;
-    private final String errString;
-    private final int exitCode;
-    private final boolean interrupted;
+    public final String outString;
+    public final String errString;
+    public final int exitCode;
+    public final boolean interrupted;
   
-    ExecutionResult(int exitCode, boolean interrupted, String outString, String errString) {
+    private ExecutionResult(
+        int exitCode, 
+        boolean interrupted, 
+        String outString, 
+        String errString) {
       this.outString = outString;
       this.errString = errString;
       this.exitCode = exitCode;
       this.interrupted = interrupted;
     }
-  
-    String outString() {
-      return this.outString;
-    }
-  
-    String errString() {
-      return this.errString;
-    }
-  
-    int exitCode() {
-      return this.exitCode;
-    }
- 
-    boolean interrupted() {
-      return this.interrupted;
-    }
- 
-    boolean successful() {
+
+    public boolean successful() {
       return this.exitCode == 0 && !this.interrupted;
     }
 

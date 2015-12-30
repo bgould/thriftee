@@ -21,6 +21,7 @@
       <xsl:copy-of select="$tns"/>
       <xsl:apply-templates mode="copy-included-namespaces" select="$doc/idl:include" />
       <xsl:apply-templates mode="process-includes-as-imports" select="$doc/idl:include" />
+      <xsl:apply-templates mode="process-documentation" select="$doc" />
       <xsl:apply-templates select="$doc" />
     </xsd:schema>
   </xsl:template>
@@ -32,11 +33,22 @@
 
   <xsl:template match="idl:include" mode="process-includes-as-imports">
     <xsl:variable name="name" select="@name" />
-    <xsd:import schemaLocation="{$name}.xsd" namespace="{string($idl/idl:document[@name=$name]/namespace::*[name()=$name])}" />
+    <xsd:import schemaLocation="{$name}.xsd" namespace="{string($idl/idl:document[@name=$name]/@targetNamespace)}" />
   </xsl:template>
+
+  <xsl:template match="*[@doc]" mode="process-documentation">
+    <xsd:annotation>
+      <xsd:documentation>
+        <xsl:value-of select="@doc" />
+      </xsd:documentation>
+    </xsd:annotation>
+  </xsl:template>
+
+  <xsl:template match="idl:const" />
 
   <xsl:template match="idl:typedef[@type='id']">
     <xsd:complexType name="{@name}">
+      <xsl:apply-templates mode="process-documentation" select="current()" />
       <xsd:complexContent>
         <xsd:extension>
           <xsl:apply-templates mode="xsd-type" select="current()">
@@ -55,6 +67,7 @@
 
   <xsl:template match="idl:typedef" priority="-1">
     <xsd:simpleType name="{@name}">
+      <xsl:apply-templates mode="process-documentation" select="current()" />
       <xsd:restriction>
         <xsl:apply-templates mode="xsd-type" select="current()">
           <xsl:with-param name="type-attribute-name" select="'base'" />
@@ -65,6 +78,7 @@
 
   <xsl:template match="idl:enum">
     <xsd:simpleType name="{@name}">
+      <xsl:apply-templates mode="process-documentation" select="current()" />
       <xsd:restriction base="xsd:string">
         <xsl:apply-templates mode="enum-value" select="idl:member" />
       </xsd:restriction>
@@ -72,12 +86,15 @@
   </xsl:template>
 
   <xsl:template mode="enum-value" match="idl:member">
-    <xsd:enumeration value="{@name}" />
+    <xsd:enumeration value="{@name}">
+      <xsl:apply-templates mode="process-documentation" select="current()" />
+    </xsd:enumeration>
   </xsl:template> 
 
   <xsl:template match="idl:struct|idl:exception">
     <xsd:element name="{@name}" type="{name($tns)}:{@name}" />
     <xsd:complexType name="{@name}">
+      <xsl:apply-templates mode="process-documentation" select="current()" />
       <xsd:sequence>
         <xsl:apply-templates mode="field-schema" />
       </xsd:sequence>
@@ -87,13 +104,14 @@
   <xsl:template match="idl:union">
     <xsd:element name="{@name}" type="{name($tns)}:{@name}" />
     <xsd:complexType name="{@name}">
+      <xsl:apply-templates mode="process-documentation" select="current()" />
       <xsd:choice>
         <xsl:apply-templates mode="field-schema" />
       </xsd:choice>
     </xsd:complexType>
   </xsl:template>
 
-  <xsl:template mode="field-schema" match="*">
+  <xsl:template mode="field-schema" match="idl:field">
     <xsl:apply-templates mode="element-for-type" select="current()">
       <xsl:with-param name="element-name" select="@name" />
     </xsl:apply-templates>
@@ -107,6 +125,7 @@
           <xsl:value-of select="$typename" />
         </xsl:attribute>
       </xsl:if>
+      <xsl:apply-templates mode="process-documentation" select="current()" />
       <xsd:sequence minOccurs="0" maxOccurs="unbounded">
         <xsl:apply-templates mode="element-for-type" select="idl:elemType">
           <xsl:with-param name="element-name" select="'entry'" />
@@ -123,6 +142,7 @@
           <xsl:value-of select="$typename" />
         </xsl:attribute>
       </xsl:if>
+      <xsl:apply-templates mode="process-documentation" select="current()" />
       <xsd:sequence minOccurs="0" maxOccurs="unbounded">
         <xsl:apply-templates mode="element-for-type" select="idl:keyType">
           <xsl:with-param name="element-name" select="'key'" />
@@ -135,6 +155,10 @@
   </xsl:template>
 
   <xsl:template mode="xsd-type" match="*[@type='void']" />
+
+  <xsl:template mode="xsd-type" match="idl:annotation" />
+
+  <xsl:template mode="xsd-type" match="idl:default" />
 
   <xsl:template mode="xsd-type" match="*" priority="-1">
     <xsl:param name="type-attribute-name" select="'type'" />

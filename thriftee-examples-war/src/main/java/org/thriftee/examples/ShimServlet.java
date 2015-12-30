@@ -15,12 +15,7 @@
  */
 package org.thriftee.examples;
 
-import static javax.servlet.RequestDispatcher.ERROR_EXCEPTION;
-import static javax.servlet.RequestDispatcher.ERROR_EXCEPTION_TYPE;
-import static javax.servlet.RequestDispatcher.ERROR_MESSAGE;
-import static javax.servlet.RequestDispatcher.ERROR_REQUEST_URI;
-import static javax.servlet.RequestDispatcher.ERROR_SERVLET_NAME;
-import static javax.servlet.RequestDispatcher.ERROR_STATUS_CODE;
+import static javax.servlet.RequestDispatcher.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -33,7 +28,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.thriftee.util.Strings;
+import org.apache.commons.lang.StringEscapeUtils;
 
 @WebServlet(urlPatterns={ "/error.html" })
 public class ShimServlet extends HttpServlet {
@@ -147,7 +142,7 @@ public class ShimServlet extends HttpServlet {
     public static String esc(Object obj) {
         return obj == null 
                   ? "" 
-                  : Strings.escHtml(obj.toString());
+                  : StringEscapeUtils.escapeHtml(obj.toString());
     }
 
     private static final String headerContent = 

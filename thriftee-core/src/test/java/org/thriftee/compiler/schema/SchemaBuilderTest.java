@@ -38,7 +38,10 @@ public class SchemaBuilderTest extends AbstractThriftEETest {
     ThriftSchema schema = thrift().schema();
     assertNotNull("schema must not be null", schema);
     assertNotNull("modules collection must not be null", schema.getModules());
-    assertTrue("number of modules must be greater than 1", schema.getModules().size() > 1);
+    assertTrue(
+      "number of modules must be greater than 1", 
+      schema.getModules().size() > 1
+    );
     LOG.debug("modules in schema: {}", schema.getModules());
 
     ModuleSchema classicmodels = schema.getModules().get("org_thriftee_examples_classicmodels");
@@ -58,7 +61,9 @@ public class SchemaBuilderTest extends AbstractThriftEETest {
 
     TMemoryBuffer transport = new TMemoryBuffer(1024 * 10);
     TSimpleJSONProtocol protocol = new TSimpleJSONProtocol(transport);
-    ThriftCodec<ThriftSchema> codec = thrift().codecManager().getCodec(ThriftSchema.class);
+    ThriftCodec<ThriftSchema> codec = thriftCodecManager().getCodec(
+      ThriftSchema.class
+    );
     codec.write(schema, protocol);
 
     LOG.debug(transport.toString("UTF-8"));

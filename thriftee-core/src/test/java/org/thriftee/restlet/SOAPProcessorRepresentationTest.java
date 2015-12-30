@@ -29,7 +29,7 @@ public class SOAPProcessorRepresentationTest extends AbstractThriftEETest {
 
   private static final String SOAP_REQUEST_1 = 
     "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " + 
-    " xmlns:gro=\"http://thrift.apache.org/ns/org_thriftee_examples_usergroup_service/GroupService\">" +
+    " xmlns:gro=\"http://thrift.apache.org/xml/ns/org_thriftee_examples_usergroup_service/GroupService\">" +
     "<soapenv:Header/>" +
     "<soapenv:Body>" +
     "   <gro:findRequest>" +

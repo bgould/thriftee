@@ -22,12 +22,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
-import org.thriftee.compiler.ExportIDL;
 import org.thriftee.examples.usergroup.domain.Group;
 import org.thriftee.examples.usergroup.domain.User;
 import org.thriftee.examples.usergroup.service.GroupService;
 import org.thriftee.examples.usergroup.service.UserGroupException;
 import org.thriftee.examples.usergroup.service.UserService;
+import org.thriftee.provider.swift.ExportIDL;
 
 public class ExportIDLTest {
 

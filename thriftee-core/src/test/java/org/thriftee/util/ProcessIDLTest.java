@@ -24,12 +24,12 @@ import java.util.zip.ZipInputStream;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.compiler.ExportIDL;
 import org.thriftee.compiler.ProcessIDL;
 import org.thriftee.compiler.ThriftCommand;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
 import org.thriftee.framework.ThriftStartupException;
+import org.thriftee.provider.swift.ExportIDL;
 import org.thriftee.tests.AbstractThriftEETest;
 
 public class ProcessIDLTest {

@@ -15,6 +15,8 @@
  */
 package org.thriftee.tests;
 
+import static org.thriftee.provider.swift.SwiftSchemaProvider.moduleNameFor;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,11 +29,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.examples.usergroup.service.UserService;
 import org.thriftee.exceptions.ThriftSystemException;
+import org.thriftee.framework.SchemaProvider;
 import org.thriftee.framework.ThriftEE;
 import org.thriftee.framework.ThriftEEConfig;
+import org.thriftee.provider.swift.SwiftSchemaBuilder;
+import org.thriftee.provider.swift.SwiftSchemaProvider;
 import org.thriftee.util.FileUtil;
 
+import com.facebook.swift.codec.ThriftCodecManager;
+
 public abstract class AbstractThriftEETest {
+
+  private final SwiftSchemaProvider schemaProvider;
 
   private final File tempDirForClass;
 
@@ -46,7 +55,7 @@ public abstract class AbstractThriftEETest {
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
   public static final String USERGROUP_SERVICES_MODULE = 
-        ThriftEE.moduleNameFor(UserService.class.getPackage().getName());
+                    moduleNameFor(UserService.class.getPackage().getName());
 
   static {
     final Logger logger = LoggerFactory.getLogger(AbstractThriftEETest.class);
@@ -55,17 +64,13 @@ public abstract class AbstractThriftEETest {
     logger.info( " INFO level enabled");
     logger.warn( " WARN level enabled");
     logger.error("ERROR level enabled");
-    final ClassLoader loader = AbstractThriftEETest.class.getClassLoader();
-    final URL propertiesResource = loader.getResource("thriftee.test.properties");
+    final ClassLoader ldr = AbstractThriftEETest.class.getClassLoader();
+    final URL propertiesResource = ldr.getResource("thriftee.test.properties");
     if (propertiesResource != null) {
-      InputStream inputStream = null;
-      try {
-        inputStream = propertiesResource.openStream();
+      try (final InputStream inputStream = propertiesResource.openStream()){
         TEST_PROPERTIES = FileUtil.readProperties(inputStream);
       } catch (IOException e) {
         throw new RuntimeException(e);
-      } finally {
-        FileUtil.forceClosed(inputStream);
       }
     } else {
       TEST_PROPERTIES = new Properties();
@@ -88,12 +93,18 @@ public abstract class AbstractThriftEETest {
     return thriftExecutable;
   }
 
-  protected static ThriftEE loadThriftee(File tempDir) throws ThriftSystemException {
+  public ThriftCodecManager thriftCodecManager() {
+    return schemaProvider.codecManager();
+  }
+
+  protected static ThriftEE loadThriftee(
+      File tempDir, SchemaProvider schemaProvider) throws ThriftSystemException {
     synchronized (thrifteeInstances) {
       if (!thrifteeInstances.containsKey(tempDir.getAbsolutePath())) {
         final ThriftEE thrift = new ThriftEE(
           (new ThriftEEConfig.Builder())
-            .annotationClasspath(new TestClasspath())
+            .schemaBuilder(new SwiftSchemaBuilder())
+            .schemaProvider(schemaProvider)
             .serviceLocator(new ExampleServiceLocator())
             .thriftLibDir(thriftLibDir)
             .thriftExecutable(thriftExecutable)
@@ -114,7 +125,8 @@ public abstract class AbstractThriftEETest {
       final String prefix = System.getProperty("thriftee.build.dir", "target");
       final File tempDir = new File(prefix + "/tests/" + simpleName);
       this.tempDirForClass = tempDir;
-      this.thrift = loadThriftee(tempDir);
+      this.schemaProvider = new SwiftSchemaProvider(true, new TestClasspath());
+      this.thrift = loadThriftee(tempDir, schemaProvider);
     } catch (ThriftSystemException e) {
       throw new RuntimeException(e);
     }

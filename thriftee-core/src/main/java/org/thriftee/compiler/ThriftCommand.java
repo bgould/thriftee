@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang.StringUtils;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
 import org.thriftee.framework.client.ClientTypeAlias;
+import org.thriftee.util.Strings;
 
 public class ThriftCommand {
   
@@ -134,6 +134,7 @@ public class ThriftCommand {
     PY("Python"),
     RB("Ruby"),
     ST("Smalltalk"),
+    XML("XML"),
     XSD("XSD")
     ;
     
@@ -146,7 +147,7 @@ public class ThriftCommand {
       this.option = name().toLowerCase();
     }
 
-    public static final class Flag extends org.apache.commons.lang.enums.Enum {
+    public static final class Flag implements Comparable<Flag> {
       
       public static final Flag GV_EXCEPTIONS      =  new Flag( GV,  "exceptions",    "Whether to draw arrows from functions to exception.",                false );
       
@@ -169,8 +170,10 @@ public class ThriftCommand {
       public static final Flag PHP_NAMESPACE       =   new Flag( PHP,  "namespace",     "Generate PHP namespaces as defined in PHP >= 5.3",                 false );
       
       public static final Flag RB_RUBYGEMS       =   new Flag( RB,  "rubygems",     "Add a \"require 'rubygems'\" line to the top of each generated file.",       false );
-      
-      private static final long serialVersionUID = -3504700206843791875L;
+
+      public static final Flag XML_MERGE = new Flag(XML, "merge", "Generate output with included files merged", false);
+
+      public final String name;
 
       public final String key;
       
@@ -188,18 +191,48 @@ public class ThriftCommand {
           String description, 
           boolean requiresValue
         ) {
-        super(makeName(lang, key));
+        this.name = makeName(lang, key);
         this.language = lang;
         this.key = key;
         this.description = description;
         this.requiresValue = requiresValue;
         this.displayName = this.language.option + ":" + this.key;
       }
-      
+
+      @Override
+      public int compareTo(Flag o) {
+        return name.compareTo(o.name);
+      }
+
+      @Override
+      public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        return result;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (this == obj)
+          return true;
+        if (obj == null)
+          return false;
+        if (getClass() != obj.getClass())
+          return false;
+        Flag other = (Flag) obj;
+        if (name == null) {
+          if (other.name != null)
+            return false;
+        } else if (!name.equals(other.name))
+          return false;
+        return true;
+      }
+
       private static final String makeName(Generate lang, String key) {
         return lang.name().toUpperCase() + "_" + key.toUpperCase();
       }
-      
+
     }
 
   }
@@ -211,12 +244,11 @@ public class ThriftCommand {
   }
   
   public static String searchPathForThrift() {
-//    String path = System.getProperty("java.bin.path");
-    String path = System.getenv("PATH");
-    String[] parts = StringUtils.split(path, File.pathSeparatorChar);
-    String executable = getDefaultExecutableName();
+    final String path = System.getenv("PATH");
+    final String[] parts = Strings.split(path, File.pathSeparatorChar);
+    final String executable = getDefaultExecutableName();
     for (String part : parts) {
-      File possible = new File(part, executable);
+      final File possible = new File(part, executable);
       if (possible.exists() && possible.canExecute()) {
         return possible.getAbsolutePath();
       }
@@ -296,11 +328,11 @@ public class ThriftCommand {
         this.language.description
       ); 
     }
-    if (flag.requiresValue && StringUtils.isBlank(value)) {
+    if (flag.requiresValue && Strings.isBlank(value)) {
       throw new IllegalArgumentException(
         "Value for `" + flag.displayName + "` requires a value");
     }
-    if (!flag.requiresValue && StringUtils.isNotBlank(value)) {
+    if (!flag.requiresValue && Strings.isNotBlank(value)) {
       throw new IllegalArgumentException(
         "Value for `" + flag.displayName + "` cannot have a value");
     }
@@ -400,7 +432,7 @@ public class ThriftCommand {
   }
 
   public void setThriftCommand(String thriftCommand) {
-    if (StringUtils.isBlank(thriftCommand)) {
+    if (Strings.isBlank(thriftCommand)) {
       throw new IllegalArgumentException("thriftCommand cannot be blank");
     }
     this.thriftCommand = thriftCommand;
@@ -411,7 +443,7 @@ public class ThriftCommand {
   }
 
   public void setThriftFile(String thriftFile) {
-    if (StringUtils.isBlank(thriftCommand)) {
+    if (Strings.isBlank(thriftCommand)) {
       throw new IllegalArgumentException("thriftFile cannot be blank");
     }
     this.thriftFile = thriftFile;
@@ -490,7 +522,7 @@ public class ThriftCommand {
     command.add(this.generateString());
     command.addAll(extraOptions);
     command.add(
-      StringUtils.isBlank(thriftFile) 
+      Strings.isBlank(thriftFile) 
         ? "\"<output file>\"" 
         : escape(thriftFile)
     );
@@ -498,7 +530,7 @@ public class ThriftCommand {
   }
   
   public String commandString() {
-    return StringUtils.join(command(), ' ');
+    return Strings.join(command(), ' ');
   }
   
   public List<String> versionCommand() {
@@ -509,7 +541,7 @@ public class ThriftCommand {
   }
   
   public String versionCommandString() {
-    return StringUtils.join(versionCommand(), ' ');
+    return Strings.join(versionCommand(), ' ');
   }
   
   public List<String> helpCommand() {
@@ -520,7 +552,7 @@ public class ThriftCommand {
   }
   
   public String helpCommandString() {
-    return StringUtils.join(helpCommand(), ' ');
+    return Strings.join(helpCommand(), ' ');
   }
   
   public String toString() {

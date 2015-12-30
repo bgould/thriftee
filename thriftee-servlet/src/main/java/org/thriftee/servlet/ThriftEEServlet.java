@@ -24,12 +24,13 @@ import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Context;
 import org.restlet.ext.servlet.ServerServlet;
-import org.thriftee.framework.Classpath;
 import org.thriftee.framework.ServiceLocator;
 import org.thriftee.framework.ThriftEE;
 import org.thriftee.framework.ThriftEEConfig;
 import org.thriftee.framework.ThriftEEFactory;
 import org.thriftee.framework.ThriftStartupException;
+import org.thriftee.provider.swift.SwiftSchemaBuilder;
+import org.thriftee.provider.swift.SwiftSchemaProvider;
 import org.thriftee.restlet.FrameworkResource;
 import org.thriftee.restlet.ThriftApplication;
 
@@ -123,14 +124,14 @@ public class ThriftEEServlet extends ServerServlet {
     final File tempDir = (File) ctx.getAttribute(ServletContext.TEMPDIR);
     final File thriftExecutable = readThriftExecutable();
     final File thriftLibDir = readThriftLibDir();
-    final Classpath warpath = new WarFileClasspath(ctx);
     final ServiceLocator serviceLocator = createServiceLocator();
     final ThriftEEConfig.Builder builder = new ThriftEEConfig.Builder()
       .tempDir(tempDir)
       .thriftExecutable(thriftExecutable)
       .thriftLibDir(thriftLibDir)
-      .annotationClasspath(warpath)
-      .serviceLocator(serviceLocator);
+      .serviceLocator(serviceLocator)
+      .schemaProvider(new SwiftSchemaProvider(true, new WarFileClasspath(ctx)))
+      .schemaBuilder(new SwiftSchemaBuilder());
     initConfigBuilder(builder);
     final ThriftEEConfig config = builder.build();
     final ThriftEE svcs = new ThriftEEFactory().create(config);

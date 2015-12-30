@@ -94,6 +94,10 @@ public class Transforms {
     );
   }
 
+  public URL schemaUrl() {
+    return resolveInternalXsl("thrift-idl.xsd");
+  }
+
   public void preload(File file) throws IOException {
     final Configuration config = processor.getUnderlyingConfiguration();
     try {

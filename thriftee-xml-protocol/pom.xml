@@ -42,8 +42,8 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-idl-parser</artifactId>
+      <groupId>com.facebook.swift</groupId>
+      <artifactId>swift-idl-parser</artifactId>
     </dependency>
     <dependency>
       <groupId>net.sf.saxon</groupId>
@@ -74,6 +74,19 @@
               <goal>testCompile</goal>
             </goals>
           </execution>
+          <!-- 
+          <execution>
+            <id>thrift-generate-xml</id>
+            <phase>generate-test-sources</phase>
+            <configuration>
+              <outputDirectory>target/tests/models</outputDirectory>
+              <generator>xml:merge</generator>
+            </configuration>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+           -->
         </executions>
       </plugin>
       <plugin>

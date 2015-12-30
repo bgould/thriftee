@@ -15,8 +15,6 @@
  */
 package org.thriftee.thrift.xml;
 
-import static org.thriftee.thrift.xml.ThriftSchemaXMLTest.charset;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -39,6 +37,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TMessage;
 import org.junit.Before;
@@ -115,10 +114,17 @@ public class BaseThriftXMLTest {
   @BeforeClass
   public synchronized static void beforeClass() throws Exception {
     if (exportedModels == null || exportedSchemas == null) {
-      createDir("model", testModelDir);
+      final boolean useExisting;
+      if (!testModelDir.exists()) {
+        createDir("model", testModelDir);
+        useExisting = false;
+      } else {
+        useExisting = false;
+      }
+      //createDir("model", testModelDir);
       createDir("schema", testSchemaDir);
       createDir("structs", testStructsDir);
-      exportedModels  = exportModels(testModelDir);
+      exportedModels  = exportModels(testModelDir, useExisting);
       exportedSchemas = exportSchemas(exportedModels, testSchemaDir);
       exportedWsdls   = exportWsdls(exportedModels, testSchemaDir);
       exportedStructs = exportStructs(objs, testStructsDir);
@@ -211,7 +217,8 @@ public class BaseThriftXMLTest {
     return testStructsDir;
   }
 
-  public static Map<String, File> exportModels(File tmp) throws IOException {
+  public static Map<String, File> exportModels(
+      File tmp, boolean useExisting) throws IOException {
     final ThriftSchemaXML xml = new ThriftSchemaXML();
     final Map<String, File> xmlFiles = new LinkedHashMap<>();
     final List<File> idlFiles = Arrays.asList(
@@ -224,10 +231,15 @@ public class BaseThriftXMLTest {
     for (final File idlfile : idlFiles) {
       final String basename = idlfile.getName().replaceAll(".thrift$", "");
       final File outfile = new File(tmp, basename + ".xml");
-      final StringWriter w = new StringWriter();
-      xml.export(idlfile, charset, new StreamResult(w));
-      try (FileWriter out = new FileWriter(outfile)) {
-        Transforms.formatXml(w.toString(), new StreamResult(out));
+      if (useExisting && !outfile.exists()) {
+        throw new IOException("could not find generated XML model: " + outfile);
+      }
+      if (!useExisting) {
+        final StringWriter w = new StringWriter();
+        xml.export(idlfile, Charsets.UTF_8, new StreamResult(w));
+        try (FileWriter out = new FileWriter(outfile)) {
+          Transforms.formatXml(w.toString(), new StreamResult(out));
+        }
       }
       xmlFiles.put(basename, outfile);
     }
@@ -303,7 +315,7 @@ public class BaseThriftXMLTest {
     return result;
   }
 
-  private static void transformToSimple(TestObject obj, File src, File tgt) 
+  private static void transformToSimple(TestObject obj, File src, File tgt)
       throws IOException, TransformerException {
     final StreamingToSimpleTransformation trns = Transforms.newStreamingToSimple();
     trns.setFormatting(true);

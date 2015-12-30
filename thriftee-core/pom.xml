@@ -33,14 +33,6 @@
   <dependencies>
     <!-- compile scoped dependencies -->
     <dependency>
-      <groupId>net.sf.scannotation</groupId>
-      <artifactId>scannotation</artifactId>
-    </dependency>
-    <!-- dependency>
-      <groupId>org.javassist</groupId>
-      <artifactId>javassist</artifactId>
-    </dependency -->
-    <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
     </dependency>
@@ -57,16 +49,8 @@
       <artifactId>slf4j-simple</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.facebook.swift</groupId>
-      <artifactId>swift-service</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-swift-generator</artifactId>
+      <artifactId>thriftee-core-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.thriftee</groupId>
@@ -96,6 +80,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.thriftee</groupId>
+      <artifactId>thriftee-provider-swift</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
@@ -106,6 +95,18 @@
       <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.jvnet.jaxb2.maven2</groupId>
+        <artifactId>maven-jaxb2-plugin</artifactId>
+        <version>0.12.3</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

@@ -1,21 +1,46 @@
-namespace java everything
+/** this is just a test IDL file for trying out things with the XML protocol */
 
-namespace xsd everything
+namespace java everything
+namespace xsd everything // (ns.url  = "http://example.com/ns/", test = "any")
 
 include "nothing_all_at_once.thrift"
+
+const byte     I8_CONST  = 42
+const i64    I64_CONST = 42000000000
+const i32    INT_CONST = 42
+const string STR_CONST = "test constant string"
+const double DBL_CONST = 42.0
+
+/** this is a set const */
+const set<string> SET_CONST  = [ 'test1', 'test2', 'test3' ]
+
+/** an enum doc */
+enum Spinkle {
+  HRRR, /** this is the second member */ PPOL /*(order = "second")*/, REWT
+}
+
+/** this is a list const */
+const list<string> LIST_CONST = [ 'test3', 'test5', 'test6' ]
+const map<string, string> MAP_CONST  = { 'test7': 'test8', 'test9' : 'test10' }
+const map<i32, map<string, string>> MAP_MAP_CONST  = { 
+  42 : { 'test7': 'test8', 'test9' : 'test10' },
+  43 : { 'test7': 'test8', 'test9' : 'test10' }
+}
+const map<Spinkle, string> ENUM_MAP_CONST = { Spinkle.PPOL : "test" }
 
 typedef i32 dukk
 typedef Sprat poig
 typedef Spirfle plorp
-typedef nothing_all_at_once.Blotto hammlegaff
+/**
+ * this goes with a typedef.
+ * also it has line breaks.
+ */
+typedef nothing_all_at_once.Blotto hammlegaff //(it.also = 'has.annotations')
 typedef set<string> setdef
 typedef list<string> listdef
 typedef map<string, Spirfle> mapdef
 
-enum Spinkle {
-  HRRR, PPOL, REWT
-}
-
+/** some union doc & "stuff" */
 union Sprat {
   1: string woobie;
   2: i32 wowzer;
@@ -31,9 +56,12 @@ struct Spirfle {
   6: hammlegaff blotto;
 }
 
+/**
+  This struct has a bunch of different fields
+ */
 struct Everything {
-  1:  string str;
-  2:  i64 int64;
+  1:  required string str = "default" (field.annot = 'true');
+  2:  optional i64 int64;
   3:  i32 int32;
   4:  i16 int16;
   5:  byte bite;
@@ -54,14 +82,18 @@ struct Everything {
   20: nothing_all_at_once.Blotto smork;
   21: map<Spinkle, list<Spirfle>> enum_list_map;
   22: string empty;
-}
+  23: optional bool really = true;
+} (struct.annot = 'true')
 
+/** trying out an exception */
 exception EndOfTheUniverseException {
   1: string msg;
 }
 
+/** this service has some documentation */
 service Universe extends nothing_all_at_once.Metaverse {
   i32 grok(1: Everything everything) throws (1:EndOfTheUniverseException endOfIt),
+  /** this is oneway so should have a void result */
   oneway void sendIt(),
   Everything bang(1: i32 fortyTwo);
 }

@@ -38,6 +38,10 @@ public class ThriftCommandException extends ThriftRuntimeException {
     COMMAND_201("Thrift 'help' command failed: %s"),
     COMMAND_202("Thrift 'help' command did not return an exit code of 0: %s"),
     COMMAND_203("Thrift 'help' command was interrupted: %s"),
+
+    COMMAND_301("Thrift command failed: %s"),
+    COMMAND_302("Thrift command did not return an exit code of 0: %s"),
+    COMMAND_303("Thrift command was interrupted: %s"),
     ;
 
     private final String _message;

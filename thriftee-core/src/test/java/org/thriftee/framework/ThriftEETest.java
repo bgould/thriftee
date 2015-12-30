@@ -15,6 +15,9 @@
  */
 package org.thriftee.framework;
 
+import static org.thriftee.provider.swift.SwiftSchemaProvider.moduleNameFor;
+import static org.thriftee.provider.swift.SwiftSchemaProvider.serviceNameFor;
+
 import java.io.ByteArrayOutputStream;
 
 import org.apache.thrift.TMultiplexedProcessor;
@@ -54,13 +57,13 @@ public class ThriftEETest extends AbstractThriftEETest {
   @Test
   public void testModuleName() throws Exception {
     final String packageName = GroupService.class.getPackage().getName();
-    final String moduleName = ThriftEE.moduleNameFor(packageName);
+    final String moduleName = moduleNameFor(packageName);
     Assert.assertEquals(MODULE, moduleName);
   }
 
   @Test
   public void testServiceName() throws Exception {
-    final String serviceName = ThriftEE.serviceNameFor(GroupService.class);
+    final String serviceName = serviceNameFor(GroupService.class);
     final String expected = MODULE + ".GroupService";
     Assert.assertEquals(expected, serviceName);
   }
@@ -82,7 +85,7 @@ public class ThriftEETest extends AbstractThriftEETest {
   @Test
   public void testWriteStruct() throws Exception {
 
-    ThriftCodec<Customer> customerCodec = thrift().codecManager().getCodec(
+    ThriftCodec<Customer> customerCodec = thriftCodecManager().getCodec(
       Customer.class
     );
     Assert.assertNotNull(customerCodec);

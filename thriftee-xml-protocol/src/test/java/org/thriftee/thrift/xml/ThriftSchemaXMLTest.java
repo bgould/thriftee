@@ -25,8 +25,6 @@ import java.nio.charset.Charset;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.stream.StreamResult;
 
-import org.junit.Test;
-import org.thriftee.thrift.xml.ThriftSchemaXML;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 import org.xml.sax.SAXException;
 
@@ -40,7 +38,7 @@ public class ThriftSchemaXMLTest {
 
   public static final File another = new File(idlDir, "nothing_all_at_once.thrift");
 
-  @Test
+  //@Test
   public void testParse() throws IOException, XMLStreamException, SAXException {
     ThriftSchemaXML xml = new ThriftSchemaXML();
     StringWriter out = new StringWriter();

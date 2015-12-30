@@ -31,6 +31,8 @@ import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TTupleProtocol;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
+import org.thriftee.compiler.schema.SchemaBuilder;
+import org.thriftee.compiler.schema.XMLSchemaBuilder;
 import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 import org.thriftee.util.New;
@@ -39,15 +41,15 @@ public class ThriftEEConfig implements Serializable {
 
   private static final long serialVersionUID = 8148668461656853500L;
 
-  private final boolean useBytecodeCompiler;
-
   private final File tempDir;
 
   private final File thriftExecutable;
 
   private final File thriftLibDir;
 
-  private final Classpath annotationClasspath;
+  private final SchemaBuilder schemaBuilder;
+
+  private final SchemaProvider schemaProvider;
 
   private final ServiceLocator serviceLocator;
 
@@ -56,20 +58,25 @@ public class ThriftEEConfig implements Serializable {
   private final SortedMap<String, ProtocolTypeAlias> protocolTypeAliases;
 
   private ThriftEEConfig(
-      final boolean useBytecodeCompiler,
       final File tempDir,
       final File thriftExecutable,
       final File thriftLibDir,
-      final Classpath annotationClasspath,
+      final SchemaBuilder schemaBuilder,
+      final SchemaProvider schemaProvider,
       final ServiceLocator serviceLocator,
       final Map<String, ClientTypeAlias> clientTypeAliases,
       final Map<String, ProtocolTypeAlias> protocolTypeAliases) {
     super();
-    this.useBytecodeCompiler = useBytecodeCompiler;
+    ensureNotNull("schemaBuilder", schemaBuilder);
+    ensureNotNull("schemaProvider", schemaProvider);
+    ensureNotNull("serviceLocator", serviceLocator);
+    ensureNotNull("clientTypeAliases", clientTypeAliases);
+    ensureNotNull("protocolTypeAliases", protocolTypeAliases);
     this.tempDir = tempDir;
     this.thriftExecutable = thriftExecutable;
     this.thriftLibDir = thriftLibDir;
-    this.annotationClasspath = annotationClasspath;
+    this.schemaBuilder = schemaBuilder;
+    this.schemaProvider = schemaProvider;
     this.serviceLocator = serviceLocator;
     final SortedMap<String, ClientTypeAlias> aliases = New.sortedMap();
     aliases.putAll(clientTypeAliases);
@@ -77,6 +84,12 @@ public class ThriftEEConfig implements Serializable {
     final SortedMap<String, ProtocolTypeAlias> protocols = New.sortedMap();
     protocols.putAll(protocolTypeAliases);
     this.protocolTypeAliases = Collections.unmodifiableSortedMap(protocols);
+  }
+
+  private static void ensureNotNull(String name, Object obj) {
+    if (obj == null) {
+      throw new IllegalArgumentException(name + " cannot be null");
+    }
   }
 
   public File tempDir() {
@@ -91,10 +104,6 @@ public class ThriftEEConfig implements Serializable {
     return this.thriftLibDir;
   }
 
-  public Classpath annotationClasspath() {
-    return this.annotationClasspath;
-  }
-
   public SortedMap<String, ClientTypeAlias> clientTypeAliases() {
     return this.clientTypeAliases;
   }
@@ -107,13 +116,15 @@ public class ThriftEEConfig implements Serializable {
     return this.serviceLocator;
   }
 
-  public boolean useBytecodeCompiler() {
-    return this.useBytecodeCompiler;
+  public SchemaBuilder schemaBuilder() {
+    return this.schemaBuilder;
+  }
+
+  public SchemaProvider schemaProvider() {
+    return this.schemaProvider;
   }
 
   public static class Factory {
-
-    private boolean useBytecodeCompiler = true;
 
     private File tempDir;
 
@@ -121,7 +132,9 @@ public class ThriftEEConfig implements Serializable {
 
     private File thriftLibDir;
 
-    private Classpath annotationClasspath;
+    private SchemaBuilder schemaBuilder;
+
+    private SchemaProvider schemaProvider;
 
     private ServiceLocator serviceLocator;
 
@@ -133,14 +146,7 @@ public class ThriftEEConfig implements Serializable {
     
     private boolean useDefaultProtocolTypeAliases = true;
 
-    public void setUseBytecodeCompiler(boolean useBytecodeCompiler) {
-      this.useBytecodeCompiler = useBytecodeCompiler;
-    }
-
     public void setTempDir(File tempDir) {
-//      if (tempDir == null) {
-//        throw new IllegalArgumentException("tempDir cannot be null");
-//      }
       this.tempDir = tempDir;
     }
 
@@ -152,8 +158,12 @@ public class ThriftEEConfig implements Serializable {
       this.thriftLibDir = file;
     }
 
-    public void setAnnotationClasspath(Classpath classpath) {
-      this.annotationClasspath = classpath;
+    public void setSchemaBuilder(SchemaBuilder schemaBuilder) {
+      this.schemaBuilder = schemaBuilder;
+    }
+
+    public void setSchemaProvider(SchemaProvider schemaProvider) {
+      this.schemaProvider = schemaProvider;
     }
 
     public void setServiceLocator(ServiceLocator serviceLocator) {
@@ -172,10 +182,6 @@ public class ThriftEEConfig implements Serializable {
       return clients;
     }
 
-    public boolean isUseBytecodeCompiler() {
-      return useBytecodeCompiler;
-    }
-
     public File getTempDir() {
       return tempDir;
     }
@@ -186,10 +192,6 @@ public class ThriftEEConfig implements Serializable {
 
     public File getThriftLibDir() {
       return thriftLibDir;
-    }
-
-    public Classpath getAnnotationClasspath() {
-      return annotationClasspath;
     }
 
     public boolean isUseDefaultClientTypeAliases() {
@@ -212,9 +214,6 @@ public class ThriftEEConfig implements Serializable {
       if (tempDir == null) {
         throw new IllegalArgumentException("tempDir cannot be null");
       }
-      if (annotationClasspath == null) {
-        throw new IllegalArgumentException("cannot be null");
-      }
       final Map<String, ClientTypeAlias> clientTypes = new TreeMap<>();
       if (isUseDefaultClientTypeAliases()) {
         for (ClientTypeAlias.Defaults def : ClientTypeAlias.Defaults.values()) {
@@ -229,11 +228,11 @@ public class ThriftEEConfig implements Serializable {
         }
       }
       return new ThriftEEConfig(
-        useBytecodeCompiler,
         tempDir, 
         thriftExecutable, 
         thriftLibDir, 
-        annotationClasspath,
+        schemaBuilder == null ? new XMLSchemaBuilder() : schemaBuilder,
+        schemaProvider,
         serviceLocator,
         clientTypes,
         protocols == null ? new HashMap<String,ProtocolTypeAlias>() : protocols
@@ -258,11 +257,6 @@ public class ThriftEEConfig implements Serializable {
       addProtocolTypeAlias("tuple", new TTupleProtocol.Factory());
       addProtocolTypeAlias("xml", new TXMLProtocol.Factory());
 
-    }
-
-    public Builder useBytecodeCompiler(boolean useBytecodeCompiler) {
-      this.factory.setUseBytecodeCompiler(useBytecodeCompiler);
-      return this;
     }
 
     public Builder addProtocolTypeAlias(String name, TProtocolFactory factory) {
@@ -326,8 +320,13 @@ public class ThriftEEConfig implements Serializable {
       return this;
     }
 
-    public Builder annotationClasspath(final Classpath classpath) {
-      factory.setAnnotationClasspath(classpath);
+    public Builder schemaBuilder(final SchemaBuilder schemaBuilder) {
+      factory.setSchemaBuilder(schemaBuilder);
+      return this;
+    }
+
+    public Builder schemaProvider(final SchemaProvider schemaProvider) {
+      factory.setSchemaProvider(schemaProvider);
       return this;
     }
 

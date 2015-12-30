@@ -83,7 +83,7 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
     LOG.debug("testing protocol: " + factory.getProtocol(null).getClass());
 
     final String modName = USERGROUP_SERVICES_MODULE;
-    final ThriftCodecManager mgr = thrift().codecManager();
+    final ThriftCodecManager mgr = thriftCodecManager();
     final ModuleSchema module = thrift().schema().getModules().get(modName);
     final ServiceSchema service = module.getServices().get("UserService");
     final MethodSchema method = service.getMethods().get("find");
