@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml;
+package org.thriftee.provider.swift;
 
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 import static com.facebook.swift.parser.ThriftIdlParser.parseThriftIdl;
 import static com.google.common.io.Files.asCharSource;
 import static javax.xml.bind.DatatypeConverter.printLong;
@@ -35,12 +36,19 @@ import java.util.Set;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 
-import org.thriftee.thrift.xml.protocol.TXMLProtocol.XML;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import com.facebook.swift.parser.model.AbstractStruct;
 import com.facebook.swift.parser.model.BaseType;
@@ -66,7 +74,7 @@ import com.facebook.swift.parser.model.Union;
 import com.facebook.swift.parser.model.VoidType;
 import com.google.common.base.Charsets;
 
-public class ThriftSchemaXML {
+public class SwiftParserXML {
 
   public static final String NS = "http://thrift.apache.org/xml/idl";
 
@@ -293,7 +301,7 @@ public class ThriftSchemaXML {
 
   protected void write(TypeAnnotation annotation) throws IOException {
     writeStartElement("annotation");
-    writeAttribute("name", annotation.getName());
+    writeAttribute("key", annotation.getName());
     writeAttribute("value", annotation.getValue());
     writeEndElement();
   }
@@ -403,7 +411,7 @@ public class ThriftSchemaXML {
   }
 
   public URL schemaUrl() {
-    final String xsd = "org/thriftee/thrift/xml/protocol/thrift-idl.xsd";
+    final String xsd = "org/thriftee/thrift/xml/thrift-idl.xsd";
     final URL result = getClass().getClassLoader().getResource(xsd);
     if (result == null) {
       throw new IllegalStateException("Could not load resource (null): " + xsd);
@@ -412,7 +420,54 @@ public class ThriftSchemaXML {
   }
 
   public String validate(final String str) throws SAXException, IOException {
-    return XML.validate(schemaUrl(), new StreamSource(new StringReader(str)));
+    return validate(schemaUrl(), new StreamSource(new StringReader(str)));
+  }
+
+  public static String formatXml(String s) {
+    try {
+      final String indentAmount = "{http://xml.apache.org/xslt}indent-amount";
+      TransformerFactory factory = TransformerFactory.newInstance();
+      Transformer transformer = factory.newTransformer();
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      transformer.setOutputProperty(indentAmount, "2");
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      StreamResult result = new StreamResult(new StringWriter());
+      StreamSource source = new StreamSource(new StringReader(s));
+      transformer.transform(source, result);
+      String xmlString = result.getWriter().toString();
+      return xmlString;
+    } catch (RuntimeException e) {
+      System.out.println(s);
+      throw e;
+    } catch (Exception e) {
+      System.out.println(s);
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static String validate(final URL schemaUrl, final Source source) 
+          throws SAXException, IOException {
+    final SchemaFactory sf = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI);
+    final Schema schema = sf.newSchema(schemaUrl);
+    final Validator validator = schema.newValidator();
+    try {
+      validator.validate(source);
+      return null;
+    } catch (SAXParseException e) {
+      return String.format(
+        "%nParse error:%n------------%n" + 
+        "line number: %s%n" +
+        " col number: %s%n" +
+        "  system id: %s%n" +
+        "  public id: %s%n" +
+        "    message: %s%n",
+        e.getLineNumber(), 
+        e.getColumnNumber(), 
+        e.getSystemId(),
+        e.getPublicId(),
+        e.getLocalizedMessage()
+      );
+    }
   }
 
 }

@@ -73,7 +73,7 @@ public class Transforms {
 
   private final XsltCompiler compiler;
 
-  public static final String XSL_BASE = "org/thriftee/thrift/xml/protocol";
+  public static final String XSL_BASE = "org/thriftee/thrift/xml";
 
   public static final String XSL_FORMATTER = "pretty-print.xsl";
 

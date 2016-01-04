@@ -1,7 +1,7 @@
 /** this is just a test IDL file for trying out things with the XML protocol */
 
 namespace java everything
-namespace xml evrything // (targetNamespace = "http://example.com/ns", test = "any")
+namespace xsd everything // (ns.url  = "http://example.com/ns/", test = "any")
 
 include "nothing_all_at_once.thrift"
 
@@ -29,7 +29,6 @@ const map<i32, map<string, string>> MAP_MAP_CONST  = {
 const map<Spinkle, string> ENUM_MAP_CONST = { Spinkle.PPOL : "test" }
 
 typedef i32 dukk
-typedef i32 int32
 typedef Sprat poig
 typedef Spirfle plorp
 /**
@@ -40,7 +39,6 @@ typedef nothing_all_at_once.Blotto hammlegaff //(it.also = 'has.annotations')
 typedef set<string> setdef
 typedef list<string> listdef
 typedef map<string, Spirfle> mapdef
-typedef list<map<int32, string>> biglist
 
 /** some union doc & "stuff" */
 union Sprat {
@@ -83,17 +81,8 @@ struct Everything {
   19: set<Spirfle> obj_set;
   20: nothing_all_at_once.Blotto smork;
   21: map<Spinkle, list<Spirfle>> enum_list_map;
-  22: optional bool really = true;
-  23: string empty;
-  24: int32 someint;
-  25: poig someobj;
-  26: hammlegaff someobj2;
-  /*
-  27: setdef someset;
-  28: mapdef somemap;
-  29: listdef somelist;
-  30: biglist listtype;
-  */
+  22: string empty;
+  23: optional bool really = true;
 } (struct.annot = 'true')
 
 /** trying out an exception */

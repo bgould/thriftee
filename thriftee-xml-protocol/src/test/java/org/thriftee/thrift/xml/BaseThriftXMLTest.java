@@ -44,6 +44,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.thriftee.provider.swift.SwiftParserXML;
 import org.thriftee.thrift.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 import org.thriftee.thrift.xml.protocol.TXMLProtocolTest;
@@ -115,13 +116,12 @@ public class BaseThriftXMLTest {
   public synchronized static void beforeClass() throws Exception {
     if (exportedModels == null || exportedSchemas == null) {
       final boolean useExisting;
-      if (!testModelDir.exists()) {
+      if (Boolean.valueOf(System.getProperty("thriftee.use.swift.parser"))) {
         createDir("model", testModelDir);
         useExisting = false;
       } else {
-        useExisting = false;
+        useExisting = true;
       }
-      //createDir("model", testModelDir);
       createDir("schema", testSchemaDir);
       createDir("structs", testStructsDir);
       exportedModels  = exportModels(testModelDir, useExisting);
@@ -219,7 +219,6 @@ public class BaseThriftXMLTest {
 
   public static Map<String, File> exportModels(
       File tmp, boolean useExisting) throws IOException {
-    final ThriftSchemaXML xml = new ThriftSchemaXML();
     final Map<String, File> xmlFiles = new LinkedHashMap<>();
     final List<File> idlFiles = Arrays.asList(
       new File("src/test/thrift").listFiles(new FilenameFilter() {
@@ -236,6 +235,7 @@ public class BaseThriftXMLTest {
       }
       if (!useExisting) {
         final StringWriter w = new StringWriter();
+        final SwiftParserXML xml = new SwiftParserXML();
         xml.export(idlfile, Charsets.UTF_8, new StreamResult(w));
         try (FileWriter out = new FileWriter(outfile)) {
           Transforms.formatXml(w.toString(), new StreamResult(out));
@@ -259,7 +259,7 @@ public class BaseThriftXMLTest {
       Map<String, File> models, File tmp) throws IOException {
     final Map<String, File> wsdlFiles = new TreeMap<>();
     for (Entry<String, File> entry : models.entrySet()) {
-      wsdlFiles.putAll(Transforms.exportSchemas(entry.getValue(), tmp));
+      wsdlFiles.putAll(Transforms.exportWsdls(entry.getValue(), tmp));
     }
     return Collections.unmodifiableMap(wsdlFiles);
   }

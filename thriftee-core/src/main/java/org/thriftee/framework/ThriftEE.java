@@ -22,12 +22,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 
+import javax.xml.transform.Result;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
@@ -48,11 +51,8 @@ import org.thriftee.compiler.schema.ThriftSchema;
 import org.thriftee.compiler.schema.ThriftSchemaService;
 import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.framework.client.ClientTypeAlias;
-import org.thriftee.thrift.xml.ThriftSchemaXML;
 import org.thriftee.thrift.xml.Transforms;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
-
-import com.google.common.base.Charsets;
 
 public class ThriftEE {
 
@@ -68,7 +68,7 @@ public class ThriftEE {
     return clientTypeAliases;
   }
 
-  public SortedMap<String, ProtocolTypeAlias> protocolTypeAliases() {
+  public SortedMap<String, BaseProtocolTypeAlias> protocolTypeAliases() {
     return protocolTypeAliases;
   }
 
@@ -188,7 +188,7 @@ public class ThriftEE {
 
   private final SortedMap<String, ClientTypeAlias> clientTypeAliases;
 
-  private final SortedMap<String, ProtocolTypeAlias> protocolTypeAliases;
+  private final SortedMap<String, BaseProtocolTypeAlias> protocolTypeAliases;
 
   private final SortedMap<String, TProcessor> processors;
 
@@ -410,13 +410,32 @@ public class ThriftEE {
     }
     final boolean nativeXmlSupported = isNativeXmlSupported();
     if (!nativeXmlSupported) {
-      LOG.debug("using Swift IDL parser to generate XML model output.");
-      final ThriftSchemaXML schemaXml = new ThriftSchemaXML();
-      try (final FileWriter w = new FileWriter(out)) {
-        final StreamResult streamResult = new StreamResult(w);
-        schemaXml.export(globalIdlFile, Charsets.UTF_8, streamResult);
-      } catch (final IOException e) {
-        throw new ThriftStartupException(e, STARTUP_011, e.getMessage());
+      try {
+        final Class<?> swiftParserXmlClass = Class.forName(
+          "org.thriftee.provider.swift.SwiftParserXML"
+        );
+        final Method export = swiftParserXmlClass.getMethod(
+          "export", new Class[] { File.class, Charset.class, Result.class}
+        );
+        LOG.debug("using Swift IDL parser to generate XML model output.");
+        final Object swiftParserXml = swiftParserXmlClass.newInstance();
+        try (final FileWriter w = new FileWriter(out)) {
+          final StreamResult streamResult = new StreamResult(w);
+          export.invoke(swiftParserXml, new Object[] {
+            globalIdlFile, Charset.forName("UTF-8"), streamResult
+          });
+        } catch (final InvocationTargetException e) {
+          throw new ThriftStartupException(e, STARTUP_011, e.getMessage());
+        } catch (final IOException e) {
+          throw new ThriftStartupException(e, STARTUP_011, e.getMessage());
+        }
+      } catch (ClassNotFoundException e) {
+        throw new UnsupportedOperationException(
+            "Thrift executable cannot create and XML model.");
+      } catch ( IllegalAccessException|
+                InstantiationException|
+                NoSuchMethodException e) {
+        throw new RuntimeException(e);
       }
       return true;
     } else {

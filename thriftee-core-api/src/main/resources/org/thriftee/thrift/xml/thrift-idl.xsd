@@ -4,29 +4,29 @@
         xmlns:tns="http://thrift.apache.org/xml/idl" 
         elementFormDefault="qualified">
 
-  <element name="idl" type="tns:IDLType" />
-  <element name="document" type="tns:DocumentType" />
+  <element name="idl" type="tns:IDL" />
+  <element name="document" type="tns:Document" />
 
-  <complexType name="IDLType">
+  <complexType name="IDL">
     <sequence>
       <element ref="tns:document" minOccurs="1" maxOccurs="unbounded"/>
     </sequence>
   </complexType>
 
-  <complexType name="DocumentType">
+  <complexType name="Document">
     <sequence>
       <choice minOccurs="0" maxOccurs="unbounded">
-        <element name="include" type="tns:IncludeType" />
-        <element name="namespace" type="tns:NamespaceType" />
+        <element name="include" type="tns:Include" />
+        <element name="namespace" type="tns:Namespace" />
       </choice>
       <choice minOccurs="0" maxOccurs="unbounded">
-        <element name="exception" type="tns:ExceptionType" />
-        <element name="typedef" type="tns:TypedefType" />
-        <element name="service" type="tns:ServiceType" />
-        <element name="struct" type="tns:StructType" />
-        <element name="const" type="tns:ConstType" />
-        <element name="union" type="tns:UnionType" />
-        <element name="enum" type="tns:EnumType" />
+        <element name="exception" type="tns:Exception" />
+        <element name="typedef" type="tns:Typedef" />
+        <element name="service" type="tns:Service" />
+        <element name="struct" type="tns:Struct" />
+        <element name="const" type="tns:Const" />
+        <element name="union" type="tns:Union" />
+        <element name="enum" type="tns:Enum" />
       </choice>
     </sequence>
     <attribute name="name" type="string" />
@@ -34,14 +34,14 @@
     <attribute name="doc" type="string" />
   </complexType>
 
-  <complexType name="IncludeType">
+  <complexType name="Include">
     <attribute name="file" type="string" />
     <attribute name="name" type="string" />
   </complexType>
 
-  <complexType name="NamespaceType">
+  <complexType name="Namespace">
     <sequence>
-      <element name="annotation" type="tns:AnnotationType" 
+      <element name="annotation" type="tns:Annotation" 
                minOccurs="0" maxOccurs="unbounded" />
     </sequence>
     <attribute name="name" type="string" />
@@ -51,9 +51,9 @@
 
   <group name="AbstractStruct">
     <sequence>
-      <element name="field" type="tns:FieldType" 
+      <element name="field" type="tns:Field" 
                minOccurs="0" maxOccurs="unbounded" />
-      <element name="annotation" type="tns:AnnotationType" 
+      <element name="annotation" type="tns:Annotation" 
                minOccurs="0" maxOccurs="unbounded" />
     </sequence>
   </group>
@@ -63,16 +63,16 @@
     <attribute name="doc" type="string" />
   </attributeGroup>
 
-  <complexType name="ExceptionType">
+  <complexType name="Exception">
     <group ref="tns:AbstractStruct" />
     <attributeGroup ref="tns:StructAttributes" />
   </complexType>
 
-  <complexType name="ServiceType">
+  <complexType name="Service">
     <sequence>
-      <element name="method" type="tns:MethodType" 
+      <element name="method" type="tns:Method" 
                minOccurs="0" maxOccurs="unbounded" />
-      <element name="annotation" type="tns:AnnotationType" 
+      <element name="annotation" type="tns:Annotation" 
                minOccurs="0" maxOccurs="unbounded" />
     </sequence>
     <attribute name="name" type="string" use="required" />
@@ -82,12 +82,14 @@
     <attribute name="doc" type="string" />
   </complexType>
 
-  <complexType name="MethodType">
+  <complexType name="Method">
     <sequence>
       <element name="returns" type="tns:ThriftType" />
-      <element name="arg" type="tns:FieldType" 
+      <element name="arg" type="tns:Field" 
                minOccurs="0" maxOccurs="unbounded" />
-      <element name="throws" type="tns:FieldType" 
+      <element name="throws" type="tns:Field" 
+               minOccurs="0" maxOccurs="unbounded" />
+      <element name="annotation" type="tns:Annotation" 
                minOccurs="0" maxOccurs="unbounded" />
     </sequence>
     <attribute name="name" type="string" use="required" />
@@ -95,11 +97,11 @@
     <attribute name="doc" type="string" />
   </complexType>
 
-  <complexType name="TypedefType">
+  <complexType name="Typedef">
     <complexContent>
       <extension base="tns:ThriftType">
         <sequence>
-          <element name="annotation" type="tns:AnnotationType" 
+          <element name="annotation" type="tns:Annotation" 
                    minOccurs="0" maxOccurs="unbounded" />
         </sequence>
         <attribute name="name" type="string" use="required" />
@@ -108,22 +110,22 @@
     </complexContent>
   </complexType>
 
-  <complexType name="StructType">
+  <complexType name="Struct">
     <group ref="tns:AbstractStruct" />
     <attributeGroup ref="tns:StructAttributes" />
   </complexType>
 
-  <complexType name="UnionType">
+  <complexType name="Union">
     <group ref="tns:AbstractStruct" />
     <attributeGroup ref="tns:StructAttributes" />
   </complexType>
 
-  <complexType name="EnumType">
+  <complexType name="Enum">
     <sequence>
       <element name="member" minOccurs="1" maxOccurs="unbounded">
         <complexType>
           <sequence>
-            <element name="annotation" type="tns:AnnotationType" 
+            <element name="annotation" type="tns:Annotation" 
                      minOccurs="0" maxOccurs="unbounded" />
           </sequence>
           <attribute name="name" type="string" use="required" />
@@ -132,14 +134,14 @@
           <attribute name="doc" type="string" />
         </complexType>
       </element>
-      <element name="annotation" type="tns:AnnotationType" 
+      <element name="annotation" type="tns:Annotation" 
                 minOccurs="0" maxOccurs="unbounded" />
     </sequence>
     <attribute name="name" type="string" use="required" />
     <attribute name="doc" type="string" />
   </complexType>
 
-  <complexType name="FieldType">
+  <complexType name="Field">
     <complexContent>
       <extension base="tns:ThriftType">
         <sequence>
@@ -148,29 +150,30 @@
               <group ref="tns:ConstValue" />
             </complexType>
           </element>
-          <element name="annotation" type="tns:AnnotationType" 
+          <element name="annotation" type="tns:Annotation" 
                    minOccurs="0" maxOccurs="unbounded" />
         </sequence>
         <attribute name="field-id" type="long" />
         <attribute name="name" type="string" use="required" />
-        <attribute name="required" type="tns:RequirednessType" />
+        <attribute name="required" type="tns:Requiredness" />
+        <attribute name="doc" type="string" />
       </extension>
     </complexContent>
   </complexType>
 
-  <simpleType name="RequirednessType">
+  <simpleType name="Requiredness">
     <restriction base="string">
       <enumeration value="required" />
       <enumeration value="optional" />
     </restriction>
   </simpleType>
 
-  <complexType name="AnnotationType">
+  <complexType name="Annotation">
     <attribute name="key" type="string" />
     <attribute name="value" type="string" />
   </complexType>
 
-  <complexType name="ConstType">
+  <complexType name="Const">
     <complexContent>
       <extension base="tns:ThriftType">
         <sequence>
@@ -182,7 +185,7 @@
     </complexContent>
   </complexType>
 
-  <complexType name="ConstListType">
+  <complexType name="ConstList">
     <sequence>
       <element name="entry" minOccurs="0" maxOccurs="unbounded">
         <complexType>
@@ -192,7 +195,7 @@
     </sequence>
   </complexType>
 
-  <complexType name="ConstMapType">
+  <complexType name="ConstMap">
     <sequence>
       <element name="entry" minOccurs="0" maxOccurs="unbounded">
         <complexType>
@@ -217,8 +220,8 @@
     <choice>
       <element name="string" type="string" />
       <element name="double" type="double" />
-      <element name="list" type="tns:ConstListType" />
-      <element name="map" type="tns:ConstMapType" />
+      <element name="list" type="tns:ConstList" />
+      <element name="map" type="tns:ConstMap" />
       <element name="int" type="long" />
     </choice>
   </group>

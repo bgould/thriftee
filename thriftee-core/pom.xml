@@ -105,6 +105,17 @@
             <goals>
               <goal>generate</goal>
             </goals>
+            <configuration>
+              <schemas>
+                <schema>
+                  <dependencyResource>
+                    <groupId>org.thriftee</groupId>
+                    <artifactId>thriftee-core-api</artifactId>
+                    <resource>org/thriftee/thrift/xml/thrift-idl.xsd</resource>
+                  </dependencyResource>
+                </schema>
+              </schemas>
+            </configuration>
           </execution>
         </executions>
       </plugin>

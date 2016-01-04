@@ -55,7 +55,7 @@ public class ThriftEEConfig implements Serializable {
 
   private final SortedMap<String, ClientTypeAlias> clientTypeAliases;
 
-  private final SortedMap<String, ProtocolTypeAlias> protocolTypeAliases;
+  private final SortedMap<String, BaseProtocolTypeAlias> protocolTypeAliases;
 
   private ThriftEEConfig(
       final File tempDir,
@@ -65,7 +65,7 @@ public class ThriftEEConfig implements Serializable {
       final SchemaProvider schemaProvider,
       final ServiceLocator serviceLocator,
       final Map<String, ClientTypeAlias> clientTypeAliases,
-      final Map<String, ProtocolTypeAlias> protocolTypeAliases) {
+      final Map<String, BaseProtocolTypeAlias> protocolTypeAliases) {
     super();
     ensureNotNull("schemaBuilder", schemaBuilder);
     ensureNotNull("schemaProvider", schemaProvider);
@@ -81,7 +81,7 @@ public class ThriftEEConfig implements Serializable {
     final SortedMap<String, ClientTypeAlias> aliases = New.sortedMap();
     aliases.putAll(clientTypeAliases);
     this.clientTypeAliases = Collections.unmodifiableSortedMap(aliases);
-    final SortedMap<String, ProtocolTypeAlias> protocols = New.sortedMap();
+    final SortedMap<String, BaseProtocolTypeAlias> protocols = New.sortedMap();
     protocols.putAll(protocolTypeAliases);
     this.protocolTypeAliases = Collections.unmodifiableSortedMap(protocols);
   }
@@ -108,7 +108,7 @@ public class ThriftEEConfig implements Serializable {
     return this.clientTypeAliases;
   }
 
-  public SortedMap<String, ProtocolTypeAlias> protocolTypeAliases() {
+  public SortedMap<String, BaseProtocolTypeAlias> protocolTypeAliases() {
     return this.protocolTypeAliases;
   }
 
@@ -140,7 +140,7 @@ public class ThriftEEConfig implements Serializable {
 
     private SortedMap<String, ClientTypeAlias> clients = new TreeMap<>();
 
-    private SortedMap<String, ProtocolTypeAlias> protocols = new TreeMap<>();
+    private SortedMap<String, BaseProtocolTypeAlias> protocols = new TreeMap<>();
 
     private boolean useDefaultClientTypeAliases = true;
     
@@ -174,7 +174,7 @@ public class ThriftEEConfig implements Serializable {
       this.clients = aliases;
     }
 
-    public void setProtocolTypes(SortedMap<String, ProtocolTypeAlias> protos) {
+    public void setProtocolTypes(SortedMap<String, BaseProtocolTypeAlias> protos) {
       this.protocols = protos;
     }
 
@@ -235,7 +235,7 @@ public class ThriftEEConfig implements Serializable {
         schemaProvider,
         serviceLocator,
         clientTypes,
-        protocols == null ? new HashMap<String,ProtocolTypeAlias>() : protocols
+        protocols == null ? new HashMap<String,BaseProtocolTypeAlias>() : protocols
       );
     }
 
@@ -247,7 +247,7 @@ public class ThriftEEConfig implements Serializable {
 
     private final SortedMap<String, ClientTypeAlias> aliases = New.sortedMap();
 
-    private final SortedMap<String, ProtocolTypeAlias> protocols = New.sortedMap();
+    private final SortedMap<String, BaseProtocolTypeAlias> protocols = New.sortedMap();
 
     public Builder() {
 
@@ -260,12 +260,12 @@ public class ThriftEEConfig implements Serializable {
     }
 
     public Builder addProtocolTypeAlias(String name, TProtocolFactory factory) {
-      final ProtocolTypeAlias pta = new ProtocolTypeAlias(name, factory);
+      final BaseProtocolTypeAlias pta = new BaseProtocolTypeAlias(name, factory);
       addProtocolTypeAlias(pta);
       return this;
     }
 
-    public Builder addProtocolTypeAlias(ProtocolTypeAlias protocolType) {
+    public Builder addProtocolTypeAlias(BaseProtocolTypeAlias protocolType) {
       final String name = protocolType.getName();
       if (protocols.containsKey(name)) {
         throw new IllegalArgumentException(

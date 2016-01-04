@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml;
+package org.thriftee.provider.swift;
 
 import static org.junit.Assert.fail;
 
@@ -25,7 +25,7 @@ import java.nio.charset.Charset;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.stream.StreamResult;
 
-import org.thriftee.thrift.xml.protocol.TXMLProtocol;
+import org.junit.Test;
 import org.xml.sax.SAXException;
 
 public class ThriftSchemaXMLTest {
@@ -38,12 +38,12 @@ public class ThriftSchemaXMLTest {
 
   public static final File another = new File(idlDir, "nothing_all_at_once.thrift");
 
-  //@Test
+  @Test
   public void testParse() throws IOException, XMLStreamException, SAXException {
-    ThriftSchemaXML xml = new ThriftSchemaXML();
+    SwiftParserXML xml = new SwiftParserXML();
     StringWriter out = new StringWriter();
     xml.export(everything, charset, new StreamResult(out));
-    final String xmlString = TXMLProtocol.XML.formatXml(out.toString());
+    final String xmlString = SwiftParserXML.formatXml(out.toString());
     System.out.println(xmlString);
 
     System.out.println("Validating against schema: " + xml.schemaUrl());

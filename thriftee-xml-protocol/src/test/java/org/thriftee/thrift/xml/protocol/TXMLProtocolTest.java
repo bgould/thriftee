@@ -59,8 +59,8 @@ public class TXMLProtocolTest {
   @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-      { Variant.VERBOSE },
-      //{ Variant.CONCISE },
+      //{ Variant.VERBOSE },
+      { Variant.CONCISE },
     });
   }
 
