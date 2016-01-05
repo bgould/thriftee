@@ -76,7 +76,7 @@
             <configuration>
               <properties>
                 <thrift.help.cmd>${thrift.command} -help</thrift.help.cmd>
-                <thrift.xml.cmd>${thrift.command} -gen xml:merge -out target/tests/models</thrift.xml.cmd>
+                <thrift.xml.cmd>${thrift.command} -gen xml:merge</thrift.xml.cmd>
               </properties>
               <source><![CDATA[
   def command = project.properties["thrift.help.cmd"]
@@ -86,10 +86,11 @@
   project.properties.useSwiftParser = (!xmlSupported).toString()
   log.info "useSwiftParser = " + project.properties.useSwiftParser 
   if (xmlSupported) {
-    def cmd = project.properties["thrift.xml.cmd"] 
-    def finder = new FileNameFinder()
-    def filenames = finder.getFileNames("src/test/thrift", "*.thrift")
-    new File("target/tests/models").mkdirs()
+    def inputdir = new File(project.basedir, "src/test/thrift")
+    def outputdir = new File(project.basedir, "target/tests/models")
+    def filenames = new FileNameFinder().getFileNames(inputdir.absolutePath, "*.thrift")
+    def cmd = project.properties["thrift.xml.cmd"] + " -out " + outputdir
+    outputdir.mkdirs()
     filenames.each { filename ->
       def file = new File(filename)
       log.info "processing thrift file: " + file.name
