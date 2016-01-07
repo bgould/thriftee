@@ -15,13 +15,24 @@
  */
 package org.thriftee.framework;
 
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.*;
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_003;
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_004;
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_005;
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_006;
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_007;
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_008;
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_011;
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_012;
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_013;
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_014;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -419,13 +430,19 @@ public class ThriftEE {
         );
         LOG.debug("using Swift IDL parser to generate XML model output.");
         final Object swiftParserXml = swiftParserXmlClass.newInstance();
-        try (final FileWriter w = new FileWriter(out)) {
-          final StreamResult streamResult = new StreamResult(w);
-          export.invoke(swiftParserXml, new Object[] {
-            globalIdlFile, Charset.forName("UTF-8"), streamResult
-          });
-        } catch (final InvocationTargetException e) {
-          throw new ThriftStartupException(e, STARTUP_011, e.getMessage());
+        final Charset utf8 = Charset.forName("UTF-8");
+        if (utf8 == null) {
+          throw new IllegalStateException("UTF-8 not found?");
+        }
+        try (final FileOutputStream fileout = new FileOutputStream(out)) {
+          try (final Writer w = new OutputStreamWriter(fileout, utf8)) {
+            final StreamResult streamResult = new StreamResult(w);
+            export.invoke(swiftParserXml, new Object[] {
+              globalIdlFile, utf8, streamResult
+            });
+          } catch (final InvocationTargetException e) {
+            throw new ThriftStartupException(e, STARTUP_011, e.getMessage());
+          }
         } catch (final IOException e) {
           throw new ThriftStartupException(e, STARTUP_011, e.getMessage());
         }

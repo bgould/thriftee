@@ -15,8 +15,11 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project 
+  xmlns="http://maven.apache.org/POM/4.0.0" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -79,16 +82,20 @@
                 <thrift.xml.cmd>${thrift.command} -gen xml:merge</thrift.xml.cmd>
               </properties>
               <source><![CDATA[
-  def command = project.properties["thrift.help.cmd"]
-  def process = command.execute()
+  def helpcmd = project.properties["thrift.help.cmd"].tokenize(" ")
+  def helpstr = ""
+  def prcbldr = new ProcessBuilder(helpcmd)
+  def process = prcbldr.redirectOutput(ProcessBuilder.Redirect.INHERIT).start()
+  process.err.eachLine { helpstr += "\n" + it }
   process.waitFor()
-  def xmlSupported = process.err.text.contains("  xml (XML)")
+  def xmlSupported = helpstr.contains("  xml (XML)")
   project.properties.useSwiftParser = (!xmlSupported).toString()
   log.info "useSwiftParser = " + project.properties.useSwiftParser 
   if (xmlSupported) {
+    def finder = new FileNameFinder()
     def inputdir = new File(project.basedir, "src/test/thrift")
     def outputdir = new File(project.basedir, "target/tests/models")
-    def filenames = new FileNameFinder().getFileNames(inputdir.absolutePath, "*.thrift")
+    def filenames = finder.getFileNames(inputdir.absolutePath, "*.thrift")
     def cmd = project.properties["thrift.xml.cmd"] + " -out " + outputdir
     outputdir.mkdirs()
     filenames.each { filename ->
@@ -113,6 +120,7 @@
             <id>thrift-generate-java</id>
             <phase>generate-test-sources</phase>
             <configuration>
+              <thriftExecutable>${thrift.command}</thriftExecutable>
               <generator>java</generator>
               <compileOutput>true</compileOutput>
             </configuration>

@@ -94,7 +94,7 @@ public class SwiftParserXML {
       throws IOException {
     try {
       writer = XMLOutputFactory.newFactory().createXMLStreamWriter(result);
-      writer.writeStartDocument("UTF-8", "1.0");
+      writer.writeStartDocument("utf-8", "1.0");
       writer.writeStartElement("idl", "idl", NS);
       writer.writeNamespace("idl", NS);
       final Set<String> alreadyIncluded = new HashSet<>();
@@ -104,7 +104,7 @@ public class SwiftParserXML {
         final File file = filesToInclude.poll();
         module = moduleNameFor(file);
         if (!alreadyIncluded.contains(module)) {
-          document = parseThriftIdl(asCharSource(file, Charsets.UTF_8));
+          document = parseThriftIdl(asCharSource(file, charset));
           writer.writeStartElement("idl", "document", NS);
           writer.writeAttribute("targetNamespace", namespaceUri());
           writer.writeNamespace(module, namespaceUri());
