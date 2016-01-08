@@ -273,9 +273,9 @@ public class BaseThriftXMLTest {
       if (!dir.mkdir()) {
         throw new IOException("could not create directory: " + dir);
       }
+      final File simple = new File(dir, "simple.xml");
+      final File streaming = new File(dir, "streaming.xml");
       File outfile = null;
-      File simple = new File(dir, "simple.xml");
-      File streaming = new File(dir, "streaming.xml");
       for (final Variant v : Variant.values()) {
         final String variant = v.name().toLowerCase();
         final TestProtocol oprot = new TestProtocol((byte[])null, v);
@@ -317,7 +317,7 @@ public class BaseThriftXMLTest {
 
   private static void transformToSimple(TestObject obj, File src, File tgt)
       throws IOException, TransformerException {
-    final StreamingToSimpleTransformation trns = Transforms.newStreamingToSimple();
+    final Transformation trns = Transforms.newStreamingToSimple();
     trns.setFormatting(true);
     trns.setModelFile(modelFor(obj.module));
     trns.setModule(obj.module);
@@ -331,7 +331,7 @@ public class BaseThriftXMLTest {
 
   private static void transformToStreaming(TestObject obj, File src, File tgt) 
       throws IOException, TransformerException {
-    SimpleToStreamingTransformation trns = Transforms.newSimpleToStreaming();
+    final Transformation trns = Transforms.newSimpleToStreaming();
     trns.setFormatting(true);
     trns.setModelFile(modelFor(obj.module));
     trns.transform(new StreamSource(src), new StreamResult(tgt));

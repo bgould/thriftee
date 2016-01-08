@@ -61,7 +61,7 @@
   </dependencies>
 
   <properties>
-    <thrift.command>thrift</thrift.command>
+    <thrift.exe>thrift</thrift.exe>
   </properties>
 
   <build>
@@ -78,8 +78,8 @@
             </goals>
             <configuration>
               <properties>
-                <thrift.help.cmd>${thrift.command} -help</thrift.help.cmd>
-                <thrift.xml.cmd>${thrift.command} -gen xml:merge</thrift.xml.cmd>
+                <thrift.help.cmd>${thrift.exe} -help</thrift.help.cmd>
+                <thrift.xml.cmd>${thrift.exe} -gen xml:merge</thrift.xml.cmd>
               </properties>
               <source><![CDATA[
   def helpcmd = project.properties["thrift.help.cmd"].tokenize(" ")
@@ -102,7 +102,7 @@
       def file = new File(filename)
       log.info "processing thrift file: " + file.name
       process = (cmd + " "  + file.absolutePath).execute()
-      if (process.waitFor() != 0) 
+      if (process.waitFor() != 0)
         fail("thrift generation failed: " + process.err.text)
     }
   }
@@ -120,7 +120,7 @@
             <id>thrift-generate-java</id>
             <phase>generate-test-sources</phase>
             <configuration>
-              <thriftExecutable>${thrift.command}</thriftExecutable>
+              <thriftExecutable>${thrift.exe}</thriftExecutable>
               <generator>java</generator>
               <compileOutput>true</compileOutput>
             </configuration>
