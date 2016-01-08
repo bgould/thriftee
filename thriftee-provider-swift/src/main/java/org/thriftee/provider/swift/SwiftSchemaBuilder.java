@@ -15,7 +15,9 @@
  */
 package org.thriftee.provider.swift;
 
-import static org.thriftee.compiler.schema.SchemaBuilderException.Messages.*;
+import static org.thriftee.compiler.schema.SchemaBuilderException.Messages.SCHEMA_100;
+import static org.thriftee.compiler.schema.SchemaBuilderException.Messages.SCHEMA_101;
+import static org.thriftee.compiler.schema.SchemaBuilderException.Messages.SCHEMA_103;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +30,7 @@ import org.thriftee.compiler.schema.SchemaBuilder;
 import org.thriftee.compiler.schema.SchemaBuilderException;
 import org.thriftee.compiler.schema.ThriftSchema;
 import org.thriftee.compiler.schema.ThriftSchema.Builder;
+import org.thriftee.framework.SchemaBuilderConfig;
 
 import com.facebook.swift.parser.ThriftIdlParser;
 import com.facebook.swift.parser.model.Document;
@@ -42,10 +45,11 @@ public class SwiftSchemaBuilder implements SchemaBuilder {
   }
 
   @Override
-  public ThriftSchema buildSchema(File[] idlFiles) throws SchemaBuilderException {
+  public ThriftSchema buildSchema(final SchemaBuilderConfig config) 
+      throws SchemaBuilderException {
 
     final Map<String, Document> documents = new HashMap<>();
-    for (File idlFile : idlFiles) {
+    for (final File idlFile : config.idlFiles()) {
       logger.trace("Parsing generated IDL: {}", idlFile.getName());
       try {
         final Document document = ThriftIdlParser.parseThriftIdl(

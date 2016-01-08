@@ -10,6 +10,7 @@ public interface SchemaProvider {
   public File[] exportIdl(File idlDir) throws ThriftStartupException;
 
   public SortedMap<String, TProcessor> buildProcessorMap(
-      ServiceLocator serviceLocator) throws ThriftStartupException;
+    ServiceLocator serviceLocator
+  ) throws ThriftStartupException;
 
 }

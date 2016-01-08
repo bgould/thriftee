@@ -72,7 +72,6 @@ import com.facebook.swift.parser.model.TypeAnnotation;
 import com.facebook.swift.parser.model.Typedef;
 import com.facebook.swift.parser.model.Union;
 import com.facebook.swift.parser.model.VoidType;
-import com.google.common.base.Charsets;
 
 public class SwiftParserXML {
 

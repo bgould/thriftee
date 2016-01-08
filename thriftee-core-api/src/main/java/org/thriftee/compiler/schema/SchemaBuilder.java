@@ -15,10 +15,11 @@
  */
 package org.thriftee.compiler.schema;
 
-import java.io.File;
+import org.thriftee.framework.SchemaBuilderConfig;
 
 public interface SchemaBuilder {
 
-  public abstract ThriftSchema buildSchema(File[] idlFiles) throws SchemaBuilderException;
+  public abstract ThriftSchema buildSchema(SchemaBuilderConfig config) 
+      throws SchemaBuilderException;
 
 }

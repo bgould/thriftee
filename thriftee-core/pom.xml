@@ -115,6 +115,15 @@
                   </dependencyResource>
                 </schema>
               </schemas>
+              <bindings>
+                <binding>
+                  <dependencyResource>
+                    <groupId>org.thriftee</groupId>
+                    <artifactId>thriftee-core-api</artifactId>
+                    <resource>org/thriftee/thrift/xml/thrift-idl.xjb</resource>
+                  </dependencyResource>
+                </binding>
+              </bindings>
             </configuration>
           </execution>
         </executions>

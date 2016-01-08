@@ -65,7 +65,7 @@ import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.thrift.xml.Transforms;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 
-public class ThriftEE {
+public class ThriftEE implements SchemaBuilderConfig {
 
   public static final Charset XML_CHARSET = Charset.forName("UTF-8");
 
@@ -343,9 +343,8 @@ public class ThriftEE {
     // of introspection can use the meta model as a sort of reflection. //
     //------------------------------------------------------------------//
     try {
-      //final SchemaBuilder schemaBuilder = new XMLSchemaBuilder();
       final SchemaBuilder schemaBuilder = config.schemaBuilder();
-      this.schema = schemaBuilder.buildSchema(idlFiles);
+      this.schema = schemaBuilder.buildSchema(this);
     } catch (SchemaBuilderException e) {
       throw new ThriftStartupException(e, STARTUP_003, e.getMessage());
     }

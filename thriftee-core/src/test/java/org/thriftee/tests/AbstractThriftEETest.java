@@ -27,12 +27,12 @@ import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thriftee.compiler.schema.XMLSchemaBuilder;
 import org.thriftee.examples.usergroup.service.UserService;
 import org.thriftee.exceptions.ThriftSystemException;
 import org.thriftee.framework.SchemaProvider;
 import org.thriftee.framework.ThriftEE;
 import org.thriftee.framework.ThriftEEConfig;
-import org.thriftee.provider.swift.SwiftSchemaBuilder;
 import org.thriftee.provider.swift.SwiftSchemaProvider;
 import org.thriftee.util.FileUtil;
 
@@ -76,12 +76,10 @@ public abstract class AbstractThriftEETest {
       TEST_PROPERTIES = new Properties();
     }
     thriftLibDir = new File(TEST_PROPERTIES.getProperty(
-      "thrift.lib.dir", 
-      System.getProperty("thrift.lib.dir", "/usr/local/src/thrift/lib")
+      "thrift.lib", System.getProperty("thrift.lib", "/usr/local/src/thrift/lib")
     ));
     thriftExecutable = new File(TEST_PROPERTIES.getProperty(
-      "thrift.executable", 
-      System.getProperty("thrift.executable", "/usr/local/bin/thrift")
+      "thrift.exe", System.getProperty("thrift.exe", "/usr/local/bin/thrift")
     ));
   }
 
@@ -103,7 +101,7 @@ public abstract class AbstractThriftEETest {
       if (!thrifteeInstances.containsKey(tempDir.getAbsolutePath())) {
         final ThriftEE thrift = new ThriftEE(
           (new ThriftEEConfig.Builder())
-            .schemaBuilder(new SwiftSchemaBuilder())
+            .schemaBuilder(new XMLSchemaBuilder())
             .schemaProvider(schemaProvider)
             .serviceLocator(new ExampleServiceLocator())
             .thriftLibDir(thriftLibDir)
