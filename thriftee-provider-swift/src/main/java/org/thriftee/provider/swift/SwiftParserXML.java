@@ -125,9 +125,7 @@ public class SwiftParserXML {
       throw new IOException(e);
     } finally {
       if (writer != null) {
-        try {
-          writer.close();
-        } catch (Exception e) {}
+        try { writer.close(); } catch (XMLStreamException e) {}
         writer = null;
       }
       document = null;

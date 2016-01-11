@@ -15,6 +15,8 @@
  */
 package org.thriftee.provider.swift;
 
+import static org.thriftee.util.FileUtil.UTF_8;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -85,7 +87,7 @@ public class ExportIDL {
       
       // Read the swift file and replace the swift namespace with standard
       // thrift namespaces
-      final String swiftFileStr = FileUtil.readAsString(swiftFile);
+      final String swiftFileStr = FileUtil.readAsString(swiftFile, "UTF-8");
       final Pattern namespacePattern = Pattern.compile("namespace java\\.swift (.+)");
       final Matcher m = namespacePattern.matcher(swiftFileStr);
       final String thriftFileStr;
@@ -110,7 +112,7 @@ public class ExportIDL {
       
       // Create the modified thrift IDL file and append it to the global include
       final File thriftFile = new File(thriftDir, swiftFile.getName());
-      FileUtil.writeStringToFile(thriftFileStr, thriftFile);
+      FileUtil.writeStringToFile(thriftFileStr, thriftFile, UTF_8);
       global_thrift.append("include \"" + thriftFile.getName() + "\"\n");
       logger.trace(
         "Swift file `{}` copied to `{}`", 
@@ -122,7 +124,7 @@ public class ExportIDL {
     
     // Write the global include file
     final File globalFile = new File(thriftDir, "global.thrift");
-    FileUtil.writeStringToFile(global_thrift.toString(), globalFile);
+    FileUtil.writeStringToFile(global_thrift.toString(), globalFile, UTF_8);
     
     // Return an array of the files in the directory we just created
     return thriftFilesIn(thriftDir);

@@ -59,6 +59,12 @@ import org.xml.sax.SAXParseException;
 
 public class TXMLProtocol extends AbstractContextProtocol {
 
+  public static void main(String...strings) {
+    for (char c = 'a'; c < 'z'; c++) {
+      System.out.println(c + ": " + ((byte)(c&15)));
+    }
+  }
+  
   private static final String[] VERBOSE_MESSAGE_NAMES = new String[5];
   static {
     VERBOSE_MESSAGE_NAMES[CALL]      = "call";
@@ -1040,7 +1046,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   protected int readIntAttribute(String localName) throws TXMLException {
     try {
-      return Integer.valueOf(readAttribute(localName));
+      return Integer.parseInt(readAttribute(localName));
     } catch (TXMLException e) {
       throw e;
     } catch (Exception e) {

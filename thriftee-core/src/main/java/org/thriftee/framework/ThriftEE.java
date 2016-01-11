@@ -15,16 +15,7 @@
  */
 package org.thriftee.framework;
 
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_003;
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_004;
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_005;
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_006;
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_007;
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_008;
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_011;
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_012;
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_013;
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_014;
+import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,6 +31,7 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.stream.StreamResult;
@@ -223,13 +215,13 @@ public class ThriftEE implements SchemaBuilderConfig {
     }
 
     if (config.clientTypeAliases() == null) {
-      this.clientTypeAliases = Collections.emptySortedMap();
+      this.clientTypeAliases = new TreeMap<>();
     } else {
       this.clientTypeAliases = config.clientTypeAliases();
     }
 
     if (config.protocolTypeAliases() == null) {
-      this.protocolTypeAliases = Collections.emptySortedMap();
+      this.protocolTypeAliases = new TreeMap<>();
     } else {
       this.protocolTypeAliases = config.protocolTypeAliases();
     }

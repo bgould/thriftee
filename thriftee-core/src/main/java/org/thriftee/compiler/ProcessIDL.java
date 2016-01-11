@@ -91,9 +91,14 @@ public class ProcessIDL {
     FileUtil.createZipFromDirectory(zipFile, "", outputDir, extraZipDirectories);
     if (extraZipDirectories != null) {
       for (File extra : extraZipDirectories) {
-        for (File file : extra.listFiles()) {
-          logger.debug("copying recursively: {}", file.getAbsolutePath());
-          FileUtil.copyRecursively(extra, outputDir);
+        if (extra != null) {
+          final File[] files = extra.listFiles();
+          if (files != null) {
+            for (File file : files) {
+              logger.debug("copying recursively: {}", file.getAbsolutePath());
+              FileUtil.copyRecursively(extra, outputDir);
+            }
+          }
         }
       }
     }

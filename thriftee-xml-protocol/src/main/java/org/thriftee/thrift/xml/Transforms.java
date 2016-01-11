@@ -15,13 +15,12 @@
  */
 package org.thriftee.thrift.xml;
 
-import static net.sf.saxon.s9api.Serializer.Property.INDENT;
-import static net.sf.saxon.s9api.Serializer.Property.OMIT_XML_DECLARATION;
-import static net.sf.saxon.s9api.Serializer.Property.SAXON_INDENT_SPACES;
+import static net.sf.saxon.s9api.Serializer.Property.*;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
@@ -69,7 +68,7 @@ public class Transforms {
 
   private final Processor processor;
 
-  private final ConcurrentMap<URL, XsltExecutable> xsltCache;
+  private final ConcurrentMap<String, XsltExecutable> xsltCache;
 
   private final XsltCompiler compiler;
 
@@ -188,12 +187,18 @@ public class Transforms {
     }
   }
 
-  protected XsltTransformer cachedTransformer(URL url) throws IOException {
+  public XsltTransformer cachedTransformer(URL url) throws IOException {
     try {
-      XsltExecutable templates = xsltCache.get(url);
+      final String key = url.toExternalForm();
+      XsltExecutable templates = xsltCache.get(key);
       if (templates == null) {
-        templates = compiler.compile(new StreamSource(url.openStream()));
-        xsltCache.putIfAbsent(url, templates);
+        try (final InputStream stream = url.openStream()) {
+          templates = compiler.compile(new StreamSource(stream));
+        }
+        final XsltExecutable cached = xsltCache.putIfAbsent(key, templates);
+        if (cached != null) {
+          templates = cached;
+        }
       }
       return templates.load();
     } catch (SaxonApiException e) {
@@ -247,8 +252,8 @@ public class Transforms {
   }
 
   public void formatXml(File xmlFile, StreamResult result) throws IOException {
-    try {
-      formatXml(new StreamSource(xmlFile.toURI().toURL().openStream()), result);
+    try (final InputStream stream = xmlFile.toURI().toURL().openStream()) {
+      formatXml(new StreamSource(stream), result);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -327,10 +332,10 @@ public class Transforms {
       );
       final XPath xpath = xpathFactory.newXPath();
       final XPathExpression expression = xpath.compile(expr);
-      try (FileReader reader = new FileReader(modelFile)) {
+      try (FileInputStream in = new FileInputStream(modelFile)) {
         final Set<String> results = new LinkedHashSet<String>();
         final NodeList services = (NodeList) expression.evaluate(
-          new InputSource(reader), XPathConstants.NODESET
+          new InputSource(in), XPathConstants.NODESET
         );
         for (int i = 0, c = services.getLength(); i < c; i++) {
           results.add(services.item(i).getNodeValue());
@@ -355,10 +360,10 @@ public class Transforms {
       );
       final XPath xpath = xpathFactory.newXPath();
       final XPathExpression expression = xpath.compile(expr);
-      try (FileReader reader = new FileReader(modelFile)) {
+      try (FileInputStream in = new FileInputStream(modelFile)) {
         final Set<String> results = new LinkedHashSet<String>();
         final NodeList services = (NodeList) expression.evaluate(
-          new InputSource(reader), XPathConstants.NODESET
+          new InputSource(in), XPathConstants.NODESET
         );
         for (int i = 0, c = services.getLength(); i < c; i++) {
           results.add(services.item(i).getNodeValue());
@@ -384,8 +389,6 @@ public class Transforms {
 
     private final Pattern resolverPattern = Pattern.compile("^thrift-.+xsl$");
 
-//    private final Map<String, byte[]> cache = new ConcurrentHashMap<>();
-
     public InternalResourceResolver(URIResolver delegate) {
       super();
       this.delegate = delegate;
@@ -394,20 +397,21 @@ public class Transforms {
     public Source resolve(String href, String b) throws TransformerException {
       try {
         final URL url;
-//        if (href.startsWith("cache:")) {
-//          url = new URL(href.substring(6));
-//        } else {
+        final ClassLoader cl = getClass().getClassLoader();
+        if (href.startsWith("classpath:")) {
+          final String rsrc = href.substring(10);
+          url = cl.getResource(rsrc);
+        } else {
           final Matcher m = resolverPattern.matcher(href);
           if (m.matches()) {
-            final ClassLoader cl = getClass().getClassLoader();
+            
             final String rsrc = XSL_BASE + "/" + href;
             url = cl.getResource(rsrc);
           } else {
             url = null;
           }
-//        }
+        }
         if (url != null) {
-//          return readCached(url);
           return new StreamSource(url.openStream());
         }
       } catch (IOException e) {
@@ -415,39 +419,7 @@ public class Transforms {
       }
       return delegate.resolve(href, b);
     }
-/*
-    private StreamSource readCached(URL url) throws IOException {
-      final String spec = url.toExternalForm();
-      if (!cache.containsKey(spec)) {
-        cache.put(spec, readFully(url));
-      }
-      return new StreamSource(new ByteArrayInputStream(cache.get(spec)));
-    }
 
-    private byte[] readFully(URL url) throws IOException {
-      final URLConnection conn = url.openConnection();
-      final int len = conn.getContentLength();
-      final InputStream in = conn.getInputStream();
-      try (final TByteArrayOutputStream out = new TByteArrayOutputStream(len)) {
-        final byte[] buffer = new byte[2048];
-        int bytesRead = 0;
-        for (int n = -1; (n = in.read(buffer)) > -1; bytesRead+=n) {
-          out.write(buffer, 0, n);
-        }
-        if (bytesRead != len) {
-          throw new IOException(
-            "content length should have been " + len + 
-            " but was actually " + bytesRead
-          );
-        } else if (out.get().length != bytesRead) {
-          throw new IOException(
-            "byte array size should have " + bytesRead + 
-            " but was actually " + out.get().length
-          );
-        }
-        return out.get();
-      }
-    }
-*/
   }
+
 }

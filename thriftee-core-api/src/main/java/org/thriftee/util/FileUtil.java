@@ -23,14 +23,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class FileUtil {
 
-  public static String readAsString(File file) throws IOException {
+  public static final Charset UTF_8 = Charset.forName("UTF-8");
+
+  public static String readAsString(File file, String encoding) throws IOException {
     InputStream in = null;
     ByteArrayOutputStream baos = new ByteArrayOutputStream((int) file.length());
     try {
@@ -44,19 +49,18 @@ public class FileUtil {
     } finally {
       forceClosed(in);
     }
-    return baos.toString();
+    return baos.toString(encoding);
   }
-  
-  public static void writeStringToFile(String s, File file) throws IOException {
-    OutputStream out = null;
-    try {
-      out = new FileOutputStream(file);
-      out.write(s.getBytes());
-    } finally {
-      forceClosed(out);
+
+  public static void writeStringToFile(String s, File file, Charset encoding) 
+      throws IOException {
+    try (final FileOutputStream out = new FileOutputStream(file)) {
+      try (final Writer w = new OutputStreamWriter(out, encoding)) {
+        w.write(s);
+      }
     }
   }
-  
+
   public static void createZipFromDirectory(
       File outputFile, 
       String zipBaseDir, 
@@ -80,23 +84,25 @@ public class FileUtil {
   }
   
   private static void addDirectory(ZipOutputStream zip, File source, String basePath) throws IOException {
-    File[] files = source.listFiles();
-    for (File file : files) {
-      if (file.isDirectory()) {
-        String path = basePath + file.getName() + "/";
-        zip.putNextEntry(new ZipEntry(path));
-        addDirectory(zip, file, path);
-        zip.closeEntry();
-      } else {
-        FileInputStream fileIn = null;
-        try {
-          fileIn = new FileInputStream(file);
-          String path = basePath + file.getName();
+    final File[] files = source.listFiles();
+    if (files != null) {
+      for (final File file : files) {
+        if (file.isDirectory()) {
+          String path = basePath + file.getName() + "/";
           zip.putNextEntry(new ZipEntry(path));
-          copy(fileIn, zip);
+          addDirectory(zip, file, path);
           zip.closeEntry();
-        } finally {
-          forceClosed(fileIn);
+        } else {
+          FileInputStream fileIn = null;
+          try {
+            fileIn = new FileInputStream(file);
+            String path = basePath + file.getName();
+            zip.putNextEntry(new ZipEntry(path));
+            copy(fileIn, zip);
+            zip.closeEntry();
+          } finally {
+            forceClosed(fileIn);
+          }
         }
       }
     }
@@ -121,27 +127,22 @@ public class FileUtil {
   
   public static void copyRecursively(File src, File dest) throws IOException {
     if (src.isDirectory()) {
-      for (final File c : src.listFiles()) {
-        if (c.isDirectory()) {
-          File destdir = new File(dest, c.getName());
-          /*
-          if (destdir.exists()) {
-            throw new IOException(
-              "could not create directory, already exists: " + 
-              destdir.getAbsolutePath()
-            );
+      final File[] files = src.listFiles();
+      if (files != null) {
+        for (final File c : files) {
+          if (c.isDirectory()) {
+            final File destdir = new File(dest, c.getName());
+            if (!destdir.exists() && !destdir.mkdir()) {
+              throw new IOException(
+                "could not create directory: " + 
+                destdir.getAbsolutePath()
+              );
+            }
+            copyRecursively(c, destdir);
+          } else {
+            File destfile = new File(dest, c.getName());
+            copyRecursively(c, destfile);
           }
-          */
-          if (!destdir.exists() && !destdir.mkdir()) {
-            throw new IOException(
-              "could not create directory: " + 
-              destdir.getAbsolutePath()
-            );
-          }
-          copyRecursively(c, destdir);
-        } else {
-          File destfile = new File(dest, c.getName());
-          copyRecursively(c, destfile);
         }
       }
     } else {
@@ -160,8 +161,11 @@ public class FileUtil {
 
   public static void deleteRecursively(File file) throws IOException {
     if (file.isDirectory()) {
-      for (File c : file.listFiles()) {
-        deleteRecursively(c);
+      final File[] files = file.listFiles();
+      if (files != null) {
+        for (File c : files) {
+          deleteRecursively(c);
+        }
       }
     }
     if (!file.delete()) {

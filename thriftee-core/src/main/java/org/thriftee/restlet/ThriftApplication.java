@@ -83,7 +83,7 @@ public class ThriftApplication extends Application {
 
   private DirectoryListing createClientsDirectory() {
     final DirectoryListing dir = new DirectoryListing(
-      getContext().createChildContext(), 
+      getContext(),
       LocalReference.createFileReference(thrift().clientsDir())
     );
     dir.setIndexName("default.html");

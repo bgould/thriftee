@@ -16,7 +16,6 @@
 package org.thriftee.framework;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,9 +36,7 @@ import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 import org.thriftee.util.New;
 
-public class ThriftEEConfig implements Serializable {
-
-  private static final long serialVersionUID = 8148668461656853500L;
+public class ThriftEEConfig {
 
   private final File tempDir;
 

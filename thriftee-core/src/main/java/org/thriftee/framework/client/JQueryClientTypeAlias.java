@@ -15,11 +15,17 @@
  */
 package org.thriftee.framework.client;
 
+import static org.thriftee.util.FileUtil.UTF_8;
+
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
@@ -29,7 +35,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.json.JSONObject;
 import org.mozilla.javascript.ErrorReporter;
 import org.mozilla.javascript.EvaluatorException;
 import org.slf4j.Logger;
@@ -93,34 +98,45 @@ public class JQueryClientTypeAlias extends ClientTypeAlias {
   }
 
   private void concatenate(
-      File dir, 
-      String outputFilename, 
-      String[] dirList) throws IOException {
+      final File dir, 
+      final String outputFilename, 
+      final String[] dirList) throws IOException {
     final File outputFile = new File(dir, outputFilename);
     if (outputFile.exists()) {
       throw new IOException("output file already exists: " + outputFile);
     }
     LOG.debug("--- writing {} ---", outputFile.getName());
-    FileWriter fw = null;
-    PrintWriter pw = null;
-    try {
-      final List<File> files = new ArrayList<>();
-      final Set<String> filenames = new LinkedHashSet<>(Arrays.asList(dirList));
-      for (final String filename : filenames) {
-        final File file = new File(dir, filename);
-        files.add(file);
+    final List<File> files = new ArrayList<>();
+    final Set<String> filenames = new LinkedHashSet<>(Arrays.asList(dirList));
+    for (final String filename : filenames) {
+      final File file = new File(dir, filename);
+      files.add(file);
+    }
+    try (final OutputStream fileOut = new FileOutputStream(outputFile)) {
+      try (final PrintStream out = new PrintStream(fileOut, true, "UTF-8")) {
+        final byte[] buffer = new byte[2048];
+        for (final File file : files) {
+          LOG.debug("  {}", file.getName());
+          try (final FileInputStream in = new FileInputStream(file)) {
+            for (int n = -1; (n = in.read(buffer)) > -1; ) {
+              out.write(buffer, 0, n);
+            }
+            out.println();
+          }
+        }
       }
-      fw = new FileWriter(outputFile);
-      pw = new PrintWriter(fw);
-      for (final File file : files) {
-        LOG.debug("  {}", file.getName());
-        final String content = FileUtil.readAsString(file);
-        pw.println(content);
-        pw.flush();
+      /*
+      try (final OutputStreamWriter fw = new OutputStreamWriter(fileOut)) {
+        try (final PrintWriter pw = new PrintWriter(fw)) {
+          for (final File file : files) {
+            LOG.debug("  {}", file.getName());
+            final String content = FileUtil.readAsString(file, "UTF-8");
+            pw.println(content);
+            pw.flush();
+          }        
+        }
       }
-    } finally {
-      try { pw.close(); } catch (Exception e) {}
-      try { fw.close(); } catch (Exception e) {}
+      */
     }
     LOG.debug("--- finished {} ---", outputFile.getName());
   }
@@ -157,15 +173,14 @@ public class JQueryClientTypeAlias extends ClientTypeAlias {
     private boolean disableOpts = false;
 
     public void compress(File inFile, File outFile) throws IOException {
-      FileReader in = null;
-      FileWriter out = null;
-      try {
-        in = new FileReader(inFile);
-        out = new FileWriter(outFile);
-        compress(in, out);
-      } finally {
-        try { in.close(); } catch (Exception e) {}
-        try { out.close(); } catch (Exception e) {}
+      try (final InputStream fin = new FileInputStream(inFile)) {
+        try (final OutputStream fout = new FileOutputStream(outFile)) {
+          try (final Reader reader = new InputStreamReader(fin, UTF_8)) {
+            try (final Writer writer = new OutputStreamWriter(fout, UTF_8)) {
+              compress(reader, writer);
+            }
+          }
+        }
       }
     }
 
@@ -193,13 +208,14 @@ public class JQueryClientTypeAlias extends ClientTypeAlias {
       }
       private String buildMsg(
           String msg, String src, int line, String lineSrc, int offset) {
-        final JSONObject json = new JSONObject();
-        json.put("source", src);
-        json.put("lineSouce", lineSrc);
-        json.put("line", line);
-        json.put("offset", offset);
-        json.put("message", msg);
-        return json.toString(2);
+        return String.format(
+          "  source = %s,%n" + 
+          "  lineSource = %s,%n" +
+          "  line = %s,%n" + 
+          "  offset = %s,%n" + 
+          "  message = %s%n" + 
+          src, lineSrc, line, offset, msg
+        );
       }
     }
 

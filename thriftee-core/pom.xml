@@ -32,10 +32,12 @@
 
   <dependencies>
     <!-- compile scoped dependencies -->
+    <!--
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
     </dependency>
+    -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -60,10 +62,12 @@
       <groupId>org.restlet.jee</groupId>
       <artifactId>org.restlet</artifactId>
     </dependency>
+    <!-- 
     <dependency>
       <groupId>org.restlet.jee</groupId>
       <artifactId>org.restlet.ext.freemarker</artifactId>
     </dependency>
+     -->
     <dependency>
       <groupId>com.yahoo.platform.yui</groupId>
       <artifactId>yuicompressor</artifactId>

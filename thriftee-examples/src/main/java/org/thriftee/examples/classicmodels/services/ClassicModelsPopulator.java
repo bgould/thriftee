@@ -47,38 +47,37 @@ public class ClassicModelsPopulator {
     "META-INF/load_classicmodels.sql"
   );
 
+  private static final String checkSql = "SELECT COUNT(*) FROM CUSTOMERS";
+
   @PostConstruct
   public void afterPropertiesSet() throws Exception {
-    final Connection conn = em.unwrap(Connection.class);
-    final Statement stmt = conn.createStatement();
-    final String[] lines = getLines(sql);
-    String line = null;
-    try {
-      final ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM CUSTOMERS");
-      if (rs.next() && rs.getInt(1) > 0) {
-        LOG.info("ClassicModels database appears to be loaded already.");
-      } else {
-        LOG.info("ClassicModels database appears to be empty... loading.");
+    try (final Connection conn = em.unwrap(Connection.class)) {
+      try (final Statement stmt = conn.createStatement()) {
+        final String[] lines = getLines(sql);
+        String line = null;
+        try (final ResultSet rs = stmt.executeQuery(checkSql)) {
+          if (rs.next() && rs.getInt(1) > 0) {
+            LOG.info("ClassicModels database appears to be loaded already.");
+          } else {
+            LOG.info("ClassicModels database appears to be empty... loading.");
+          }
+          rs.close();
+          for (int i = 0; i < lines.length; i++) {
+            line = lines[i];
+            LOG.debug("executing SQL: {}", line);
+            stmt.execute(line);
+          }
+        } catch (SQLException e) {
+          LOG.error("error executing SQL : {} - {}", e.getMessage(), line);
+          throw e;
+        }
       }
-      rs.close();
-      for (int i = 0; i < lines.length; i++) {
-        line = lines[i];
-        LOG.debug("executing SQL: {}", line);
-        stmt.execute(line);
-      }
-    } catch (SQLException e) {
-      LOG.error("error executing SQL : {} - {}", e.getMessage(), line);
-      throw e;
-    } finally {
-      try {
-        stmt.close();
-      } catch (Exception e2) {}
     }
   }
 
   public static String[] getLines(URL url) throws IOException {
     final InputStream is = url.openStream();
-    final InputStreamReader reader = new InputStreamReader(is);
+    final InputStreamReader reader = new InputStreamReader(is, "UTF-8");
     try {
       final StringBuilder sb = new StringBuilder();
       final char[] buffer = new char[1024];

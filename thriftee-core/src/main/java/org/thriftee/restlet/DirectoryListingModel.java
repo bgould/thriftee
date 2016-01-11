@@ -20,6 +20,10 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class DirectoryListingModel {
 
   private final Map<String, String> downloads = new LinkedHashMap<>();
@@ -42,10 +46,12 @@ public class DirectoryListingModel {
     return baseRef;
   }
   
+  @XmlElement
   public Map<String, String> getDownloads() {
     return downloads;
   }
 
+  @XmlElement
   public SortedMap<String, String> getFiles() {
     return files;
   }
@@ -58,6 +64,7 @@ public class DirectoryListingModel {
     this.title = title;
   }
 
+  @XmlElement
   public String getServerLine() {
     return serverLine;
   }
@@ -66,6 +73,7 @@ public class DirectoryListingModel {
     this.serverLine = serverLine;
   }
 
+  @XmlElement
   public String getPathPrefix() {
     return pathPrefix;
   }

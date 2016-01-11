@@ -15,9 +15,7 @@
  */
 package org.thriftee.restlet;
 
-import static org.thriftee.restlet.FrameworkResource.getTemplate;
-
-import java.util.Map;
+import static org.thriftee.restlet.FrameworkResource.thrift;
 
 import org.restlet.Context;
 import org.restlet.data.MediaType;
@@ -28,7 +26,6 @@ import org.restlet.representation.Variant;
 import org.restlet.resource.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.util.New;
 
 public class DirectoryListing extends Directory {
 
@@ -60,11 +57,8 @@ public class DirectoryListing extends Directory {
   protected Representation getHtmlRepresentation(final ReferenceList refList) {
     LOG.trace("entering getHtmlRepresentation()");
     try { 
-      final DirectoryListingModel directory = getDirectoryModel(refList);
-      final Map<String, Object> model = New.map();
-      model.put("title", directory.getTitle());
-      model.put("directory", directory);
-      return getTemplate("directory", model, MediaType.TEXT_HTML);
+      final DirectoryListingModel dir = getDirectoryModel(refList);
+      return new DirectoryListingRepresentation(thrift(getContext()), dir);
     } finally {
       LOG.trace("exiting getHtmlRepresentation()");
     }

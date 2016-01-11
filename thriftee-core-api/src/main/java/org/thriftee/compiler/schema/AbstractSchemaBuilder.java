@@ -106,8 +106,7 @@ public abstract class AbstractSchemaBuilder<
     }
   }
   
-  private static final ConcurrentHashMap<Class<?>, ToStringFields<?>> fieldMap = 
-      new ConcurrentHashMap<Class<?>, ToStringFields<?>>();
+  private static final ConcurrentHashMap<Class<?>, ToStringFields<?>> fieldMap = new ConcurrentHashMap<>();
   
   @Override
   public final String toString() {
@@ -118,8 +117,8 @@ public abstract class AbstractSchemaBuilder<
   private static <T extends AbstractSchemaBuilder<?, ?, ?, ?>> ToStringFields<T> fieldsFor(T obj) {
     final Class<T> type = (Class<T>) obj.getClass();
     if (!fieldMap.containsKey(type)) {
-      ToStringFields<T> fields = new ToStringFields<T>(type, obj.toStringFields());
-      fieldMap.put(fields.type, fields);
+      final ToStringFields<T> fields = new ToStringFields<T>(type, obj.toStringFields());
+      fieldMap.putIfAbsent(fields.type, fields);
     }
     return (ToStringFields<T>) fieldMap.get(type);
   }

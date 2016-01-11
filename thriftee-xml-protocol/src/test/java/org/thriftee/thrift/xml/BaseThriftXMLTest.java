@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -170,11 +169,14 @@ public class BaseThriftXMLTest {
       return;
     }
     if (file.isDirectory()) {
-      for (File dirfile : file.listFiles()) {
-        deleteRecursively(dirfile);
-      }
-      if (!file.delete()) {
-        throw new IOException("could not remove directory: " + file);
+      final File[] files = file.listFiles();
+      if (files != null) {
+        for (File dirfile : files) {
+          deleteRecursively(dirfile);
+        }
+        if (!file.delete()) {
+          throw new IOException("could not remove directory: " + file);
+        }
       }
       return;
     }
@@ -220,13 +222,16 @@ public class BaseThriftXMLTest {
   public static Map<String, File> exportModels(
       File tmp, boolean useExisting) throws IOException {
     final Map<String, File> xmlFiles = new LinkedHashMap<>();
-    final List<File> idlFiles = Arrays.asList(
-      new File("src/test/thrift").listFiles(new FilenameFilter() {
+    final File[] idlFiles = new File("src/test/thrift").listFiles(
+      new FilenameFilter() {
         public boolean accept(File dir, String name) {
           return name.endsWith(".thrift");
         }
-      })
+      }
     );
+    if (idlFiles == null) {
+      throw new IllegalStateException("No thrift files found in test dir.");
+    }
     for (final File idlfile : idlFiles) {
       final String basename = idlfile.getName().replaceAll(".thrift$", "");
       final File outfile = new File(tmp, basename + ".xml");

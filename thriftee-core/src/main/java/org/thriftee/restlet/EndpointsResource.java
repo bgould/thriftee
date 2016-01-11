@@ -21,7 +21,6 @@ import java.util.regex.Pattern;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
-import org.json.JSONObject;
 import org.restlet.data.MediaType;
 import org.restlet.data.Status;
 import org.restlet.representation.Representation;
@@ -167,6 +166,7 @@ public class EndpointsResource extends FrameworkResource {
   }
 
   protected Representation showProtocol() {
+    /*
     final JSONObject json = new JSONObject();
     if (isMultiplex()) {
       json.put("multiplex", true);
@@ -176,10 +176,13 @@ public class EndpointsResource extends FrameworkResource {
     }
     json.put("protocol", getProtocolType().getName());
     final String jsonStr = json.toString();
+    */
+    final String jsonStr = "{}";
     return new StringRepresentation(jsonStr, MediaType.APPLICATION_JSON);
   }
 
   protected Representation showMultiplex() {
+    /*
     final JSONObject json = new JSONObject();
     json.put("multiplex", "true");
     if (getProtocolType() != null) {
@@ -188,6 +191,8 @@ public class EndpointsResource extends FrameworkResource {
       json.put("protocol", "binary");
     }
     final String jsonStr = json.toString();
+    */
+    final String jsonStr = "{}";
     return new StringRepresentation(jsonStr, MediaType.APPLICATION_JSON);
   }
 

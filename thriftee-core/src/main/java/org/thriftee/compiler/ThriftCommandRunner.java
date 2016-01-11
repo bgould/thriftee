@@ -120,8 +120,8 @@ public class ThriftCommandRunner {
       process.destroy();
       processDestroyed = true;
       LOG.trace("command completed: {}", exit);
-      outString = FileUtil.readAsString(stdout);
-      errString = FileUtil.readAsString(stderr);
+      outString = FileUtil.readAsString(stdout, "UTF-8");
+      errString = FileUtil.readAsString(stderr, "UTF-8");
     } catch (InterruptedException e) {
       interrupted = true;
     } finally {

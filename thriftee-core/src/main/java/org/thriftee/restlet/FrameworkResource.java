@@ -15,29 +15,19 @@
  */
 package org.thriftee.restlet;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Context;
 import org.restlet.Request;
-import org.restlet.data.MediaType;
 import org.restlet.data.Protocol;
 import org.restlet.data.Reference;
 import org.restlet.data.Status;
-import org.restlet.ext.freemarker.TemplateRepresentation;
 import org.restlet.representation.Representation;
 import org.restlet.resource.ServerResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.framework.ThriftEE;
-import org.thriftee.util.New;
 import org.thriftee.util.Strings;
-
-import freemarker.ext.beans.BeansWrapper;
-import freemarker.template.Configuration;
-import freemarker.template.ObjectWrapper;
 
 public abstract class FrameworkResource extends ServerResource {
 
@@ -102,7 +92,9 @@ public abstract class FrameworkResource extends ServerResource {
     return thrift(getContext());
   }
 
-  private static final String prefix = "/org/thriftee/restlet/templates";
+  public static final String XSLT_PREFIX = "org/thriftee/restlet/templates/";
+
+/*
 
   private static final Configuration cfg = new Configuration();
   static {
@@ -118,6 +110,8 @@ public abstract class FrameworkResource extends ServerResource {
       final MediaType mediaType) {
     return new TemplateRepresentation(tpl + ".ftl", cfg, data, mediaType);
   }
+
+*/
 
   public static DirectoryListingModel createDefaultModel(Class<?> forClass) {
     final DirectoryListingModel model = new DirectoryListingModel();
@@ -138,18 +132,15 @@ public abstract class FrameworkResource extends ServerResource {
   }
 
   protected Representation listing(DirectoryListingModel dirModel) {
-    final Map<String, Object> model = New.map();
-    model.put("title", dirModel.getTitle());
-    model.put("directory", dirModel);
-    return getTemplate("directory", model, MediaType.TEXT_HTML);
+    return new DirectoryListingRepresentation(thrift(), dirModel);
   }
 
   protected Representation notFound() {
     getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND);
     return null;
   }
-
-  protected TemplateRepresentation getDebugTemplate(
+/*
+  protected Representation getDebugTemplate(
       final Object data, 
       final MediaType mediaType) {
     final Map<String, Object> model = new HashMap<>();
@@ -161,7 +152,7 @@ public abstract class FrameworkResource extends ServerResource {
     model.put("response", getResponse());
     return getTemplate("debug", model, mediaType); 
   }
-
+*/
   protected void debug(String fmt, Object... args) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format(fmt, (Object[]) args));

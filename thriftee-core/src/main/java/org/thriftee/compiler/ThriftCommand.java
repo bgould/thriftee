@@ -256,9 +256,9 @@ public class ThriftCommand {
     return executable;
   }
   
-  public static String WINDOWS_EXECUTABLE = "thrift.exe";
+  public static final String WINDOWS_EXECUTABLE = "thrift.exe";
   
-  public static String DEFAULT_EXECUTABLE = "thrift";
+  public static final String DEFAULT_EXECUTABLE = "thrift";
     
   private String thriftCommand = searchPathForThrift();
   

@@ -80,7 +80,7 @@ public class ResourceTestBase extends AbstractThriftEETest {
     final String text = rsp().getEntityAsText();
     final String href = req().getResourceRef() + link;
     final boolean hasLink = text.indexOf("<a href=\"" + href + "\"") > -1;
-    Assert.assertTrue("Listing should contain " + link + " link", hasLink);
+    Assert.assertTrue("Listing should contain " + href + " link", hasLink);
   }
 
   public synchronized void handleGet(String uri) {
