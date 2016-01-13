@@ -18,15 +18,11 @@ package org.thriftee.restlet;
 import java.io.IOException;
 import java.net.URL;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
 import org.restlet.data.MediaType;
 import org.thriftee.framework.ThriftEE;
-import org.w3c.dom.Document;
 
 public class DirectoryListingRepresentation extends TransformerRepresentation {
 
@@ -47,15 +43,7 @@ public class DirectoryListingRepresentation extends TransformerRepresentation {
 
   @Override
   protected Source source() throws IOException {
-    try {
-      final JAXBContext ctx = getJAXBContext(DirectoryListingModel.class);
-      final Marshaller marshaller = ctx.createMarshaller();
-      final Document doc = newDocument();
-      marshaller.marshal(model, doc);
-      return new DOMSource(doc);
-    } catch (JAXBException e) {
-      throw new IOException(e);
-    }
+    return new DOMSource(this.model.writeToDom(newDocument()));
   }
 
 }

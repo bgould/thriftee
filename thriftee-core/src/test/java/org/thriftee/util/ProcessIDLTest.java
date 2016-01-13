@@ -64,7 +64,7 @@ public class ProcessIDLTest {
       FileUtil.forceClosed(fileIn);
     }
   }
-  
+
   private File[] exportIDL(File temp) {
     try {
       ExportIDL exporter = new ExportIDL();

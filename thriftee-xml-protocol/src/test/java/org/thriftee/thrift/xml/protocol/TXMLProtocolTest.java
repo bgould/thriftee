@@ -195,8 +195,8 @@ public class TXMLProtocolTest {
     everything.str = "foobar";
     everything.dbl = 10.4;
     everything.bin = ByteBuffer.wrap("secret_password".getBytes());
-
     everything.onion = Sprat.wowzer(1337);
+    everything.setReally(true);
 
     final Map<String, String> str_str_map = new HashMap<String, String>();
     str_str_map.put("foo", "bar");

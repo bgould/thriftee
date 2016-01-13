@@ -48,6 +48,7 @@
   <xsl:variable name="field_attr" select="'i'" />
   <xsl:variable name="seqid_attr" select="'q'" />
   <xsl:variable name="fname_attr" select="null" />
+  <xsl:variable name="bool"       select="'t2'" />
   <xsl:variable name="i8"         select="'t3'" />
   <xsl:variable name="double"     select="'t4'" />
   <xsl:variable name="i16"        select="'t6'" />
@@ -422,6 +423,10 @@
     <xsl:param name="data" />
     <xsl:variable name="typeinfo" select="current()" />
     <xsl:value-of select="$data" />
+  </xsl:template>
+
+  <xsl:template mode="typename-for-typeinfo" match="*[@type='bool']">
+    <xsl:value-of select="$bool" />
   </xsl:template>
 
   <xsl:template mode="typename-for-typeinfo" match="*[@type='list']">

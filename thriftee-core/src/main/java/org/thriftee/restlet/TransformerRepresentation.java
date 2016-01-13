@@ -18,10 +18,7 @@ package org.thriftee.restlet;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
-import java.util.concurrent.ConcurrentHashMap;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -40,26 +37,26 @@ import net.sf.saxon.s9api.XsltTransformer;
 
 public abstract class TransformerRepresentation extends OutputRepresentation {
 
-  private static final ConcurrentHashMap<Class<?>, JAXBContext> 
-                                  jaxbContextCache = new ConcurrentHashMap<>();
+//  private static final ConcurrentHashMap<Class<?>, JAXBContext> 
+//                                  jaxbContextCache = new ConcurrentHashMap<>();
 
 
   private static final DocumentBuilderFactory dbf = 
                                   DocumentBuilderFactory.newInstance();
 
-  protected JAXBContext getJAXBContext(final Class<?> jaxbClass) 
-      throws JAXBException {
-    if (!jaxbContextCache.containsKey(jaxbClass)) {
-      final JAXBContext newctx = JAXBContext.newInstance(jaxbClass);
-      final JAXBContext existing = jaxbContextCache.putIfAbsent(
-        jaxbClass, newctx
-      );
-      if (existing != null) {
-        return existing;
-      }
-    }
-    return jaxbContextCache.get(jaxbClass);
-  }
+//  protected JAXBContext getJAXBContext(final Class<?> jaxbClass) 
+//      throws JAXBException {
+//    if (!jaxbContextCache.containsKey(jaxbClass)) {
+//      final JAXBContext newctx = JAXBContext.newInstance(jaxbClass);
+//      final JAXBContext existing = jaxbContextCache.putIfAbsent(
+//        jaxbClass, newctx
+//      );
+//      if (existing != null) {
+//        return existing;
+//      }
+//    }
+//    return jaxbContextCache.get(jaxbClass);
+//  }
 
   protected Document newDocument() {
     return documentBuilder.newDocument();

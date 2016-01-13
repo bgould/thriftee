@@ -21,10 +21,10 @@ import org.apache.thrift.TBase;
 
 public class TestObject {
 
-  final String name;
-  final String module;
-  final String struct;
-  final TBase<?, ?> obj;
+  public final String name;
+  public final String module;
+  public final String struct;
+  public final TBase<?, ?> obj;
 
   public TestObject(
       String name,
