@@ -37,14 +37,10 @@ import org.thriftee.exceptions.ThriftMessage;
 import org.thriftee.thrift.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.Transforms;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 
 public class SOAPProcessorRepresentation extends OutputRepresentation {
 
-  private static final TXMLProtocol.Factory fctry = new TXMLProtocol.Factory(
-    Variant.CONCISE, 
-    false
-  );
+  private static final TXMLProtocol.Factory fctry = new TXMLProtocol.Factory();
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
 

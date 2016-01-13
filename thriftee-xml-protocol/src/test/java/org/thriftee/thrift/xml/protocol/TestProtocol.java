@@ -26,16 +26,15 @@ import java.io.StringReader;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.transport.TIOStreamTransport;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 
 public class TestProtocol extends TXMLProtocol {
 
-  public TestProtocol(String in, Variant variant) {
-    this(in == null ? null : in.getBytes(), variant);
+  public TestProtocol(String in) {
+    this(in == null ? null : in.getBytes());
   }
 
-  public TestProtocol(byte[] input, Variant variant) {
-    super(new TestTransport(input), variant, false);
+  public TestProtocol(byte[] input) {
+    super(new TestTransport(input));
   }
 
   @Override

@@ -169,6 +169,12 @@ public class ThriftEE implements SchemaBuilderConfig {
     return processor;
   }
 
+  public void destroy() {
+    if (transforms != null) {
+      transforms.release();
+    }
+  }
+
   private final File tempDir;
 
   private final File clientsDir;

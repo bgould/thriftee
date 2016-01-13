@@ -18,10 +18,6 @@ package org.thriftee.thrift.xml;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.Collection;
 
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
@@ -35,11 +31,7 @@ import org.apache.thrift.protocol.TMessageType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import org.thriftee.thrift.xml.Transformation.RootType;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 import org.thriftee.thrift.xml.protocol.TXMLProtocolTest;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
 import org.thriftee.thrift.xml.protocol.UniverseImpl;
@@ -48,10 +40,7 @@ import everything.EndOfTheUniverseException;
 import everything.Everything;
 import everything.Universe;
 
-@RunWith(Parameterized.class)
 public class TransformToSimpleTest extends BaseThriftXMLTest {
-
-  private final Variant variant;
 
   private File schemaFile;
   private File dataOutput;
@@ -59,18 +48,6 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
   private File transformOutput;
   private File replyOutput;
   private File transformOutput2;
-
-  @Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-      { Variant.VERBOSE },
-      { Variant.CONCISE },
-    });
-  }
-
-  public TransformToSimpleTest(Variant variant) {
-    this.variant = variant;
-  }
 
   @Before
   public void setup() {
@@ -267,7 +244,7 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
 
   }
   
-  /* just shoving this here for convenience ... should be somewhere else */
+  /* just shoving this here for convenience ... should be somewhere else
   public void test10000Transforms() throws Exception {
     final TestProtocol protocol = createOutProtocol();
     final Everything everything = TXMLProtocolTest.everythingStruct();
@@ -297,10 +274,6 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
       variant.name(), ((double) totalNanos / (double) count) * (1e-6)
     );
   }
-
-  @Override
-  protected Variant variant() {
-    return variant;
-  }
+  */
 
 }

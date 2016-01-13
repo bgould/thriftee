@@ -28,7 +28,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 
 @RunWith(Parameterized.class)
 public class TransformToStreamingTest extends BaseThriftXMLTest {
@@ -63,11 +62,11 @@ public class TransformToStreamingTest extends BaseThriftXMLTest {
       // TODO: test 
       
     } else {
-      final TestProtocol iprot1 = new TestProtocol(frmtd1, Variant.CONCISE);
+      final TestProtocol iprot1 = new TestProtocol(frmtd1);
       final TBase<?, ?> obj1 = (TBase<?,?>)testobj.obj.getClass().newInstance();
       obj1.read(iprot1);
 
-      final TestProtocol iprot2 = new TestProtocol(frmtd2, Variant.CONCISE);
+      final TestProtocol iprot2 = new TestProtocol(frmtd2);
       final TBase<?, ?> obj2 = (TBase<?,?>)testobj.obj.getClass().newInstance();
       obj2.read(iprot2);
 

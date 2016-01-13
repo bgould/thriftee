@@ -1,45 +1,23 @@
 <xsl:stylesheet version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:idl="http://thrift.apache.org/xml/idl"
-    xmlns:txp="http://thrift.apache.org/xml/protocol"
+    xmlns:txp="http://thriftee.org/xml/protocol"
     xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
     exclude-result-prefixes="xsl idl soap">
 
   <xsl:output method="xml" omit-xml-declaration="yes" indent="no" />
 
   <xsl:param name="schema" />
-  <xsl:param name="verbose" select="false()" />
   <xsl:param name="root_module" select="document($schema)/idl:idl/idl:document[1]/@name" />
 
   <xsl:variable name="idl" select="document($schema)/idl:idl" />
 
-  <xsl:variable name="txp_ns" select="'http://thrift.apache.org/xml/protocol'" />
-  <!-- 
-  <xsl:variable name="include_names" select="true()" />
-  <xsl:variable name="call" select="'call'" />
-  <xsl:variable name="reply" select="'reply'" />
-  <xsl:variable name="oneway" select="'oneway'" />
-  <xsl:variable name="exception" select="'exception'" />
-  <xsl:variable name="struct" select="'struct'" />
-  <xsl:variable name="field" select="'field'" />
-  <xsl:variable name="fname_attr" select="'fname'" />
-  <xsl:variable name="list" select="'list'" />
-  <xsl:variable name="map" select="'map'" />
-  <xsl:variable name="set" select="'set'" />
-  <xsl:variable name="i64" select="'i64'" />
-  <xsl:variable name="i32" select="'i32'" />
-  <xsl:variable name="i16" select="'i16'" />
-  <xsl:variable name="i8" select="'i8'" />
-  <xsl:variable name="string" select="'string'" />
-  <xsl:variable name="double" select="'double'" />
-  <xsl:variable name="seqid_attr" select="'seqid'" />
-  <xsl:variable name="name_attr" select="'name'" />
-   -->
+  <xsl:variable name="txp_ns" select="'http://thriftee.org/xml/protocol'" />
   <xsl:variable name="include_names" select="false()" />
-  <xsl:variable name="call"       select="'m1'" />
-  <xsl:variable name="reply"      select="'m2'" />
-  <xsl:variable name="oneway"     select="'m4'" />
-  <xsl:variable name="exception"  select="'m3'" />
+  <xsl:variable name="call"       select="'q'" />
+  <xsl:variable name="reply"      select="'r'" />
+  <xsl:variable name="oneway"     select="'t'" />
+  <xsl:variable name="exception"  select="'s'" />
   <xsl:variable name="key_attr"   select="'k'" />
   <xsl:variable name="value_attr" select="'v'" />
   <xsl:variable name="type_attr"  select="'t'" />
@@ -47,19 +25,18 @@
   <xsl:variable name="name_attr"  select="'n'" />
   <xsl:variable name="field_attr" select="'i'" />
   <xsl:variable name="seqid_attr" select="'q'" />
-  <xsl:variable name="fname_attr" select="null" />
-  <xsl:variable name="bool"       select="'t2'" />
-  <xsl:variable name="i8"         select="'t3'" />
-  <xsl:variable name="double"     select="'t4'" />
-  <xsl:variable name="i16"        select="'t6'" />
-  <xsl:variable name="i32"        select="'t8'" />
-  <xsl:variable name="i64"        select="'t10'" />
-  <xsl:variable name="string"     select="'t11'" />
-  <xsl:variable name="struct"     select="'t12'" />
-  <xsl:variable name="map"        select="'t13'" />
-  <xsl:variable name="set"        select="'t14'" />
-  <xsl:variable name="list"       select="'t15'" />
-  <xsl:variable name="enum"       select="'t16'" />
+  <xsl:variable name="bool"       select="'b'" />
+  <xsl:variable name="i8"         select="'c'" />
+  <xsl:variable name="double"     select="'d'" />
+  <xsl:variable name="i16"        select="'f'" />
+  <xsl:variable name="i32"        select="'h'" />
+  <xsl:variable name="i64"        select="'j'" />
+  <xsl:variable name="string"     select="'k'" />
+  <xsl:variable name="struct"     select="'l'" />
+  <xsl:variable name="map"        select="'m'" />
+  <xsl:variable name="set"        select="'n'" />
+  <xsl:variable name="list"       select="'o'" />
+  <xsl:variable name="enum"       select="'p'" />
 
   <xsl:template match="/">
     <xsl:apply-templates mode="resolve" />
@@ -126,11 +103,6 @@
             <xsl:attribute name="{$field_attr}">
               <xsl:value-of select="1" />
             </xsl:attribute>
-            <xsl:if test="$include_names">
-              <xsl:attribute name="{$fname_attr}">
-                <xsl:value-of select="'message'" />
-              </xsl:attribute>
-            </xsl:if>
             <xsl:value-of select="$message/txp:message" />
           </xsl:element>
         </xsl:if>
@@ -139,11 +111,6 @@
             <xsl:attribute name="{$field_attr}">
               <xsl:value-of select="2" />
             </xsl:attribute>
-            <xsl:if test="$include_names">
-              <xsl:attribute name="{$fname_attr}">
-                <xsl:value-of select="'type'" />
-              </xsl:attribute>
-            </xsl:if>
             <xsl:value-of select="$message/txp:type" />
           </xsl:element>
         </xsl:if>
@@ -337,11 +304,6 @@
       <xsl:attribute name="{$field_attr}">
         <xsl:value-of select="$field-id" />
       </xsl:attribute>  
-      <xsl:if test="$include_names">
-        <xsl:attribute name="{$fname_attr}">
-          <xsl:value-of select="$field-name" />
-        </xsl:attribute>
-      </xsl:if>
       <xsl:apply-templates select="$typeinfo" mode="transform-thrift-type">
         <xsl:with-param name="data" select="$data" />
       </xsl:apply-templates>

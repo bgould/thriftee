@@ -200,9 +200,10 @@
         <version>9.6.0-7</version>
       </dependency>
       <dependency>
-        <groupId>org.json</groupId>
-        <artifactId>json</artifactId>
-        <version>${json.version}</version>
+        <groupId>com.fasterxml</groupId>
+        <artifactId>aalto-xml</artifactId>
+        <version>1.0.0</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>commons-lang</groupId>
@@ -250,7 +251,7 @@
 
   <properties>
     <java.version>1.7</java.version>
-    <swift.version>0.16.0-thriftee</swift.version>
+    <swift.version>0.17.0-thriftee</swift.version>
     <junit.version>4.11</junit.version>
     <slf4j.version>1.7.5</slf4j.version>
     <tomee.version>1.7.2</tomee.version>

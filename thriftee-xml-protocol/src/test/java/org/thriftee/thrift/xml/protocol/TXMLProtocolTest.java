@@ -15,13 +15,13 @@
  */
 package org.thriftee.thrift.xml.protocol;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -37,10 +37,6 @@ import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TType;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 import org.xml.sax.SAXException;
 
 import another.Blotto;
@@ -51,22 +47,7 @@ import everything.Spirfle;
 import everything.Sprat;
 import everything.Universe;
 
-@RunWith(Parameterized.class)
 public class TXMLProtocolTest {
-
-  private final Variant variant;
-
-  @Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-      //{ Variant.VERBOSE },
-      { Variant.CONCISE },
-    });
-  }
-
-  public TXMLProtocolTest(Variant variant) {
-    this.variant = variant;
-  }
 
   public void validate(TXMLProtocol protocol, String msg) throws SAXException, IOException {
     System.out.print("Validating against " + protocol.schemaUrl() + " ...");
@@ -183,7 +164,7 @@ public class TXMLProtocolTest {
   }
 
   public TestProtocol createOutProtocol(String s) {
-    return new TestProtocol(s, variant);
+    return new TestProtocol(s);
   }
 
   public static Everything everythingStruct() {

@@ -54,6 +54,19 @@ public class ThriftEEServlet extends ServerServlet {
   }
 
   @Override
+  public void destroy() {
+    if (_thriftee != null) {
+      try {
+        _thriftee.destroy();
+      } catch (Exception e) {
+        System.err.println("Error while destroying ThriftEE context:");
+        e.printStackTrace();
+      }
+    }
+    super.destroy();
+  }
+
+  @Override
   protected Application createApplication(Context parentContext) {
     return new ThriftApplication(parentContext.createChildContext());
   }

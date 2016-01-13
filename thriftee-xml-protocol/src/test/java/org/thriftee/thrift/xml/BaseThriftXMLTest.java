@@ -45,7 +45,6 @@ import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.thriftee.provider.swift.SwiftParserXML;
 import org.thriftee.thrift.xml.Transformation.RootType;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol.Variant;
 import org.thriftee.thrift.xml.protocol.TXMLProtocolTest;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
 
@@ -84,12 +83,8 @@ public class BaseThriftXMLTest {
 
   protected File testMethodDir;
 
-  protected Variant variant() {
-    return Variant.CONCISE;
-  }
-
   public TestProtocol createOutProtocol(String s) {
-    return new TestProtocol(s, Variant.CONCISE);
+    return new TestProtocol(s);
   }
 
   public TestProtocol createOutProtocol(File file) {
@@ -280,22 +275,18 @@ public class BaseThriftXMLTest {
       }
       final File simple = new File(dir, "simple.xml");
       final File streaming = new File(dir, "streaming.xml");
-      File outfile = null;
-      for (final Variant v : Variant.values()) {
-        final String variant = v.name().toLowerCase();
-        final TestProtocol oprot = new TestProtocol((byte[])null, v);
-        outfile = new File(dir, variant + ".xml");
-        if (obj instanceof TestCall) {
-          final TestCall call = (TestCall) obj;
-          oprot.writeMessageBegin(new TMessage(call.method, call.type, 1));
-          obj.obj.write(oprot);
-          oprot.writeMessageEnd();
-        } else {
-          obj.obj.write(oprot);
-        }
-        oprot.writeOutputTo(outfile);
-        testobjs.put(obj.name, obj);
+      final TestProtocol oprot = new TestProtocol((byte[])null);
+      final File outfile = new File(dir, "concise.xml");
+      if (obj instanceof TestCall) {
+        final TestCall call = (TestCall) obj;
+        oprot.writeMessageBegin(new TMessage(call.method, call.type, 1));
+        obj.obj.write(oprot);
+        oprot.writeMessageEnd();
+      } else {
+        obj.obj.write(oprot);
       }
+      oprot.writeOutputTo(outfile);
+      testobjs.put(obj.name, obj);
       transformToSimple(obj, outfile, simple);
       transformToStreaming(obj, simple, streaming);
     }

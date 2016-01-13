@@ -1,7 +1,7 @@
 ﻿<xsl:stylesheet version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:idl="http://thrift.apache.org/xml/idl"
-    xmlns:txp="http://thrift.apache.org/xml/protocol"
+    xmlns:txp="http://thriftee.org/xml/protocol"
     xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
     exclude-result-prefixes="xsl idl soap">
 
@@ -14,19 +14,19 @@
 
   <xsl:variable name="idl" select="document($schema)/idl:idl" />
 
-  <xsl:template match="/txp:m1|/txp:call">
+  <xsl:template match="/txp:q">
     <xsl:apply-templates mode="match-service" select="$idl/idl:document[$root_module]/idl:service[@name=$service_name]">
       <xsl:with-param name="call" select="current()" />
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="/txp:m2|/txp:reply">
+  <xsl:template match="/txp:r">
     <xsl:apply-templates mode="match-service" select="$idl/idl:document[$root_module]/idl:service[@name=$service_name]">
       <xsl:with-param name="call" select="current()" />
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="/txp:m3|/txp:exception">
+  <xsl:template match="/txp:s">
     <xsl:variable name="name" select="@n|@name" />
     <xsl:variable name="seqid" select="@q|@seqid" />
     <xsl:variable name="data" select="*[1]/*[1]" />
@@ -54,13 +54,13 @@
     </soap:Envelope>
   </xsl:template>
 
-  <xsl:template match="/txp:m4|/txp:oneway">
+  <xsl:template match="/txp:t">
     <xsl:apply-templates mode="match-service" select="$idl/idl:document[1]/idl:service[@name=$service_name]">
       <xsl:with-param name="call" select="current()" />
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="/txp:t12|/txp:struct">
+  <xsl:template match="/txp:l">
     <xsl:if test="not($root_struct)">
       <xsl:message terminate="yes">root_struct parameter must be specified if the root element is a struct</xsl:message>
     </xsl:if>
@@ -131,7 +131,7 @@
     <xsl:message terminate="yes">Could not find method for: <xsl:copy-of select="$call" /></xsl:message>
   </xsl:template>
 
-  <xsl:template mode="dispatch-method" match="/txp:m1|/txp:call">
+  <xsl:template mode="dispatch-method" match="/txp:q">
     <xsl:param name="method" />
     <xsl:variable name="seqid" select="@q|@seqid" />
     <xsl:variable name="data" select="*[1]" />
@@ -153,14 +153,14 @@
     </soap:Envelope>
   </xsl:template>
 
-  <xsl:template mode="dispatch-method" match="/txp:m2|/txp:reply">
+  <xsl:template mode="dispatch-method" match="/txp:r">
     <xsl:param name="method" />
     <xsl:apply-templates mode="dispatch-reply" select="current()">
       <xsl:with-param name="method" select="$method" />
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template mode="dispatch-reply" match="/txp:m2[txp:t12/*/@i='0']|/txp:reply[txp:struct/*/@field='0']">
+  <xsl:template mode="dispatch-reply" match="/txp:r[txp:l/*/@i='0']">
     <xsl:param name="method" />
     <xsl:variable name="seqid" select="@q|@seqid" />
     <xsl:variable name="data" select="*[1]/*[1]" />
@@ -243,12 +243,12 @@
     <xsl:message terminate="yes">Could not find exception clause for: <xsl:copy-of select="$call" /></xsl:message>
   </xsl:template>
 
-  <xsl:template mode="application-exception" match="/txp:m3|/txp:exception">
+  <xsl:template mode="application-exception" match="/txp:s">
     <xsl:param name="method" />
     <xsl:message terminate="yes">not implemented yet</xsl:message>
   </xsl:template>
 
-  <xsl:template mode="dispatch-method" match="/txp:m4|/txp:oneway">
+  <xsl:template mode="dispatch-method" match="/txp:t">
     <xsl:param name="method" />
     <xsl:message terminate="yes">not implemented yet</xsl:message>
   </xsl:template>

@@ -1,136 +1,121 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema" 
-        targetNamespace="http://thrift.apache.org/xml/protocol" 
-        xmlns:tns="http://thrift.apache.org/xml/protocol" 
+        targetNamespace="http://thriftee.org/xml/protocol" 
+        xmlns:tns="http://thriftee.org/xml/protocol" 
         elementFormDefault="qualified">
 
-  <element name="m1" type="tns:ConciseMessageType" />
-  <element name="m2" type="tns:ConciseMessageType" />
-  <element name="m3" type="tns:ConciseMessageType" />
-  <element name="m4" type="tns:ConciseMessageType" />
-  <element name="t12" type="tns:ConciseStructType" />
+  <element name="q" type="tns:MessageType" />
+  <element name="r" type="tns:MessageType" />
+  <element name="s" type="tns:MessageType" />
+  <element name="t" type="tns:MessageType" />
+  <element name="l" type="tns:StructType" />
 
-  <element name="call" type="tns:VerboseMessageType" />
-  <element name="reply" type="tns:VerboseMessageType" />
-  <element name="exception" type="tns:VerboseMessageType" />
-  <element name="oneway" type="tns:VerboseMessageType" />
-  <element name="struct" type="tns:VerboseStructType" />
-
-  <complexType name="ConciseMessageType">
+  <complexType name="MessageType">
     <sequence>
-      <element name="t12" type="tns:ConciseStructType" />
+      <element name="l" type="tns:StructType" />
     </sequence>
     <attribute name="n" type="string" />
     <attribute name="q" type="int" />
   </complexType>
 
-  <complexType name="VerboseMessageType">
-    <sequence>
-      <element name="struct" type="tns:VerboseStructType" />
-    </sequence>
-    <attribute name="name" type="string" />
-    <attribute name="type" type="unsignedByte" />
-    <attribute name="seqid" type="int" />
-  </complexType>
-
-  <complexType name="ConciseStructType">
+  <complexType name="StructType">
     <sequence>
       <choice minOccurs="1" maxOccurs="unbounded">
-        <element name="t2">
+        <element name="b">
           <complexType>
             <simpleContent>
               <extension base="tns:bool">
-                <attributeGroup ref="tns:ConciseFieldAttributes" />
+                <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </simpleContent>
           </complexType>
         </element>
-        <element name="t3">
+        <element name="c">
           <complexType>
             <simpleContent>
               <extension base="tns:i8">
-                <attributeGroup ref="tns:ConciseFieldAttributes" />
+                <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </simpleContent>
           </complexType>
         </element>
-        <element name="t4">
+        <element name="d">
           <complexType>
             <simpleContent>
               <extension base="tns:double">
-                <attributeGroup ref="tns:ConciseFieldAttributes" />
+                <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </simpleContent>
           </complexType>
         </element>
-        <element name="t6">
+        <element name="f">
           <complexType>
             <simpleContent>
               <extension base="tns:i16">
-                <attributeGroup ref="tns:ConciseFieldAttributes" />
+                <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </simpleContent>
           </complexType>
         </element>
-        <element name="t8">
+        <element name="h">
           <complexType>
             <simpleContent>
               <extension base="tns:i32">
-                <attributeGroup ref="tns:ConciseFieldAttributes" />
+                <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </simpleContent>
           </complexType>
         </element>
-        <element name="t10">
+        <element name="j">
           <complexType>
             <simpleContent>
               <extension base="tns:i64">
-                <attributeGroup ref="tns:ConciseFieldAttributes" />
+                <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </simpleContent>
           </complexType>
         </element>
-        <element name="t11">
+        <element name="k">
           <complexType>
             <simpleContent>
               <extension base="tns:string">
-                <attributeGroup ref="tns:ConciseFieldAttributes" />
+                <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </simpleContent>
           </complexType>
         </element>
-        <element name="t12">
+        <element name="l">
           <complexType>
             <complexContent>
-              <extension base="tns:ConciseStructType">
-                <attributeGroup ref="tns:ConciseFieldAttributes" />
+              <extension base="tns:StructType">
+                <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </complexContent>
           </complexType>
         </element>
-        <element name="t13">
+        <element name="m">
           <complexType>
             <complexContent>
-              <extension base="tns:ConciseMapType">
-                <attributeGroup ref="tns:ConciseFieldAttributes" />
+              <extension base="tns:MapType">
+                <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </complexContent>
           </complexType>
         </element>
-        <element name="t14">
+        <element name="n">
           <complexType>
             <complexContent>
-              <extension base="tns:ConciseSetType">
-                <attributeGroup ref="tns:ConciseFieldAttributes" />
+              <extension base="tns:SetType">
+                <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </complexContent>
           </complexType>
         </element>
-        <element name="t15">
+        <element name="o">
           <complexType>
             <complexContent>
-              <extension base="tns:ConciseListType">
-                <attributeGroup ref="tns:ConciseFieldAttributes" />
+              <extension base="tns:ListType">
+                <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </complexContent>
           </complexType>
@@ -139,217 +124,57 @@
     </sequence>
   </complexType>
 
-  <complexType name="VerboseStructType">
-    <sequence>
-      <choice minOccurs="1" maxOccurs="unbounded">
-        <element name="bool">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:bool">
-                <attributeGroup ref="tns:VerboseFieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="i8">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:i8">
-                <attributeGroup ref="tns:VerboseFieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="double">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:double">
-                <attributeGroup ref="tns:VerboseFieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="i16">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:i16">
-                <attributeGroup ref="tns:VerboseFieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="i32">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:i32">
-                <attributeGroup ref="tns:VerboseFieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="i64">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:i64">
-                <attributeGroup ref="tns:VerboseFieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="string">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:string">
-                <attributeGroup ref="tns:VerboseFieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="struct">
-          <complexType>
-            <complexContent>
-              <extension base="tns:VerboseStructType">
-                <attributeGroup ref="tns:VerboseFieldAttributes" />
-              </extension>
-            </complexContent>
-          </complexType>
-        </element>
-        <element name="map">
-          <complexType>
-            <complexContent>
-              <extension base="tns:VerboseMapType">
-                <attributeGroup ref="tns:VerboseFieldAttributes" />
-              </extension>
-            </complexContent>
-          </complexType>
-        </element>
-        <element name="set">
-          <complexType>
-            <complexContent>
-              <extension base="tns:VerboseSetType">
-                <attributeGroup ref="tns:VerboseFieldAttributes" />
-              </extension>
-            </complexContent>
-          </complexType>
-        </element>
-        <element name="list">
-          <complexType>
-            <complexContent>
-              <extension base="tns:VerboseListType">
-                <attributeGroup ref="tns:VerboseFieldAttributes" />
-              </extension>
-            </complexContent>
-          </complexType>
-        </element>
-      </choice>
-    </sequence>
-    <attribute name="name" type="tns:IdentifierType" />
-  </complexType>
-
-  <attributeGroup name="ConciseFieldAttributes">
+  <attributeGroup name="FieldAttributes">
     <attribute name="i" type="tns:FieldIdType" use="required" />
     <attribute name="n" type="tns:IdentifierType" />
   </attributeGroup>
 
-  <attributeGroup name="VerboseFieldAttributes">
-    <attribute name="field" type="tns:FieldIdType" use="required" />
-    <attribute name="fname" type="tns:IdentifierType" />
-  </attributeGroup>
-
-  <group name="ConciseThriftValue">
+  <group name="ThriftValue">
     <choice>
-      <element name="t2" type="tns:bool" />
-      <element name="t3" type="tns:i8" />
-      <element name="t4" type="tns:double" />
-      <element name="t6" type="tns:i16" />
-      <element name="t8" type="tns:i32" />
-      <element name="t10" type="tns:i64" />
-      <element name="t11" type="tns:string" />
-      <element name="t12" type="tns:ConciseStructType" />
-      <element name="t13" type="tns:ConciseMapType" />
-      <element name="t14" type="tns:ConciseSetType" />
-      <element name="t15" type="tns:ConciseListType" />
+      <element name="b" type="tns:bool" />
+      <element name="c" type="tns:i8" />
+      <element name="d" type="tns:double" />
+      <element name="f" type="tns:i16" />
+      <element name="h" type="tns:i32" />
+      <element name="j" type="tns:i64" />
+      <element name="k" type="tns:string" />
+      <element name="l" type="tns:StructType" />
+      <element name="m" type="tns:MapType" />
+      <element name="n" type="tns:SetType" />
+      <element name="o" type="tns:ListType" />
     </choice>
   </group>
 
-  <group name="VerboseThriftValue">
-    <choice>
-      <element name="bool" type="tns:bool" />
-      <element name="i8" type="tns:i8" />
-      <element name="double" type="tns:double" />
-      <element name="i16" type="tns:i16" />
-      <element name="i32" type="tns:i32" />
-      <element name="i64" type="tns:i64" />
-      <element name="string" type="tns:string" />
-      <element name="struct" type="tns:VerboseStructType" />
-      <element name="map" type="tns:VerboseMapType" />
-      <element name="set" type="tns:VerboseSetType" />
-      <element name="list" type="tns:VerboseListType" />
-    </choice>
-  </group>
-
-  <attributeGroup name="ConciseContainerAttributes">
+  <attributeGroup name="ContainerAttributes">
     <attribute name="z" type="int" />
     <attribute name="v" type="tns:typename" />
   </attributeGroup>
 
-  <attributeGroup name="ConciseMapAttributes">
+  <attributeGroup name="MapAttributes">
     <attribute name="k" type="tns:typename" />
-    <attributeGroup ref="tns:ConciseContainerAttributes" />
+    <attributeGroup ref="tns:ContainerAttributes" />
   </attributeGroup>
 
-  <complexType name="ConciseMapType">
+  <complexType name="MapType">
     <sequence minOccurs="0" maxOccurs="unbounded">
-      <group ref="tns:ConciseThriftValue" minOccurs="1" maxOccurs="1" />
-      <group ref="tns:ConciseThriftValue" minOccurs="1" maxOccurs="1" />
+      <group ref="tns:ThriftValue" minOccurs="1" maxOccurs="1" />
+      <group ref="tns:ThriftValue" minOccurs="1" maxOccurs="1" />
     </sequence>
-    <attributeGroup ref="tns:ConciseMapAttributes" />
+    <attributeGroup ref="tns:MapAttributes" />
   </complexType>
 
-  <complexType name="ConciseSetType">
+  <complexType name="SetType">
     <sequence minOccurs="0" maxOccurs="unbounded">
-      <group ref="tns:ConciseThriftValue" minOccurs="1" maxOccurs="1" />
+      <group ref="tns:ThriftValue" minOccurs="1" maxOccurs="1" />
     </sequence>
-    <attributeGroup ref="tns:ConciseContainerAttributes" />
+    <attributeGroup ref="tns:ContainerAttributes" />
   </complexType>
 
-  <complexType name="ConciseListType">
+  <complexType name="ListType">
     <sequence minOccurs="0" maxOccurs="unbounded">
-      <group ref="tns:ConciseThriftValue" minOccurs="1" maxOccurs="1" />
+      <group ref="tns:ThriftValue" minOccurs="1" maxOccurs="1" />
     </sequence>
-    <attributeGroup ref="tns:ConciseContainerAttributes" />
-  </complexType>
-
-  <attributeGroup name="VerboseContainerAttributes">
-    <attribute name="size" type="int" />
-    <attribute name="value" type="tns:typename" />
-  </attributeGroup>
-
-  <attributeGroup name="VerboseMapAttributes">
-    <attribute name="key" type="tns:typename" />
-    <attributeGroup ref="tns:VerboseContainerAttributes" />
-  </attributeGroup>
-
-  <complexType name="VerboseMapType">
-    <sequence minOccurs="0" maxOccurs="unbounded">
-      <group ref="tns:VerboseThriftValue" minOccurs="1" maxOccurs="1" />
-      <group ref="tns:VerboseThriftValue" minOccurs="1" maxOccurs="1" />
-    </sequence>
-    <attributeGroup ref="tns:VerboseMapAttributes" />
-  </complexType>
-
-  <complexType name="VerboseSetType">
-    <sequence minOccurs="0" maxOccurs="unbounded">
-      <group ref="tns:VerboseThriftValue" minOccurs="1" maxOccurs="1" />
-    </sequence>
-    <attributeGroup ref="tns:VerboseContainerAttributes" />
-  </complexType>
-
-  <complexType name="VerboseListType">
-    <sequence minOccurs="0" maxOccurs="unbounded">
-      <group ref="tns:VerboseThriftValue" minOccurs="1" maxOccurs="1" />
-    </sequence>
-    <attributeGroup ref="tns:VerboseContainerAttributes" />
+    <attributeGroup ref="tns:ContainerAttributes" />
   </complexType>
 
   <simpleType name="typename">
@@ -381,7 +206,10 @@
   </simpleType>
 
   <simpleType name="bool">
-    <restriction base="boolean" />
+    <restriction base="byte">
+      <enumeration value="0" />
+      <enumeration value="1" />
+    </restriction>
   </simpleType>
 
   <simpleType name="IdentifierType">

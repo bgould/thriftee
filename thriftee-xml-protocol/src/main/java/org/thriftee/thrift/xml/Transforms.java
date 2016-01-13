@@ -27,6 +27,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -70,6 +71,8 @@ public class Transforms {
 
   private final ConcurrentMap<String, XsltExecutable> xsltCache;
 
+  private final Set<String> preloadedUris = new HashSet<>();
+
   private final XsltCompiler compiler;
 
   public static final String XSL_BASE = "org/thriftee/thrift/xml";
@@ -93,6 +96,28 @@ public class Transforms {
     );
   }
 
+  public void release() {
+    /*
+    System.err.println("Transforms.release() called.");
+    xsltCache.clear();
+    System.err.println("  cleared XSLT cache");
+    final Configuration cfg = processor.getUnderlyingConfiguration();
+    final DocumentPool pool = cfg.getGlobalDocumentPool();
+    cfg.clearSchemaCache();
+    System.err.println("  cleared schema cache");
+    processor.getUnderlyingConfiguration().clearSchemaCache();
+    for (final String preloadedUri : preloadedUris) {
+      final DocumentInfo info = pool.find(preloadedUri);
+      if (info != null) {
+        System.err.println("  discarding from global pool: " + preloadedUri);
+        pool.discard(info);
+      }
+    }
+    preloadedUris.clear();
+    System.err.println("  release() completed.");
+    */
+  }
+
   public URL schemaUrl() {
     return resolveInternalXsl("thrift-idl.xsd");
   }
@@ -103,6 +128,7 @@ public class Transforms {
       final DocumentInfo docinfo = config.buildDocument(new StreamSource(file));
       final String uri = file.toURI().toURL().toString();
       config.getGlobalDocumentPool().add(docinfo, uri);
+      preloadedUris.add(uri);
     } catch (net.sf.saxon.trans.XPathException e) {
       throw new IOException(e);
     }

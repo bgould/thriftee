@@ -15,9 +15,8 @@
  */
 package org.thriftee.thrift.xml.protocol;
 
-import static javax.xml.XMLConstants.*;
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 import static javax.xml.stream.XMLStreamConstants.*;
-import static org.apache.thrift.protocol.TMessageType.*;
 import static org.apache.thrift.protocol.TType.*;
 
 import java.io.IOException;
@@ -59,174 +58,28 @@ import org.xml.sax.SAXParseException;
 
 public class TXMLProtocol extends AbstractContextProtocol {
 
-  public static void main(String...strings) {
-    for (char c = 'a'; c < 'z'; c++) {
-      System.out.println(c + ": " + ((byte)(c&15)));
-    }
-  }
-  
-  private static final String[] VERBOSE_MESSAGE_NAMES = new String[5];
-  static {
-    VERBOSE_MESSAGE_NAMES[CALL]      = "call";
-    VERBOSE_MESSAGE_NAMES[REPLY]     = "reply";
-    VERBOSE_MESSAGE_NAMES[EXCEPTION] = "exception";
-    VERBOSE_MESSAGE_NAMES[ONEWAY]    = "oneway";
-  }
-
-  private static final String[] VERBOSE_TYPE_NAMES = new String[17];
-  static {
-    VERBOSE_TYPE_NAMES[STOP]   = "stop";
-    VERBOSE_TYPE_NAMES[VOID]   = "void";
-    VERBOSE_TYPE_NAMES[BOOL]   = "bool";
-    VERBOSE_TYPE_NAMES[BYTE]   = "i8";
-    VERBOSE_TYPE_NAMES[DOUBLE] = "double";
-    VERBOSE_TYPE_NAMES[I16]    = "i16";
-    VERBOSE_TYPE_NAMES[I32]    = "i32";
-    VERBOSE_TYPE_NAMES[I64]    = "i64";
-    VERBOSE_TYPE_NAMES[STRING] = "string";
-    VERBOSE_TYPE_NAMES[STRUCT] = "struct";
-    VERBOSE_TYPE_NAMES[MAP]    = "map";
-    VERBOSE_TYPE_NAMES[SET]    = "set";
-    VERBOSE_TYPE_NAMES[LIST]   = "list";
-    VERBOSE_TYPE_NAMES[ENUM]   = "enum";
-  }
-
-  // TODO: this could probably be made a little faster
-  private static byte search(String[] vals, String s) throws TXMLException {
-    for (int i = 0; i < vals.length; i++) {
-      if (s.equals(vals[i])) {
-        return (byte) i;
-      }
-    }
-    throw new TXMLException("not found: " + s);
-  }
-
-  public static enum Variant {
-    CONCISE(
-      "http://thrift.apache.org/xml/protocol", 
-      "k", 
-      "v", 
-      "t", 
-      "z", 
-      "n", 
-      "i",
-      null,
-      "q", 
-      false,
-      new NameConverter() {
-        public byte elementToByte(String s) {
-          return Byte.parseByte(s.substring(1));
-        }
-        public String byteToElement(byte b) {
-          return "t" + b;
-        }
-        public byte messageTypeToByte(String s) {
-          return Byte.parseByte(s.substring(1));
-        }
-        public String byteToMessageType(byte b) {
-          return "m" + b;
-        }
-      }
-    ),
-    VERBOSE(
-      "http://thrift.apache.org/xml/protocol",
-      "key",
-      "value",
-      "type",
-      "size",
-      "name",
-      "field",
-      "fname",
-      "seqid",
-      true,
-      new NameConverter() {
-        public byte elementToByte(String s) throws TXMLException {
-          return search(VERBOSE_TYPE_NAMES, s);
-        }
-        public String byteToElement(byte b) throws TXMLException {
-          return VERBOSE_TYPE_NAMES[b];
-        }
-        public byte messageTypeToByte(String s) throws TXMLException {
-          return search(VERBOSE_MESSAGE_NAMES, s);
-        }
-        public String byteToMessageType(byte b) throws TXMLException {
-          return VERBOSE_MESSAGE_NAMES[b];
-        }
-      }
-    ),
-    ;
-    public final String NAMESPACE;
-    public final String ATTRIBUTE_TYPE;
-    public final String ATTRIBUTE_KEY_TYPE;
-    public final String ATTRIBUTE_VALUE_TYPE;
-    public final String ATTRIBUTE_SIZE;
-    public final String ATTRIBUTE_NAME;
-    public final String ATTRIBUTE_ID;
-    public final String ATTRIBUTE_FIELD_NAME;
-    public final String ATTRIBUTE_SEQID;
-    public final boolean INCLUDE_NAMES;
-    public final NameConverter converter;
-    private Variant(
-        String namespace,  
-        String keyElement, 
-        String valueElement,
-        String typeAttribute,
-        String sizeAttribute,
-        String nameAttribute,
-        String idAttribute,
-        String fieldNameAttribute,
-        String seqidAttribute,
-        boolean includeNames,
-        NameConverter converter) {
-      NAMESPACE = namespace;
-      INCLUDE_NAMES = includeNames;
-      ATTRIBUTE_TYPE = typeAttribute;
-      ATTRIBUTE_KEY_TYPE = keyElement;
-      ATTRIBUTE_VALUE_TYPE = valueElement;
-      ATTRIBUTE_SIZE = sizeAttribute;
-      ATTRIBUTE_NAME = nameAttribute;
-      ATTRIBUTE_ID = idAttribute;
-      ATTRIBUTE_FIELD_NAME = fieldNameAttribute;
-      ATTRIBUTE_SEQID = seqidAttribute;
-      this.converter = converter;
-    }
-  }
-
   public static class Factory implements TProtocolFactory {
 
     private static final long serialVersionUID = 1017378360734059748L;
 
-    private final Variant variant;
-
-    private final boolean validating;
-
-    public Factory() {
-      this(null, false);
-    }
-
-    public Factory(Variant variant, boolean validating) {
-      if (variant == null) {
-        variant = Variant.CONCISE;
-      }
-      this.variant = variant;
-      this.validating = validating;
-    }
-
     @Override
     public TProtocol getProtocol(TTransport transport) {
-      return new TXMLProtocol(transport, variant, validating);
+      return new TXMLProtocol(transport);
     }
 
   }
 
-  protected final Variant variant;
-
-  protected final boolean validating;
-
-  public TXMLProtocol(TTransport trans, Variant variant, boolean validating) {
+  public static final String NAMESPACE = "http://thriftee.org/xml/protocol";
+  public static final String ATTRIBUTE_TYPE =       "t";
+  public static final String ATTRIBUTE_KEY_TYPE =   "k";
+  public static final String ATTRIBUTE_VALUE_TYPE = "v";
+  public static final String ATTRIBUTE_SIZE =       "z";
+  public static final String ATTRIBUTE_NAME =       "n";
+  public static final String ATTRIBUTE_ID =         "i";
+  public static final String ATTRIBUTE_SEQID =      "q";
+  
+  public TXMLProtocol(TTransport trans) {
     super(trans);
-    this.variant = variant;
-    this.validating = validating;
   }
 
   public URL schemaUrl() {
@@ -281,7 +134,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
     @Override
     public void writeBool(boolean bool) throws TXMLException {
-      writeCharacters(DatatypeConverter.printBoolean(bool));
+      writeCharacters(bool ? "1" : "0");
     }
 
     @Override
@@ -358,7 +211,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
     @Override
     public boolean readBool() throws TXMLException {
-      final boolean result = DatatypeConverter.parseBoolean(readCharacters());
+      final boolean result = "1".equals(readCharacters());
       return result;
     }
 
@@ -442,9 +295,9 @@ public class TXMLProtocol extends AbstractContextProtocol {
     @Override
     public XMLMessageContext writeStart() throws TXMLException {
       writeStartElement(byteToMessageType(type));
-      writeAttribute("xmlns", variant.NAMESPACE);
-      writeAttribute(variant.ATTRIBUTE_NAME, name);
-      writeAttribute(variant.ATTRIBUTE_SEQID, Integer.toString(seqid));
+      writeAttribute("xmlns", NAMESPACE);
+      writeAttribute(ATTRIBUTE_NAME, name);
+      writeAttribute(ATTRIBUTE_SEQID, Integer.toString(seqid));
       return this;
     }
 
@@ -452,10 +305,10 @@ public class TXMLProtocol extends AbstractContextProtocol {
     public XMLMessageContext readStart() throws TXMLException {
       final String msgname = nextStartElement();
       this.type = messageTypeToByte(msgname);
-      this.name = readAttribute(variant.ATTRIBUTE_NAME);
+      this.name = readAttribute(ATTRIBUTE_NAME);
       // TODO: seqid should always be required
-      if (reader().getAttributeValue(null, variant.ATTRIBUTE_SEQID) != null) {
-        this.seqid = readIntAttribute(variant.ATTRIBUTE_SEQID);
+      if (reader().getAttributeValue(null, ATTRIBUTE_SEQID) != null) {
+        this.seqid = readIntAttribute(ATTRIBUTE_SEQID);
       } else {
         this.seqid = 1;
       }
@@ -470,7 +323,6 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
     @Override
     public XMLMessageContext readEnd() throws TXMLException {
-      //nextEndElement();
       expectEndElement();
       return this;
     }
@@ -508,11 +360,8 @@ public class TXMLProtocol extends AbstractContextProtocol {
       if (!(parent instanceof FieldContext)) {
         writeStartElement(byteToElement(STRUCT));
         if (parent instanceof BaseContext) {
-          writeAttribute("xmlns", variant.NAMESPACE);
+          writeAttribute("xmlns", NAMESPACE);
         }
-      }
-      if (variant.INCLUDE_NAMES) {
-        writeAttribute(variant.ATTRIBUTE_NAME, name);
       }
       return this;
     }
@@ -536,9 +385,6 @@ public class TXMLProtocol extends AbstractContextProtocol {
       final Context parent = parent();
       if (!(parent instanceof FieldContext)) {
         nextStartElement();
-      }
-      if (variant.INCLUDE_NAMES) {
-        name = readAttribute(variant.ATTRIBUTE_NAME);
       }
       return this;
     }
@@ -594,10 +440,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     @Override
     public XMLFieldContext writeStart() throws TXMLException {
       writeStartElement(byteToElement(type));
-      writeAttribute(variant.ATTRIBUTE_ID, Short.toString(id));
-      if (variant.ATTRIBUTE_FIELD_NAME != null) {
-        writeAttribute(variant.ATTRIBUTE_FIELD_NAME, name);
-      }
+      writeAttribute(ATTRIBUTE_ID, Short.toString(id));
       return this;
     }
 
@@ -615,10 +458,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
       }
       if (eventType == START_ELEMENT) {
         this.type = elementToByte(reader().getLocalName());
-        this.id = readShortAttribute(variant.ATTRIBUTE_ID);
-        if (variant.ATTRIBUTE_FIELD_NAME != null) {
-          name = readAttribute(variant.ATTRIBUTE_FIELD_NAME);
-        }
+        this.id = readShortAttribute(ATTRIBUTE_ID);
       } else {
         this.type = STOP;
         this.id = 0;
@@ -674,8 +514,8 @@ public class TXMLProtocol extends AbstractContextProtocol {
       if (parent() instanceof ContainerContext<?>) {
         writeStartElement(byteToElement(containerType.byteval()));
       }
-      writeAttribute(variant.ATTRIBUTE_SIZE, Integer.toString(size));
-      writeAttribute(variant.ATTRIBUTE_VALUE_TYPE, byteToElement(elemType));
+      writeAttribute(ATTRIBUTE_SIZE, Integer.toString(size));
+      writeAttribute(ATTRIBUTE_VALUE_TYPE, byteToElement(elemType));
       return this;
     }
 
@@ -701,11 +541,11 @@ public class TXMLProtocol extends AbstractContextProtocol {
         throw new IllegalStateException(
           "Expected '" + xtype + "' but was '" + ctype + "'");
       }
-      this.size = readIntAttribute(variant.ATTRIBUTE_SIZE);
-      this.elemType = elementToByte(readAttribute(variant.ATTRIBUTE_VALUE_TYPE));
+      this.size = readIntAttribute(ATTRIBUTE_SIZE);
+      this.elemType = elementToByte(readAttribute(ATTRIBUTE_VALUE_TYPE));
       if (ctype == MAP) {
         ((XMLMapContext)this).keyType = elementToByte( 
-          readAttribute(variant.ATTRIBUTE_KEY_TYPE)
+          readAttribute(ATTRIBUTE_KEY_TYPE)
         );
       }
       return this;
@@ -813,7 +653,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     @Override
     public MapContext writeStart() throws TXMLException {
       super.writeStart();
-      writeAttribute(variant.ATTRIBUTE_KEY_TYPE, byteToElement(keyType));
+      writeAttribute(ATTRIBUTE_KEY_TYPE, byteToElement(keyType));
       return this;
     }
 
@@ -869,23 +709,25 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   private XMLStreamReader __reader;
 
-  protected byte elementToByte(String element) throws TXMLException {
-    return variant.converter.elementToByte(element);
+  private final byte elementToByte(String element) throws TXMLException {
+    return ((byte)(element.charAt(0)&15));
   }
 
-  protected String byteToElement(byte type) throws TXMLException {
-    return variant.converter.byteToElement(type);
+  private final String byteToElement(byte type) throws TXMLException {
+    // note: this is incorrect for for type == 0, but stop fields are not used
+    // todo: add check for type == 0 if that becomes an issue
+    return String.valueOf((char)((type&15)+96));
   }
 
-  protected byte messageTypeToByte(String element) throws TXMLException {
-    return variant.converter.messageTypeToByte(element);
+  private final byte messageTypeToByte(String element) throws TXMLException {
+    return ((byte)(element.charAt(0)&7));
   }
 
-  protected String byteToMessageType(byte type) throws TXMLException {
-    return variant.converter.byteToMessageType(type);
+  private final String byteToMessageType(byte type) throws TXMLException {
+    return String.valueOf((char)((type&15)+112));
   }
 
-  protected void writeStartElement(String name) throws TXMLException {
+  protected final void writeStartElement(String name) throws TXMLException {
     try {
       writer().writeStartElement(name);
     } catch (XMLStreamException e) {
@@ -1055,13 +897,6 @@ public class TXMLProtocol extends AbstractContextProtocol {
         "Error reading int attribute '" + localName + "' of '" + el + "'", e
       );
     }
-  }
-
-  interface NameConverter {
-    byte elementToByte(String s) throws TXMLException ;
-    String byteToElement(byte b) throws TXMLException ;
-    byte messageTypeToByte(String s) throws TXMLException ;
-    String byteToMessageType(byte b) throws TXMLException ;
   }
 
   public static class TXMLException extends TApplicationException {
