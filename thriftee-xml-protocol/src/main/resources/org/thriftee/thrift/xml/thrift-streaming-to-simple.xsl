@@ -412,6 +412,15 @@
     </xsl:element>
   </xsl:template>
 
+  <xsl:template mode="transform-thrift-type" match="*[@type='bool']">
+    <xsl:param name="data" />
+    <xsl:variable name="typeinfo" select="current()" />
+    <xsl:choose>
+      <xsl:when test="string($data) = '1'">true</xsl:when>
+      <xsl:otherwise>false</xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template mode="transform-thrift-type" match="*" priority="-1">
     <xsl:param name="data" />
     <xsl:variable name="typeinfo" select="current()" />
