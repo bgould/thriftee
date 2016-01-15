@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.thriftee</groupId>
     <artifactId>thriftee-root</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0-SNAPSHOT</version>
   </parent>
   <artifactId>thriftee-examples</artifactId>
   <name>thriftee-examples</name>
