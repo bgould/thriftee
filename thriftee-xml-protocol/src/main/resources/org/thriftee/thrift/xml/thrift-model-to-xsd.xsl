@@ -3,9 +3,7 @@
     xmlns:idl="http://thrift.apache.org/xml/idl"
     xmlns:txp="http://thrift.apache.org/xml/protocol"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:exsl="http://exslt.org/common"
-    exclude-result-prefixes="xsl idl exsl txp"
-    extension-element-prefixes="exsl">
+    exclude-result-prefixes="xsl idl txp">
 
   <xsl:output method="xml" omit-xml-declaration="yes" indent="yes" />
   <xsl:strip-space elements="*"/>
@@ -172,8 +170,12 @@
     <xsl:param name="skip-min-max-occurs" select="false()" />
     <xsd:element name="{$element-name}">
       <xsl:if test="not($skip-min-max-occurs)">
-        <xsl:attribute name="minOccurs" select="'0'" />
-        <xsl:attribute name="maxOccurs" select="'1'" />
+        <xsl:attribute name="minOccurs">
+          <xsl:value-of select="'0'" />
+        </xsl:attribute>
+        <xsl:attribute name="maxOccurs">
+          <xsl:value-of select="'1'" />
+        </xsl:attribute>
       </xsl:if>
       <xsl:apply-templates mode="xsd-type" select="current()" />
     </xsd:element>
@@ -194,8 +196,12 @@
     <xsl:param name="skip-min-max-occurs" select="false()" />
     <xsd:element name="{$element-name}">
       <xsl:if test="not($skip-min-max-occurs)">
-        <xsl:attribute name="minOccurs" select="'0'" />
-        <xsl:attribute name="maxOccurs" select="'1'" />
+        <xsl:attribute name="minOccurs">
+          <xsl:value-of select="'0'" />
+        </xsl:attribute>
+        <xsl:attribute name="maxOccurs">
+          <xsl:value-of select="'1'" />
+        </xsl:attribute>
       </xsl:if>
       <xsl:apply-templates mode="xsd-type" select="current()" />
     </xsd:element>
@@ -207,8 +213,12 @@
     <xsl:param name="skip-min-max-occurs" />
     <xsd:element name="{$element-name}">
       <xsl:if test="not($skip-min-max-occurs)">
-        <xsl:attribute name="minOccurs" select="'0'" />
-        <xsl:attribute name="maxOccurs" select="'1'" />
+        <xsl:attribute name="minOccurs">
+          <xsl:value-of select="'0'" />
+        </xsl:attribute>
+        <xsl:attribute name="maxOccurs">
+          <xsl:value-of select="'1'" />
+        </xsl:attribute>
       </xsl:if>
       <xsd:complexType>
         <xsd:sequence>
@@ -227,8 +237,12 @@
     <xsl:param name="skip-min-max-occurs" />
     <xsd:element name="{$element-name}" type="xsd:string">
        <xsl:if test="not($skip-min-max-occurs)">
-        <xsl:attribute name="minOccurs" select="'0'" />
-        <xsl:attribute name="maxOccurs" select="'1'" />
+        <xsl:attribute name="minOccurs">
+          <xsl:value-of select="'0'" />
+        </xsl:attribute>
+        <xsl:attribute name="maxOccurs">
+          <xsl:value-of select="'1'" />
+        </xsl:attribute>
       </xsl:if>
     </xsd:element>
   </xsl:template>

@@ -144,12 +144,18 @@ public class SOAPResource extends FrameworkResource {
     }
     final String filename;
     if ("service.wsdl".equals(getFilename())) {
-      filename = getWsdlFilename();
+      return new WsdlRepresentation(
+        thrift(), fileFor(getWsdlFilename()), 
+        resourceRef().toString().replaceAll("service\\.wsdl$", "")
+      );
     } else {
       filename = getFilename();
+      return new FileRepresentation(fileFor(filename), MediaType.TEXT_XML);
     }
-    final File file = new File(thrift().wsdlClientDir(), filename);
-    return new FileRepresentation(file, MediaType.TEXT_XML);
+  }
+
+  private final File fileFor(String filename) {
+    return new File(thrift().wsdlClientDir(), filename);
   }
 
   private String getWsdlFilename() {

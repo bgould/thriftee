@@ -37,32 +37,14 @@ import net.sf.saxon.s9api.XsltTransformer;
 
 public abstract class TransformerRepresentation extends OutputRepresentation {
 
-//  private static final ConcurrentHashMap<Class<?>, JAXBContext> 
-//                                  jaxbContextCache = new ConcurrentHashMap<>();
-
-
   private static final DocumentBuilderFactory dbf = 
                                   DocumentBuilderFactory.newInstance();
-
-//  protected JAXBContext getJAXBContext(final Class<?> jaxbClass) 
-//      throws JAXBException {
-//    if (!jaxbContextCache.containsKey(jaxbClass)) {
-//      final JAXBContext newctx = JAXBContext.newInstance(jaxbClass);
-//      final JAXBContext existing = jaxbContextCache.putIfAbsent(
-//        jaxbClass, newctx
-//      );
-//      if (existing != null) {
-//        return existing;
-//      }
-//    }
-//    return jaxbContextCache.get(jaxbClass);
-//  }
 
   protected Document newDocument() {
     return documentBuilder.newDocument();
   }
 
-  private final ThriftEE thrift;
+  private final ThriftEE thriftee;
 
   private final DocumentBuilder documentBuilder;
 
@@ -70,10 +52,10 @@ public abstract class TransformerRepresentation extends OutputRepresentation {
 
   protected TransformerRepresentation(
       final MediaType mediaType, 
-      final ThriftEE thrift,
+      final ThriftEE thriftee,
       final URL url) {
     super(mediaType);
-    if (thrift == null) {
+    if (thriftee == null) {
       throw new IllegalArgumentException("ThriftEE instance cannot be null.");
     }
     try {
@@ -81,8 +63,12 @@ public abstract class TransformerRepresentation extends OutputRepresentation {
     } catch (ParserConfigurationException e) {
       throw new RuntimeException(e);
     }
-    this.thrift = thrift;
+    this.thriftee = thriftee;
     this.url = url;
+  }
+
+  protected final ThriftEE thriftee() {
+    return thriftee;
   }
 
   @Override
@@ -101,11 +87,11 @@ public abstract class TransformerRepresentation extends OutputRepresentation {
   }
 
   private Transforms transforms() {
-    return thrift.xmlTransforms();
+    return thriftee.xmlTransforms();
   }
 
   protected XsltTransformer transformer() throws IOException {
-    return thrift.xmlTransforms().cachedTransformer(url);
+    return thriftee.xmlTransforms().cachedTransformer(url);
   }
 
   protected void configure(XsltTransformer transformer) {}
