@@ -67,6 +67,11 @@ public class SpeedTest {
     //long totalNanos = 0;
     final Everything struct = TXMLProtocolTest.everythingStruct();
 
+    System.gc();
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {}
+
     for (int i =0 ; i < count; i++) {
       final byte[] arr;
       {

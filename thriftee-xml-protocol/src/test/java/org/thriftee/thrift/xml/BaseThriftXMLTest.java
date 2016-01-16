@@ -17,11 +17,9 @@ package org.thriftee.thrift.xml;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,14 +34,12 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.codec.Charsets;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TMessage;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
-import org.thriftee.provider.swift.SwiftParserXML;
 import org.thriftee.thrift.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.protocol.TXMLProtocolTest;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
@@ -109,16 +105,9 @@ public class BaseThriftXMLTest {
   @BeforeClass
   public synchronized static void beforeClass() throws Exception {
     if (exportedModels == null || exportedSchemas == null) {
-      final boolean useExisting;
-      if (Boolean.valueOf(System.getProperty("thriftee.use.swift.parser"))) {
-        createDir("model", testModelDir);
-        useExisting = false;
-      } else {
-        useExisting = true;
-      }
       createDir("schema", testSchemaDir);
       createDir("structs", testStructsDir);
-      exportedModels  = exportModels(testModelDir, useExisting);
+      exportedModels  = exportModels(testModelDir);
       exportedSchemas = exportSchemas(exportedModels, testSchemaDir);
       exportedWsdls   = exportWsdls(exportedModels, testSchemaDir);
       exportedStructs = exportStructs(objs, testStructsDir);
@@ -214,8 +203,7 @@ public class BaseThriftXMLTest {
     return testStructsDir;
   }
 
-  public static Map<String, File> exportModels(
-      File tmp, boolean useExisting) throws IOException {
+  public static Map<String, File> exportModels(File tmp) throws IOException {
     final Map<String, File> xmlFiles = new LinkedHashMap<>();
     final File[] idlFiles = new File("src/test/thrift").listFiles(
       new FilenameFilter() {
@@ -230,16 +218,8 @@ public class BaseThriftXMLTest {
     for (final File idlfile : idlFiles) {
       final String basename = idlfile.getName().replaceAll(".thrift$", "");
       final File outfile = new File(tmp, basename + ".xml");
-      if (useExisting && !outfile.exists()) {
+      if (!outfile.exists()) {
         throw new IOException("could not find generated XML model: " + outfile);
-      }
-      if (!useExisting) {
-        final StringWriter w = new StringWriter();
-        final SwiftParserXML xml = new SwiftParserXML();
-        xml.export(idlfile, Charsets.UTF_8, new StreamResult(w));
-        try (FileWriter out = new FileWriter(outfile)) {
-          Transforms.formatXml(w.toString(), new StreamResult(out));
-        }
       }
       xmlFiles.put(basename, outfile);
     }
