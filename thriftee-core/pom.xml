@@ -80,7 +80,7 @@
     </dependency>
     <dependency>
       <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-examples</artifactId>
+      <artifactId>thriftee-examples-swift</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

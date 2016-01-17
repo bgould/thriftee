@@ -20,8 +20,9 @@
     <module>thriftee-core</module>
     <module>thriftee-provider-swift</module>
     <module>thriftee-examples-war</module>
-    <module>thriftee-examples</module>
+    <module>thriftee-examples-swift</module>
     <module>thriftee-servlet</module>
+    <module>thriftee-cli</module>
   </modules>
 
   <repositories>
@@ -76,7 +77,7 @@
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
-        <artifactId>thriftee-examples</artifactId>
+        <artifactId>thriftee-examples-swift</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -469,7 +470,7 @@
                     </excludes>
                   </relocation>
                 </relocations>
-                <transformers>
+                <transformers> 
                   <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                     <resource>ConverterHelper</resource>
                   </transformer>
@@ -480,8 +481,9 @@
                     <resource>META-INF/services/org.restlet.engine.converter.ConverterHelper</resource>
                     <file>${basedir}/../src/main/shade/META-INF/services/org.restlet.engine.converter.ConverterHelper</file>
                   </transformer>
-                  <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
-                    <!-- <addHeader>false</addHeader> -->
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer" />
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                    <mainClass>org.thriftee.cli.App</mainClass>
                   </transformer>
                 </transformers>
               </configuration>
