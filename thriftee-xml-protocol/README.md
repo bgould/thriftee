@@ -1,4 +1,4 @@
-`An XML Protocol for Apache Thrift
+An XML Protocol for Apache Thrift
 =================================
 
 This is my modest proposal, proof-of-concept, and playground for a Thrift

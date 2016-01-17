@@ -15,6 +15,8 @@
  */
 package org.thriftee.thrift.xml;
 
+import static org.thriftee.examples.Examples.*;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -41,14 +43,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.thriftee.thrift.xml.Transformation.RootType;
-import org.thriftee.thrift.xml.protocol.TXMLProtocolTest;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
-
-import another.Blotto;
-import everything.EndOfTheUniverseException;
-import everything.Everything;
-import everything.Universe.grok_args;
-import everything.Universe.grok_result;
 
 public class BaseThriftXMLTest {
 
@@ -168,10 +163,11 @@ public class BaseThriftXMLTest {
   }
 
   public static File modelFor(String module) {
-    if (!exportedModels.containsKey(module)) {
-      throw new IllegalArgumentException("No model file for '" + module + "'.");
-    }
-    return exportedModels.get(module);
+//    if (!exportedModels.containsKey(module)) {
+//      throw new IllegalArgumentException("No model file for '" + module + "'.");
+//    }
+//    return exportedModels.get(module);
+    return exportedModels.get("xml_tests");
   }
 
   public static URL urlToModelFor(String module) throws IOException {
@@ -273,24 +269,6 @@ public class BaseThriftXMLTest {
     return Collections.unmodifiableMap(testobjs);
   }
 
-  public static Everything everythingStruct() {
-    return TXMLProtocolTest.everythingStruct();
-  }
-
-  public static grok_args grokArgs() {
-    return new grok_args(everythingStruct());
-  }
-
-  public static grok_result grokResult() {
-    return new grok_result(42, null);
-  }
-
-  public static grok_result grokError() {
-    final grok_result result = new grok_result();
-    result.setEndOfIt(new EndOfTheUniverseException("it's over!!!"));
-    return result;
-  }
-
   private static void transformToSimple(TestObject obj, File src, File tgt)
       throws IOException, TransformerException {
     final Transformation trns = Transforms.newStreamingToSimple();
@@ -335,7 +313,4 @@ public class BaseThriftXMLTest {
     }
   }
 
-  public static Blotto blotto() {
-    return new Blotto(42, "fish");
-  }
 }

@@ -15,6 +15,8 @@
  */
 package org.thriftee.thrift.xml;
 
+import static org.thriftee.examples.Examples.*;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -32,7 +34,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.thriftee.thrift.xml.Transformation.RootType;
-import org.thriftee.thrift.xml.protocol.TXMLProtocolTest;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
 import org.thriftee.thrift.xml.protocol.UniverseImpl;
 
@@ -54,7 +55,7 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
     Assert.assertNotNull(testModelDir);
     Assert.assertNotNull(testMethodDir);
     dataOutput = new File(testMethodDir, "data.xml");
-    schemaFile = new File(testModelDir, "everything.xml");
+    schemaFile = new File(testModelDir, "xml_tests.xml");
     callOutput = new File(testMethodDir, "call.xml");
     transformOutput = new File(testMethodDir, "call_output.xml");
     replyOutput = new File(testMethodDir, "reply.xml");
@@ -66,7 +67,7 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
       throws TException, TransformerException, IOException {
 
     final TestProtocol protocol = createOutProtocol();
-    final Everything everything = TXMLProtocolTest.everythingStruct();
+    final Everything everything = everythingStruct();
     everything.write(protocol);
 
     final String xml = protocol.getStringOutput();
@@ -97,7 +98,7 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
   public void testServiceCall() 
       throws TException, TransformerException, IOException {
 
-    final Everything o = TXMLProtocolTest.everythingStruct();
+    final Everything o = everythingStruct();
 
     {
     final TestProtocol protocol = createOutProtocol();
@@ -187,7 +188,7 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
   public void testException() 
       throws TException, TransformerException, IOException {
 
-    final Everything o = TXMLProtocolTest.everythingStruct();
+    final Everything o = everythingStruct();
 
     {
     final TestProtocol protocol = createOutProtocol();

@@ -15,6 +15,8 @@
  */
 package org.thriftee.thrift.xml.protocol;
 
+import static org.thriftee.examples.Examples.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -65,7 +67,7 @@ public class SpeedTest {
     long readNanos = 0;
     long writeNanos = 0;
     //long totalNanos = 0;
-    final Everything struct = TXMLProtocolTest.everythingStruct();
+    final Everything struct = everythingStruct();
 
     System.gc();
     try {

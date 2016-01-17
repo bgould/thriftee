@@ -13,14 +13,13 @@
   <inceptionYear>2013</inceptionYear>
 
   <modules>
-    <!--    <module>thriftee-idl-parser</module>
-      <module>thriftee-swift-generator</module> -->
+    <module>thriftee-examples</module>
     <module>thriftee-xml-protocol</module>
     <module>thriftee-core-api</module>
     <module>thriftee-core</module>
     <module>thriftee-provider-swift</module>
-    <module>thriftee-examples-war</module>
     <module>thriftee-examples-swift</module>
+    <module>thriftee-examples-war</module>
     <module>thriftee-servlet</module>
     <module>thriftee-cli</module>
   </modules>
@@ -66,6 +65,17 @@
         <version>${logback.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>libthrift</artifactId>
+        <version>${thrift.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
         <groupId>org.thriftee</groupId>
         <artifactId>thriftee-core-api</artifactId>
         <version>${project.version}</version>
@@ -82,32 +92,17 @@
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
-        <artifactId>thriftee-idl-parser</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.thriftee</groupId>
         <artifactId>thriftee-xml-protocol</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
-        <artifactId>thriftee-provider-swift</artifactId>
+        <artifactId>thriftee-servlet</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.facebook.swift</groupId>
-        <artifactId>swift-generator</artifactId>
-        <version>${swift.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.facebook.swift</groupId>
-        <artifactId>swift-idl-parser</artifactId>
-        <version>${swift.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.thriftee</groupId>
-        <artifactId>thriftee-servlet</artifactId>
+        <artifactId>thriftee-provider-swift</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -121,20 +116,29 @@
         <version>${restlet.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.restlet.jee</groupId>
-        <artifactId>org.restlet.ext.freemarker</artifactId>
-        <version>${restlet.version}</version>
+        <groupId>net.sf.scannotation</groupId>
+        <artifactId>scannotation</artifactId>
+        <version>${scannotation.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.thrift</groupId>
-        <artifactId>libthrift</artifactId>
-        <version>${thrift.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>org.javassist</groupId>
+        <artifactId>javassist</artifactId>
+        <version>${javassist.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.beust</groupId>
+        <artifactId>jcommander</artifactId>
+        <version>1.48</version>
+      </dependency>
+      <dependency>
+        <groupId>com.facebook.swift</groupId>
+        <artifactId>swift-generator</artifactId>
+        <version>${swift.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.facebook.swift</groupId>
+        <artifactId>swift-idl-parser</artifactId>
+        <version>${swift.version}</version>
       </dependency>
       <dependency>
         <groupId>com.facebook.swift</groupId>
@@ -207,33 +211,10 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>commons-lang</groupId>
-        <artifactId>commons-lang</artifactId>
-        <version>${commons.lang.version}</version>
-      </dependency>
-      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${junit.version}</version>
         <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>net.sf.scannotation</groupId>
-        <artifactId>scannotation</artifactId>
-        <version>${scannotation.version}</version>
-        <!--
-        <exclusions>
-          <exclusion>
-            <artifactId>javassist</artifactId>
-            <groupId>javassist</groupId>
-          </exclusion>
-        </exclusions>
-      -->
-      </dependency>
-      <dependency>
-        <groupId>org.javassist</groupId>
-        <artifactId>javassist</artifactId>
-        <version>${javassist.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.persistence</groupId>
@@ -251,6 +232,7 @@
   </dependencyManagement>
 
   <properties>
+    <thrift.exe>thrift</thrift.exe>
     <java.version>1.7</java.version>
     <swift.version>0.17.0-thriftee</swift.version>
     <junit.version>4.11</junit.version>
@@ -261,7 +243,6 @@
     <eclipselink.version>2.6.0</eclipselink.version>
     <scannotation.version>1.0.2</scannotation.version>
     <javassist.version>3.20.0-GA</javassist.version>
-    <json.version>20140107</json.version>
     <commons.lang.version>2.6</commons.lang.version>
     <logback.version>1.1.2</logback.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -320,6 +301,10 @@
                 <name>thriftee.build.dir</name>
                 <value>${build.dir}</value>
               </property>
+              <property>
+                <name>thriftee.command</name>
+                <value>${thrift.exe}</value>
+              </property>
             </systemProperties>
           </configuration>
         </plugin>
@@ -334,6 +319,7 @@
               <exclude>src/test/resources/**</exclude>
               <exclude>src/main/webapp/assets/**</exclude>
               <exclude>src/main/resources/**</exclude>
+              <exclude>**/*.thrift</exclude>
             </excludes>
             <mapping>
               <java>SLASHSTAR_STYLE</java>
@@ -490,7 +476,6 @@
             </execution>
           </executions>
         </plugin>
-        
       </plugins>
     </pluginManagement>
     <plugins>

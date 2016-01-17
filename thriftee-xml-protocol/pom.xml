@@ -37,6 +37,11 @@
       <artifactId>libthrift</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.thriftee</groupId>
+      <artifactId>thriftee-examples</artifactId>
+      <version>0.4.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
     <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
@@ -61,10 +66,6 @@
     </dependency>
   </dependencies>
 
-  <properties>
-    <thrift.exe>thrift</thrift.exe>
-  </properties>
-
   <build>
     <plugins>
       <plugin>
@@ -72,18 +73,6 @@
         <artifactId>maven-thrift-plugin</artifactId>
         <version>0.1.11</version>
         <executions>
-          <execution>
-            <id>thrift-generate-java</id>
-            <phase>generate-test-sources</phase>
-            <configuration>
-              <thriftExecutable>${thrift.exe}</thriftExecutable>
-              <generator>java</generator>
-              <compileOutput>true</compileOutput>
-            </configuration>
-            <goals>
-              <goal>testCompile</goal>
-            </goals>
-          </execution>
           <execution>
             <id>thrift-generate-xml</id>
             <phase>generate-test-sources</phase>
