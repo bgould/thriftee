@@ -83,7 +83,7 @@ public class ThriftApplication extends Application {
 
   private DirectoryListing createClientsDirectory() {
     final DirectoryListing dir = new DirectoryListing(
-      getContext(),
+      getContext(), // TODO: createChildContext?
       LocalReference.createFileReference(thrift().clientsDir())
     );
     dir.setIndexName("default.html");
@@ -92,7 +92,7 @@ public class ThriftApplication extends Application {
 
   private DirectoryListing createIdlDirectory() {
     final DirectoryListing dir = new DirectoryListing(
-      getContext().createChildContext(),
+      getContext(), // TODO: createChildContext?
       LocalReference.createFileReference(thrift().idlDir())
     );
     return dir;

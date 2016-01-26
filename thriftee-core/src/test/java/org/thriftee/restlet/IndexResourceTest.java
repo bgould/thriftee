@@ -27,6 +27,12 @@ public class IndexResourceTest extends ResourceTestBase {
     assertEquals(200, rsp().getStatus().getCode());
     assertHasLink("clients/");
     assertHasLink("endpoints/");
+    assertHasLink("idl/");
   }
 
+  @Test
+  public void testIdl() {
+    this.handleGet("/idl/");
+    assertEquals(200, rsp().getStatus().getCode());
+  }
 }
