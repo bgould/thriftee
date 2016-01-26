@@ -17,4 +17,27 @@ package org.thriftee.compiler.schema;
 
 public class SchemaContext {
 
+  private final ThriftSchema schema;
+
+  SchemaContext(ThriftSchema schema) {
+    this.schema = schema;
+  }
+
+  ServiceSchema resolveService(String serviceName) {
+    final int dot = serviceName.indexOf('.');
+    if (dot == -1) {
+      throw new IllegalArgumentException("service name should have a .");
+    }
+    final String modulename = serviceName.substring(0, dot);
+    final String servicename = serviceName.substring(dot + 1);
+    final ModuleSchema module = schema.getModules().get(modulename);
+    if (module == null) {
+      throw new IllegalArgumentException("unknown module: " + module);
+    }
+    final ServiceSchema service = module.getServices().get(servicename);
+    if (service == null) {
+      throw new IllegalArgumentException("unknown service: " + service);
+    }
+    return service;
+  }
 }

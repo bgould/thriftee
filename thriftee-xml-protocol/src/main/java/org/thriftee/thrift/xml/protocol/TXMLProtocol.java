@@ -42,7 +42,6 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.apache.thrift.TApplicationException;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TList;
 import org.apache.thrift.protocol.TMap;
@@ -897,16 +896,6 @@ public class TXMLProtocol extends AbstractContextProtocol {
         "Error reading int attribute '" + localName + "' of '" + el + "'", e
       );
     }
-  }
-
-  public static class TXMLException extends TApplicationException {
-
-    private static final long serialVersionUID = 5007685985697860252L;
-
-    public TXMLException(String message) {
-      super(TXMLException.PROTOCOL_ERROR, message);
-    }
-
   }
 
   public static enum XML {

@@ -20,24 +20,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
-import javax.ejb.Remote;
-import javax.ejb.Stateless;
-
 import org.thriftee.examples.usergroup.domain.Group;
 import org.thriftee.examples.usergroup.domain.User;
 
-@Stateless(name="GroupServiceBean")
-@Remote(GroupService.class)
-public class GroupServiceImpl implements GroupService {
+public class GroupServiceImpl implements GroupService.Iface {
 
   private final Map<String, Group> testGroups = new HashMap<>();
 
-  @EJB
-  private UserService userService;
+  private UserServiceImpl userService;
 
-  public GroupServiceImpl(UserService userService) {
+  public GroupServiceImpl(UserServiceImpl userService) throws UserGroupException {
     this.userService = userService;
     init();
   }
@@ -45,8 +37,7 @@ public class GroupServiceImpl implements GroupService {
   public GroupServiceImpl() {
   }
 
-  @PostConstruct
-  public void init() {
+  public void init() throws UserGroupException {
     final String[][] groups = {
       { "Mammals", "aaardvark", "bbat", "ddolphin", "ffox", "hhamster", },
       { "Winged", "eeagle", "ggrasshopper", "bbat", },

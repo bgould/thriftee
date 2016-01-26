@@ -15,10 +15,9 @@
  */
 package org.thriftee.thrift.xml.protocol;
 
-import static org.thriftee.examples.Examples.*;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.thriftee.examples.Examples.everythingStruct;
 
 import java.io.IOException;
 
@@ -36,6 +35,7 @@ import org.xml.sax.SAXException;
 import everything.EndOfTheUniverseException;
 import everything.Everything;
 import everything.Universe;
+import everything.UniverseImpl;
 
 public class TXMLProtocolTest {
 

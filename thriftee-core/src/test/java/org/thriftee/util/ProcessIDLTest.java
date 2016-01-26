@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
 package org.thriftee.util;
 
 import java.io.File;
@@ -45,7 +46,7 @@ public class ProcessIDLTest {
     File temp = ExportIDLTest.getTempDirForTest();
     File[] idlFiles = exportIDL(temp);
     ThriftCommand cmd = new ThriftCommand(Generate.PHP);
-    cmd.setThriftCommand(AbstractThriftEETest.thriftExecutable().getAbsolutePath());
+    //cmd.setThriftCommand(AbstractThriftEETest.thriftExecutable().getAbsolutePath());
     cmd.addFlag(Flag.PHP_OOP);
     cmd.addFlag(Flag.PHP_NAMESPACE);
     ProcessIDL processor = new ProcessIDL();
@@ -75,3 +76,4 @@ public class ProcessIDLTest {
   }
   
 }
+*/

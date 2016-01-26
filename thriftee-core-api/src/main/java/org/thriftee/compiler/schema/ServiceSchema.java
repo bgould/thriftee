@@ -83,7 +83,7 @@ public final class ServiceSchema extends BaseSchema<ModuleSchema, ServiceSchema>
     if (parentService == null) {
       return null;
     } else {
-      throw new UnsupportedOperationException();
+      return getSchemaContext().resolveService(parentService);
     }
   }
 

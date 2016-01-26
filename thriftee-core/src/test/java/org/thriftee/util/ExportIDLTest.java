@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
 package org.thriftee.util;
 
 import java.io.File;
@@ -27,7 +28,6 @@ import org.thriftee.examples.usergroup.domain.User;
 import org.thriftee.examples.usergroup.service.GroupService;
 import org.thriftee.examples.usergroup.service.UserGroupException;
 import org.thriftee.examples.usergroup.service.UserService;
-import org.thriftee.provider.swift.ExportIDL;
 
 public class ExportIDLTest {
 
@@ -60,3 +60,4 @@ public class ExportIDLTest {
     }
     
 }
+*/

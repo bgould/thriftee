@@ -21,9 +21,9 @@ import org.junit.Test;
 
 public class EndpointsResourceTest extends ResourceTestBase {
 
-  public static final String MODULE = "org_thriftee_examples_classicmodels_services";
+  public static final String MODULE = "org_thriftee_examples_usergroup_service";
   
-  public static final String SERVICE = "OrderService";
+  public static final String SERVICE = "UserService";
 
   @Test public void testGet() {
     this.handleGet("/endpoints/");

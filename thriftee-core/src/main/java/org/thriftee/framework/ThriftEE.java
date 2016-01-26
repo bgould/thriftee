@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.io.Writer;
@@ -32,6 +33,8 @@ import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.stream.StreamResult;
@@ -39,6 +42,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
+import org.apache.thrift.compiler.ExecutionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.compiler.ProcessIDL;
@@ -46,7 +50,6 @@ import org.thriftee.compiler.ThriftCommand;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommandException;
 import org.thriftee.compiler.ThriftCommandRunner;
-import org.thriftee.compiler.ThriftCommandRunner.ExecutionResult;
 import org.thriftee.compiler.schema.SchemaBuilder;
 import org.thriftee.compiler.schema.SchemaBuilderException;
 import org.thriftee.compiler.schema.ServiceSchema;
@@ -56,6 +59,7 @@ import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.thrift.xml.Transforms;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
+import org.thriftee.util.FileUtil;
 
 public class ThriftEE implements SchemaBuilderConfig {
 
@@ -249,6 +253,7 @@ public class ThriftEE implements SchemaBuilderConfig {
     //------------------------------------------------------------------//
     // TODO: consider adding option to specify if missing dir is an error
     // TODO: consider making validation more robust 
+    /*
     if (config.thriftLibDir() != null) {
       if (!config.thriftLibDir().exists()) {
         throw new ThriftStartupException(STARTUP_005, config.thriftLibDir());
@@ -260,6 +265,8 @@ public class ThriftEE implements SchemaBuilderConfig {
     } else {
       this.thriftLibDir = null;
     }
+    */
+    this.thriftLibDir = unzipLibraries();
     LOG.info("Thrift library dir: {}", thriftLibDir);
 
     //------------------------------------------------------------------//
@@ -513,6 +520,49 @@ public class ThriftEE implements SchemaBuilderConfig {
         e, ThriftStartupMessage.STARTUP_009, alias.getName(), e.getMessage()
       );
     }
+  }
+
+  private File unzipLibraries() throws ThriftStartupException {
+    final String rsrc = "org/apache/thrift/compiler/thrift-libs.zip";
+    final ClassLoader cl = getClass().getClassLoader();
+    final URL libzip = cl.getResource(rsrc);
+    if (libzip == null) {
+      throw new IllegalStateException("could not find resource: " + rsrc);
+    }
+    final File libdir = new File(tempDir(), "lib");
+    try {
+      if (libdir.exists()) {
+        FileUtil.deleteRecursively(libdir);
+      }
+      if (!libdir.mkdirs()) {
+        throw new IllegalStateException(
+          "could not create libdir: " + libdir.getAbsolutePath());
+      }
+      try (final InputStream raw = libzip.openStream()) {
+        try (final ZipInputStream zip = new ZipInputStream(raw)) {
+          final byte[] buffer = new byte[1024];
+          for (ZipEntry entry; (entry = zip.getNextEntry()) != null; ) {
+            final File file = new File(tempDir(), entry.getName());
+            if (!entry.getName().startsWith("lib/")) {
+              throw new IllegalStateException(
+                "entry should start with lib/: " + entry.getName());
+            }
+            if (entry.isDirectory()) {
+              file.mkdirs();
+            } else {
+              try (final FileOutputStream out = new FileOutputStream(file)) {
+                for (int n = -1; (n = zip.read(buffer)) > -1; ) {
+                  out.write(buffer, 0, n);
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (IOException e) {
+      throw new ThriftStartupException(e, STARTUP_015, e.getMessage());
+    }
+    return libdir;
   }
 
 }

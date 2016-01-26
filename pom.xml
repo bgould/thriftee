@@ -87,6 +87,11 @@
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
+        <artifactId>thriftee-examples</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.thriftee</groupId>
         <artifactId>thriftee-examples-swift</artifactId>
         <version>${project.version}</version>
       </dependency>

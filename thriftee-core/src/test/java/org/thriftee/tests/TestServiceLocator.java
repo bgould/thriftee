@@ -15,40 +15,31 @@
  */
 package org.thriftee.tests;
 
-import org.thriftee.examples.classicmodels.services.OrderService;
-import org.thriftee.examples.classicmodels.services.OrderSessionBean;
 import org.thriftee.examples.usergroup.service.GroupService;
 import org.thriftee.examples.usergroup.service.GroupServiceImpl;
+import org.thriftee.examples.usergroup.service.UserGroupException;
 import org.thriftee.examples.usergroup.service.UserService;
 import org.thriftee.examples.usergroup.service.UserServiceImpl;
 import org.thriftee.framework.DefaultServiceLocator;
 import org.thriftee.framework.ServiceLocatorException;
 
-public class ExampleServiceLocator extends DefaultServiceLocator {
+import everything.Universe;
+import everything.UniverseImpl;
 
-  public ExampleServiceLocator() throws ServiceLocatorException {
-    UserService userSvc = new UserServiceImpl();
-    GroupService groupSvc = new GroupServiceImpl(userSvc);
-    OrderService orderSvc = new OrderSessionBean();
-    register(UserService.class, userSvc);
-    register(GroupService.class, groupSvc);
-    register(OrderService.class, orderSvc);
-  }
+public class TestServiceLocator extends DefaultServiceLocator {
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public <I> I locate(final Class<I> svcIntf)
-      throws ServiceLocatorException {
-    if (UserService.class.equals(svcIntf)) {
-      return (I) new UserServiceImpl();
+  public TestServiceLocator() throws ServiceLocatorException {
+    try {
+      final UniverseImpl universe = new UniverseImpl();
+      final UserServiceImpl userSvc = new UserServiceImpl();
+      final GroupServiceImpl groupSvc = new GroupServiceImpl(userSvc);
+      register(Universe.Iface.class, universe);
+      register(UserService.Iface.class, userSvc);
+      register(GroupService.Iface.class, groupSvc);
+    } catch (UserGroupException e) {
+      throw new ServiceLocatorException(
+          e, ServiceLocatorException.Messages.SVCLOC_000);
     }
-    if (GroupService.class.equals(svcIntf)) {
-      return (I) new GroupServiceImpl(new UserServiceImpl());
-    }
-    if (OrderService.class.equals(svcIntf)) {
-      return (I) new OrderSessionBean();
-    }
-    return null;
   }
 
 }

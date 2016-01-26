@@ -15,16 +15,11 @@
  */
 package org.thriftee.compiler.schema;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-import org.apache.thrift.protocol.TSimpleJSONProtocol;
-import org.apache.thrift.transport.TMemoryBuffer;
 import org.junit.Test;
 import org.thriftee.framework.ThriftStartupException;
 import org.thriftee.tests.AbstractThriftEETest;
-
-import com.facebook.swift.codec.ThriftCodec;
 
 public class SchemaBuilderTest extends AbstractThriftEETest {
 
@@ -44,8 +39,13 @@ public class SchemaBuilderTest extends AbstractThriftEETest {
     );
     LOG.debug("modules in schema: {}", schema.getModules());
 
-    ModuleSchema classicmodels = schema.getModules().get("org_thriftee_examples_classicmodels");
-    assertNotNull("classicmodels module must not be null", classicmodels);
+    ModuleSchema module = schema.getModules().get("everything");
+    assertNotNull("everything module must not be null", module);
+
+    ServiceSchema service = module.getServices().get("Universe");
+    assertNotNull("universe service should not be null");
+    assertEquals("nothing_all_at_once.Metaverse", service.getParentService());
+    assertNotNull(service.getParentServiceSchema());
 //    assertNotNull("classicmodels module must have enums", presidents.getEnums().size() > 0);
 //    LOG.debug("enums in module: {}", presidents.getEnums());
 
@@ -53,21 +53,20 @@ public class SchemaBuilderTest extends AbstractThriftEETest {
 //    assertNotNull("presidents module must have sort order", sortOrderSchema);
 //    LOG.debug("sort order enum: {}", sortOrderSchema);
 
-    StructSchema customerStruct = classicmodels.getStructs().get("Customer");
-    assertNotNull("Customer struct must not be null", customerStruct);
-    LOG.debug("customer struct: {}", customerStruct);
-    LOG.debug("customer struct protocol type: {}", customerStruct.getProtocolType());
-    LOG.debug("fields on customer struct: {}", customerStruct.getFields());
-
+    StructSchema everythingStruct = module.getStructs().get("Everything");
+    assertNotNull("Everything struct must not be null", everythingStruct);
+    LOG.debug("everything struct: {}", everythingStruct);
+    LOG.debug("everything struct protocol type: {}", everythingStruct.getProtocolType());
+    LOG.debug("fields on everything struct: {}", everythingStruct.getFields());
+/*
     TMemoryBuffer transport = new TMemoryBuffer(1024 * 10);
     TSimpleJSONProtocol protocol = new TSimpleJSONProtocol(transport);
     ThriftCodec<ThriftSchema> codec = thriftCodecManager().getCodec(
       ThriftSchema.class
     );
     codec.write(schema, protocol);
-
     LOG.debug(transport.toString("UTF-8"));
-
+*/
   }
   
 }

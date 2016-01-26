@@ -21,6 +21,7 @@ import java.util.Set;
 
 import javax.xml.bind.JAXB;
 
+import org.apache.thrift.xml.idl.Const;
 import org.apache.thrift.xml.idl.Document;
 import org.apache.thrift.xml.idl.Field;
 import org.apache.thrift.xml.idl.IDL;
@@ -32,6 +33,7 @@ import org.apache.thrift.xml.idl.ThriftEnum;
 import org.apache.thrift.xml.idl.ThriftEnum.Member;
 import org.apache.thrift.xml.idl.ThriftException;
 import org.apache.thrift.xml.idl.ThriftType;
+import org.apache.thrift.xml.idl.Typedef;
 import org.apache.thrift.xml.idl.Union;
 import org.thriftee.compiler.schema.AbstractFieldSchema.AbstractFieldBuilder;
 import org.thriftee.compiler.schema.AbstractFieldSchema.Requiredness;
@@ -82,6 +84,10 @@ public class XMLSchemaBuilder implements SchemaBuilder {
         translate(val, (ThriftEnum) definition);
       } else if (definition instanceof ThriftException) {
         translate(val, (ThriftException) definition);
+      } else if (definition instanceof Const) {
+        continue; // TODO: implement
+      } else if (definition instanceof Typedef) {
+        continue; // TODO: implement
       } else {
         throw new SchemaBuilderException(
           SchemaBuilderException.Messages.SCHEMA_102,
@@ -160,8 +166,7 @@ public class XMLSchemaBuilder implements SchemaBuilder {
       final Service _service) {
     ServiceSchema.Builder val = parentBuilder.addService(_service.getName());
     if (_service.getParentId() != null || _service.getParentModule() != null) {
-      throw new UnsupportedOperationException();
-      //val.parentService(_service.getParent().get());
+      val.parentService(_service.getParentModule()+"."+_service.getParentId());
     }
     final List<Method> methods = _service.getMethod();
     for (int i = 0, c = methods.size(); i < c; i++) {

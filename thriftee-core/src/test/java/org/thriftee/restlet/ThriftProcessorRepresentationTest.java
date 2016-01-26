@@ -19,37 +19,30 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.util.Map;
-import java.util.Map.Entry;
 
+import org.apache.thrift.TBase;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TJSONProtocol;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
-import org.apache.thrift.protocol.TStruct;
 import org.apache.thrift.protocol.TTupleProtocol;
-import org.apache.thrift.protocol.TType;
 import org.apache.thrift.transport.TIOStreamTransport;
 import org.apache.thrift.transport.TTransport;
 import org.junit.Assert;
 import org.junit.Test;
 import org.restlet.representation.ByteArrayRepresentation;
 import org.restlet.representation.Representation;
-import org.thriftee.compiler.schema.MethodArgumentSchema;
 import org.thriftee.compiler.schema.MethodSchema;
 import org.thriftee.compiler.schema.ModuleSchema;
 import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.examples.usergroup.domain.User;
+import org.thriftee.examples.usergroup.service.UserService;
+import org.thriftee.examples.usergroup.service.UserService.find_result;
 import org.thriftee.tests.AbstractThriftEETest;
-import org.thriftee.util.New;
-
-import com.facebook.swift.codec.ThriftCodec;
-import com.facebook.swift.codec.ThriftCodecManager;
 
 public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
 
@@ -83,14 +76,16 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
     LOG.debug("testing protocol: " + factory.getProtocol(null).getClass());
 
     final String modName = USERGROUP_SERVICES_MODULE;
-    final ThriftCodecManager mgr = thriftCodecManager();
+    //final ThriftCodecManager mgr = thriftCodecManager();
     final ModuleSchema module = thrift().schema().getModules().get(modName);
     final ServiceSchema service = module.getServices().get("UserService");
     final MethodSchema method = service.getMethods().get("find");
 
-    final Map<String, Object> args = New.map();
-    args.put("uid", "aaardvark");
-    final byte[] serviceCall = createServiceCall(mgr, factory, method, args);
+    //final Map<String, Object> args = New.map();
+    //args.put("uid", "aaardvark");
+    final UserService.find_args args = new UserService.find_args();
+    args.uid = "aaardvark";
+    final byte[] serviceCall = createServiceCall(factory, method, args);
     String callStr;
     if (txt) {
       callStr = new String(serviceCall);
@@ -117,21 +112,25 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
     final TTransport transport = new TIOStreamTransport(bais, null);
     final TProtocol protocol = factory.getProtocol(transport);
 
-    final ThriftCodec<User> codec = mgr.getCodec(User.class);
+    //final ThriftCodec<User> codec = mgr.getCodec(User.class);
     final TMessage msg = protocol.readMessageBegin();
-    protocol.readStructBegin();
-    final TField field = protocol.readFieldBegin();
-    final User result = codec.read(protocol);
-    protocol.readFieldEnd();
-    protocol.readStructEnd();
+    final find_result find_result = new find_result();
+    find_result.read(protocol);
+    final User result = find_result.success;
+//    protocol.readStructBegin();
+//    final TField field = protocol.readFieldBegin();
+//    final User result = new User();
+//    result.read(protocol);
+//    protocol.readFieldEnd();
+//    protocol.readStructEnd();
     protocol.readMessageEnd();
 
     Assert.assertEquals(TMessageType.REPLY, msg.type);
     Assert.assertEquals("find", msg.name);
     Assert.assertEquals(0, msg.seqid);
 
-    Assert.assertEquals(TType.STRUCT, field.type);
-    Assert.assertEquals(0, field.id);
+//    Assert.assertEquals(TType.STRUCT, field.type);
+//    Assert.assertEquals(0, field.id);
 
     Assert.assertEquals("aaardvark", result.getUid());
     Assert.assertEquals("Alan", result.getFirstName());
@@ -141,12 +140,11 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
 
   }
 
-  @SuppressWarnings({ "rawtypes", "unchecked" })
   public static byte[] createServiceCall(
-      ThriftCodecManager mgr,
+      //ThriftCodecManager mgr,
       TProtocolFactory factory,
       MethodSchema method, 
-      Map<String, Object> args
+      TBase<?, ?> args
     ) throws TException {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -154,6 +152,8 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
     TProtocol protocol = factory.getProtocol(transport);
     TMessage msg = new TMessage(method.getName(), TMessageType.CALL, 0);
     protocol.writeMessageBegin(msg);
+    args.write(protocol);
+    /*
     protocol.writeStructBegin(new TStruct(""));
     if (args != null) {
       for (Entry<String, Object> entry : args.entrySet()) {
@@ -195,6 +195,7 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
     }
     protocol.writeFieldStop();
     protocol.writeStructEnd();
+    */
     protocol.writeMessageEnd();
 
     final byte[] bytes = baos.toByteArray();

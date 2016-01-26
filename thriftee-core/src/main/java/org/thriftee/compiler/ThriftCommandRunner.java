@@ -17,16 +17,17 @@ package org.thriftee.compiler;
 
 import static org.thriftee.compiler.ThriftCommandException.ThriftCommandMessage.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.thrift.compiler.ExecutionResult;
+import org.apache.thrift.compiler.ThriftCompiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.util.FileUtil;
-import org.thriftee.util.Strings;
 
 public class ThriftCommandRunner {
+
+  private static final ThriftCompiler compiler = ThriftCompiler.newCompiler();
 
   private final ThriftCommand thriftCommand;
 
@@ -56,6 +57,7 @@ public class ThriftCommandRunner {
   }
 
   public String executeVersion() throws ThriftCommandException {
+    /*
     ExecutionResult result = null;
     try {
       result = execute(thriftCommand.versionCommand());
@@ -71,9 +73,12 @@ public class ThriftCommandRunner {
       LOG.warn("stderr for Thrift 'version' command: {}", result.errString);
     }
     return result.outString;
+    */
+    return compiler.version();
   }
 
   public String executeHelp() throws ThriftCommandException {
+    /*
     ExecutionResult result = null;
     try {
       result = execute(thriftCommand.helpCommand());
@@ -89,10 +94,14 @@ public class ThriftCommandRunner {
       LOG.warn("stdout for Thrift 'help' command: {}", result.outString);
     }
     return result.errString;
+    */
+    return compiler.help();
   }
 
   ExecutionResult execute(final List<String> command) throws IOException {
-    
+    command.remove(0);
+    return compiler.execute(command.toArray(new String[command.size()]));
+    /*
     LOG.trace("executing: {}", command);
     
     final File stdout = File.createTempFile("thriftee_", ".stdout");
@@ -132,9 +141,10 @@ public class ThriftCommandRunner {
       stderr.delete();
     }
     LOG.trace("returning execution result");
-    return new ExecutionResult(exit, interrupted, outString, errString);
+    */
+//    return new ExecutionResult(exit, interrupted, outString, errString);
   }
-  
+/*
   public static final class ExecutionResult {
 
     public final String outString;
@@ -158,5 +168,5 @@ public class ThriftCommandRunner {
     }
 
   }
-  
+*/
 }

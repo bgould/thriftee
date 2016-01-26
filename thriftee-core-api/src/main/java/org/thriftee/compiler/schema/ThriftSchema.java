@@ -42,7 +42,7 @@ public final class ThriftSchema extends BaseSchema<ThriftSchema, ThriftSchema> {
     public ThriftSchema(String _name, Collection<ModuleSchema.Builder> _modules) throws SchemaBuilderException {
         super(ThriftSchema.class, ThriftSchema.class, null, _name, null);
         this.modules = toMap(this, _modules);
-        this.schemaContext = new SchemaContext();
+        this.schemaContext = new SchemaContext(this);
     }
     
     @ThriftField(THRIFT_INDEX_NAME)

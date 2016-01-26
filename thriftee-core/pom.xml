@@ -59,6 +59,11 @@
       <artifactId>thriftee-xml-protocol</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>thrift-compiler</artifactId>
+      <version>0.9.4-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>org.restlet.jee</groupId>
       <artifactId>org.restlet</artifactId>
     </dependency>
@@ -80,6 +85,12 @@
     </dependency>
     <dependency>
       <groupId>org.thriftee</groupId>
+      <artifactId>thriftee-examples</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- 
+    <dependency>
+      <groupId>org.thriftee</groupId>
       <artifactId>thriftee-examples-swift</artifactId>
       <scope>test</scope>
     </dependency>
@@ -88,6 +99,7 @@
       <artifactId>thriftee-provider-swift</artifactId>
       <scope>test</scope>
     </dependency>
+     -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

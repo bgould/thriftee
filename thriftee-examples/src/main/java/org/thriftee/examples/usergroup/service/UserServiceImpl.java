@@ -18,14 +18,11 @@ package org.thriftee.examples.usergroup.service;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ejb.Remote;
-import javax.ejb.Stateless;
-
 import org.thriftee.examples.usergroup.domain.User;
+import org.thriftee.examples.usergroup.service.UserService;
+import org.thriftee.examples.usergroup.service.UserGroupException;
 
-@Stateless(name="UserServiceBean")
-@Remote(UserService.class)
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService.Iface {
 
   private final Map<String, User> testUsers = new HashMap<String, User>();
   {

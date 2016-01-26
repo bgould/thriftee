@@ -15,7 +15,7 @@
  */
 package org.thriftee.thrift.xml;
 
-import static org.thriftee.examples.Examples.*;
+import static org.thriftee.examples.Examples.everythingStruct;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -35,11 +35,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.thriftee.thrift.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
-import org.thriftee.thrift.xml.protocol.UniverseImpl;
 
 import everything.EndOfTheUniverseException;
 import everything.Everything;
 import everything.Universe;
+import everything.UniverseImpl;
 
 public class TransformToSimpleTest extends BaseThriftXMLTest {
 
@@ -55,7 +55,7 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
     Assert.assertNotNull(testModelDir);
     Assert.assertNotNull(testMethodDir);
     dataOutput = new File(testMethodDir, "data.xml");
-    schemaFile = new File(testModelDir, "xml_tests.xml");
+    schemaFile = new File(testModelDir, "everything.xml");
     callOutput = new File(testMethodDir, "call.xml");
     transformOutput = new File(testMethodDir, "call_output.xml");
     replyOutput = new File(testMethodDir, "reply.xml");

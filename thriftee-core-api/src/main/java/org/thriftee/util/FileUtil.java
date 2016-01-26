@@ -250,4 +250,20 @@ public class FileUtil {
       forceClosed(out);
     }
   }
+
+  public static void copyResourceToDir(String rsrc, File dir) throws IOException {
+    final URL url = FileUtil.class.getClassLoader().getResource(rsrc);
+    if (url == null) {
+      throw new IllegalArgumentException("resource not found: " + rsrc);
+    }
+    final File file = new File(dir, rsrc);
+    try (final FileOutputStream out = new FileOutputStream(file)) {
+      try (final InputStream in = url.openStream()) {
+        final byte[] buffer = new byte[1024];
+        for (int n = -1; (n = in.read(buffer)) > -1; ) {
+          out.write(buffer, 0, n);
+        }
+      }
+    }
+  }
 }

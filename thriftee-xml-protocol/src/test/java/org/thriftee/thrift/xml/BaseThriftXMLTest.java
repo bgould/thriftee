@@ -19,6 +19,7 @@ import static org.thriftee.examples.Examples.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,8 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TException;
+import org.apache.thrift.compiler.ExecutionResult;
+import org.apache.thrift.compiler.ThriftCompiler;
 import org.apache.thrift.protocol.TMessage;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -51,6 +54,8 @@ public class BaseThriftXMLTest {
   public TestName testName = new TestName();
 
   public static final File testDir = new File("target/tests");
+
+  public static final File testIdlDir = new File(testDir, "idl");
 
   public static final File testModelDir = new File(testDir, "models");
 
@@ -100,8 +105,12 @@ public class BaseThriftXMLTest {
   @BeforeClass
   public synchronized static void beforeClass() throws Exception {
     if (exportedModels == null || exportedSchemas == null) {
+      createDir("idl", testIdlDir);
+      createDir("models", testModelDir);
       createDir("schema", testSchemaDir);
       createDir("structs", testStructsDir);
+      copyResource("everything.thrift", testIdlDir);
+      copyResource("nothing_all_at_once.thrift", testIdlDir);
       exportedModels  = exportModels(testModelDir);
       exportedSchemas = exportSchemas(exportedModels, testSchemaDir);
       exportedWsdls   = exportWsdls(exportedModels, testSchemaDir);
@@ -163,11 +172,11 @@ public class BaseThriftXMLTest {
   }
 
   public static File modelFor(String module) {
-//    if (!exportedModels.containsKey(module)) {
-//      throw new IllegalArgumentException("No model file for '" + module + "'.");
-//    }
-//    return exportedModels.get(module);
-    return exportedModels.get("xml_tests");
+    if (!exportedModels.containsKey(module)) {
+      throw new IllegalArgumentException("No model file for '" + module + "'.");
+    }
+    return exportedModels.get(module);
+    //return exportedModels.get("xml_tests");
   }
 
   public static URL urlToModelFor(String module) throws IOException {
@@ -201,19 +210,28 @@ public class BaseThriftXMLTest {
 
   public static Map<String, File> exportModels(File tmp) throws IOException {
     final Map<String, File> xmlFiles = new LinkedHashMap<>();
-    final File[] idlFiles = new File("src/test/thrift").listFiles(
-      new FilenameFilter() {
-        public boolean accept(File dir, String name) {
-          return name.endsWith(".thrift");
-        }
+    final File[] idlFiles = testIdlDir.listFiles(new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        return name.endsWith(".thrift");
       }
-    );
+    });
     if (idlFiles == null) {
       throw new IllegalStateException("No thrift files found in test dir.");
     }
     for (final File idlfile : idlFiles) {
       final String basename = idlfile.getName().replaceAll(".thrift$", "");
       final File outfile = new File(tmp, basename + ".xml");
+      final ExecutionResult exec = ThriftCompiler.execute(
+        "-gen", "xml:merge",
+        "-out", tmp.getAbsolutePath(), 
+        idlfile.getAbsolutePath()
+      );
+      if (exec.exitCode != 0) {
+        throw new IOException(String.format(
+          "Unexpected exit code: %s%nstderr:%s%nstdout:%s%n",
+          exec.exitCode, exec.errString, exec.outString
+        ));
+      }
       if (!outfile.exists()) {
         throw new IOException("could not find generated XML model: " + outfile);
       }
@@ -297,6 +315,22 @@ public class BaseThriftXMLTest {
       result.add(new Object[] { obj });
     }
     return result;
+  }
+
+  private static void copyResource(String rsrc, File dir) throws IOException {
+    final URL url = BaseThriftXMLTest.class.getClassLoader().getResource(rsrc);
+    if (url == null) {
+      throw new IllegalArgumentException("resource not found: " + rsrc);
+    }
+    final File file = new File(dir, rsrc);
+    try (final FileOutputStream out = new FileOutputStream(file)) {
+      try (final InputStream in = url.openStream()) {
+        final byte[] buffer = new byte[1024];
+        for (int n = -1; (n = in.read(buffer)) > -1; ) {
+          out.write(buffer, 0, n);
+        }
+      }
+    }
   }
 
   public static String readFileAsString(File file) {

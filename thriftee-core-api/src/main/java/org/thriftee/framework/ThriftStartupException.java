@@ -32,7 +32,7 @@ public class ThriftStartupException extends ThriftSystemException {
 
   public static enum ThriftStartupMessage implements ThriftMessage {
 
-    STARTUP_001("A problem occurred writing the IDL for the annotated classes: %s"),
+    STARTUP_001("A problem occurred exporting IDL: %s"),
     STARTUP_002("A problem occurred scanning the Swift annotations at startup: %s"),
     STARTUP_003("A problem occurred parsing generated IDL at startup: %s"),
     STARTUP_004("Generated IDL did not contain a global.thrift file"),
@@ -46,6 +46,8 @@ public class ThriftStartupException extends ThriftSystemException {
     STARTUP_012("An error occurred while validation model against XSD: %s"),
     STARTUP_013("Validation of model against XSD failed: %s"),
     STARTUP_014("An error occurred generated XML artifacts: %s"),
+    STARTUP_015("An error occurred unzipped Thrift libraries: %s"),
+    STARTUP_016("A problem occurred while building processor map.")
     ;
 
     private final String _message;
