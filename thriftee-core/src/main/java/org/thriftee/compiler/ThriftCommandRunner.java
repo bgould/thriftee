@@ -22,16 +22,12 @@ import java.util.List;
 
 import org.apache.thrift.compiler.ExecutionResult;
 import org.apache.thrift.compiler.ThriftCompiler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ThriftCommandRunner {
 
   private static final ThriftCompiler compiler = ThriftCompiler.newCompiler();
 
   private final ThriftCommand thriftCommand;
-
-  private final Logger LOG = LoggerFactory.getLogger(getClass());
 
   public static ThriftCommandRunner instanceFor(ThriftCommand cmd) {
     return new ThriftCommandRunner(cmd);
@@ -57,116 +53,16 @@ public class ThriftCommandRunner {
   }
 
   public String executeVersion() throws ThriftCommandException {
-    /*
-    ExecutionResult result = null;
-    try {
-      result = execute(thriftCommand.versionCommand());
-    } catch (IOException e) {
-      throw new ThriftCommandException(e, COMMAND_101, result);
-    }
-    if (result.interrupted) {
-      throw new ThriftCommandException(COMMAND_103, result);
-    } else if (result.exitCode != 0) {
-      throw new ThriftCommandException(COMMAND_102, result);
-    }
-    if (Strings.isNotBlank(result.errString)) {
-      LOG.warn("stderr for Thrift 'version' command: {}", result.errString);
-    }
-    return result.outString;
-    */
     return compiler.version();
   }
 
   public String executeHelp() throws ThriftCommandException {
-    /*
-    ExecutionResult result = null;
-    try {
-      result = execute(thriftCommand.helpCommand());
-    } catch (IOException e) {
-      throw new ThriftCommandException(e, COMMAND_201, result);
-    }
-    if (result.interrupted) {
-      throw new ThriftCommandException(COMMAND_203, result);
-    } else if (result.exitCode != 1) {
-      throw new ThriftCommandException(COMMAND_202, result.exitCode);
-    }
-    if (Strings.isNotBlank(result.outString)) {
-      LOG.warn("stdout for Thrift 'help' command: {}", result.outString);
-    }
-    return result.errString;
-    */
     return compiler.help();
   }
 
   ExecutionResult execute(final List<String> command) throws IOException {
     command.remove(0);
     return compiler.execute(command.toArray(new String[command.size()]));
-    /*
-    LOG.trace("executing: {}", command);
-    
-    final File stdout = File.createTempFile("thriftee_", ".stdout");
-    final File stderr = File.createTempFile("thriftee_", ".stderr");
-    final ProcessBuilder pb = new ProcessBuilder(command);
-    pb.redirectOutput(stdout);
-    pb.redirectError(stderr);
-    
-    LOG.trace(
-      "standard stream files: " + 
-      "[stdout] {} (exists: {}), [stderr] {} (exists: {})", 
-      stdout, stdout.exists(), stderr, stderr.exists()
-    );
-    
-    String outString = null;
-    String errString = null;
-    int exit = Integer.MIN_VALUE;
-    boolean interrupted = false;
-    boolean processDestroyed = false;
-    
-    final Process process = pb.start();
-    LOG.trace("command started");
-    try {
-      exit = process.waitFor();
-      process.destroy();
-      processDestroyed = true;
-      LOG.trace("command completed: {}", exit);
-      outString = FileUtil.readAsString(stdout, "UTF-8");
-      errString = FileUtil.readAsString(stderr, "UTF-8");
-    } catch (InterruptedException e) {
-      interrupted = true;
-    } finally {
-      if (!processDestroyed) {
-        process.destroy();
-      }
-      stdout.delete();
-      stderr.delete();
-    }
-    LOG.trace("returning execution result");
-    */
-//    return new ExecutionResult(exit, interrupted, outString, errString);
   }
-/*
-  public static final class ExecutionResult {
 
-    public final String outString;
-    public final String errString;
-    public final int exitCode;
-    public final boolean interrupted;
-  
-    private ExecutionResult(
-        int exitCode, 
-        boolean interrupted, 
-        String outString, 
-        String errString) {
-      this.outString = outString;
-      this.errString = errString;
-      this.exitCode = exitCode;
-      this.interrupted = interrupted;
-    }
-
-    public boolean successful() {
-      return this.exitCode == 0 && !this.interrupted;
-    }
-
-  }
-*/
 }

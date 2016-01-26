@@ -15,7 +15,6 @@
   <modules>
     <module>thriftee-examples</module>
     <module>thriftee-xml-protocol</module>
-    <module>thriftee-core-api</module>
     <module>thriftee-core</module>
     <module>thriftee-provider-swift</module>
     <module>thriftee-examples-swift</module>
@@ -74,11 +73,6 @@
             <artifactId>commons-logging</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.thriftee</groupId>
-        <artifactId>thriftee-core-api</artifactId>
-        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>

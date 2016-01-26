@@ -32,12 +32,6 @@
 
   <dependencies>
     <!-- compile scoped dependencies -->
-    <!--
-    <dependency>
-      <groupId>org.json</groupId>
-      <artifactId>json</artifactId>
-    </dependency>
-    -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -52,11 +46,11 @@
     </dependency>
     <dependency>
       <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-core-api</artifactId>
+      <artifactId>thriftee-xml-protocol</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-xml-protocol</artifactId>
+      <groupId>com.facebook.swift</groupId>
+      <artifactId>swift-annotations</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.thrift</groupId>
@@ -67,12 +61,6 @@
       <groupId>org.restlet.jee</groupId>
       <artifactId>org.restlet</artifactId>
     </dependency>
-    <!-- 
-    <dependency>
-      <groupId>org.restlet.jee</groupId>
-      <artifactId>org.restlet.ext.freemarker</artifactId>
-    </dependency>
-     -->
     <dependency>
       <groupId>com.yahoo.platform.yui</groupId>
       <artifactId>yuicompressor</artifactId>
@@ -88,18 +76,6 @@
       <artifactId>thriftee-examples</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- 
-    <dependency>
-      <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-examples-swift</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-provider-swift</artifactId>
-      <scope>test</scope>
-    </dependency>
-     -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -125,21 +101,16 @@
               <schemas>
                 <schema>
                   <dependencyResource>
-                    <groupId>org.thriftee</groupId>
-                    <artifactId>thriftee-core-api</artifactId>
-                    <resource>org/thriftee/thrift/xml/thrift-idl.xsd</resource>
+                    <groupId>org.apache.thrift</groupId>
+                    <artifactId>thrift-compiler</artifactId>
+                    <resource>org/apache/thrift/compiler/thrift-idl.xsd</resource>
                   </dependencyResource>
                 </schema>
               </schemas>
-              <bindings>
-                <binding>
-                  <dependencyResource>
-                    <groupId>org.thriftee</groupId>
-                    <artifactId>thriftee-core-api</artifactId>
-                    <resource>org/thriftee/thrift/xml/thrift-idl.xjb</resource>
-                  </dependencyResource>
-                </binding>
-              </bindings>
+              <bindingDirectory>src/main/resources</bindingDirectory>
+              <bindingIncludes>
+                <bindingInclude>**/*.xjb</bindingInclude>
+              </bindingIncludes>
             </configuration>
           </execution>
         </executions>

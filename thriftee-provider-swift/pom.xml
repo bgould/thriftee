@@ -12,7 +12,7 @@
   <dependencies>
     <dependency>
       <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-core-api</artifactId>
+      <artifactId>thriftee-core</artifactId>
     </dependency>
     <dependency>
       <groupId>com.facebook.swift</groupId>
@@ -34,11 +34,6 @@
     <dependency>
       <groupId>org.thriftee</groupId>
       <artifactId>thriftee-examples-swift</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-core</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
