@@ -13,7 +13,7 @@
   <inceptionYear>2013</inceptionYear>
 
   <modules>
-    <module>thriftee-examples</module>
+    <module>thriftee-test-objects</module>
     <module>thriftee-xml-protocol</module>
     <module>thriftee-core</module>
     <module>thriftee-provider-swift</module>
@@ -80,7 +80,7 @@
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
-        <artifactId>thriftee-examples</artifactId>
+        <artifactId>thriftee-test-objects</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

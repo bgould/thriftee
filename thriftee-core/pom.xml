@@ -73,7 +73,7 @@
     </dependency>
     <dependency>
       <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-examples</artifactId>
+      <artifactId>thriftee-test-objects</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
