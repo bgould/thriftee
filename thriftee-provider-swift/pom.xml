@@ -31,10 +31,5 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-examples-swift</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 </project>

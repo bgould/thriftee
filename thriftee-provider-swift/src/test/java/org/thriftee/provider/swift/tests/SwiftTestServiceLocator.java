@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.tests;
+package org.thriftee.provider.swift.tests;
 
-import java.net.URL;
+import org.thriftee.framework.DefaultServiceLocator;
+import org.thriftee.framework.ServiceLocatorException;
 
-import org.scannotation.ClasspathUrlFinder;
-import org.thriftee.compiler.schema.ThriftSchema;
-import org.thriftee.examples.classicmodels.services.OrderService;
-import org.thriftee.framework.Classpath;
+public class SwiftTestServiceLocator extends DefaultServiceLocator {
 
-public class TestClasspath implements Classpath {
-
-  @Override
-  public URL[] getUrls() {
-    URL url1 = ClasspathUrlFinder.findClassBase(OrderService.class);
-    URL url2 = ClasspathUrlFinder.findClassBase(ThriftSchema.class);
-    return new URL[] { url1, url2, };
+  public SwiftTestServiceLocator() throws ServiceLocatorException {
+    CalculatorService orderSvc = new CalculatorImpl();
+    register(CalculatorService.class, orderSvc);
   }
 
 }

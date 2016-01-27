@@ -28,7 +28,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
-public class ThriftSchemaXMLTest {
+public class SwiftParserXMLTest {
 
   public static final Charset charset = Charset.forName("UTF-8");
 

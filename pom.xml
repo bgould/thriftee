@@ -17,7 +17,6 @@
     <module>thriftee-xml-protocol</module>
     <module>thriftee-core</module>
     <module>thriftee-provider-swift</module>
-    <module>thriftee-examples-swift</module>
     <module>thriftee-examples-war</module>
     <module>thriftee-servlet</module>
     <module>thriftee-cli</module>
@@ -82,11 +81,6 @@
       <dependency>
         <groupId>org.thriftee</groupId>
         <artifactId>thriftee-examples</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.thriftee</groupId>
-        <artifactId>thriftee-examples-swift</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
