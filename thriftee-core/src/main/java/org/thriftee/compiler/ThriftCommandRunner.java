@@ -20,8 +20,8 @@ import static org.thriftee.compiler.ThriftCommandException.ThriftCommandMessage.
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.thrift.compiler.ExecutionResult;
-import org.apache.thrift.compiler.ThriftCompiler;
+import org.thriftee.thrift.compiler.ExecutionResult;
+import org.thriftee.thrift.compiler.ThriftCompiler;
 
 public class ThriftCommandRunner {
 

@@ -15,11 +15,11 @@
       <artifactId>thriftee-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.facebook.swift</groupId>
+      <groupId>org.thriftee</groupId>
       <artifactId>swift-service</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.facebook.swift</groupId>
+      <groupId>org.thriftee</groupId>
       <artifactId>swift-generator</artifactId>
     </dependency>
     <dependency>
@@ -31,5 +31,142 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <!-- 
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <configuration>
+          <createSourcesJar>true</createSourcesJar>
+          <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
+          <artifactSet>
+            <excludes>
+              <exclude>io.airlift:configuration</exclude>
+              <exclude>io.airlift:units</exclude>
+              <exclude>io.airlift:stats</exclude>
+              <exclude>io.netty:netty</exclude>
+              <exclude>com.google.*:guice-*</exclude>
+              <exclude>org.weakref:jmxutils</exclude>
+              <exclude>javax.inject:javax.inject</exclude>
+              <exclude>com.facebook.nifty:nifty-client</exclude>
+              <exclude>*:annotations</exclude>
+              <exclude>net.sf.saxon:*</exclude>
+              <exclude>*:*:*:test</exclude>
+              <exclude>org.thriftee:thrift-compiler</exclude>
+              <exclude>org.thriftee:thriftee-core</exclude>
+              <exclude>org.restlet:*</exclude>
+              <exclude>org.slf4j:*</exclude>
+            </excludes>
+          </artifactSet>
+          <relocations>
+            <relocation>
+              <pattern>com.google</pattern>
+              <shadedPattern>org.thriftee.shaded.com.google</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.thoughtworks</pattern>
+              <shadedPattern>org.thriftee.shaded.com.thoughtworks</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>io.airlift</pattern>
+              <shadedPattern>org.thriftee.shaded.io.airlift</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>javassist</pattern>
+              <shadedPattern>org.thriftee.shaded.javassist</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.slf4j</pattern>
+              <shadedPattern>org.thriftee.logging</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>ch.qos.logback</pattern>
+              <shadedPattern>org.thriftee.shaded.ch.qos.logback</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.apache.commons</pattern>
+              <shadedPattern>org.thriftee.shaded.org.apache.commons</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.apache.http</pattern>
+              <shadedPattern>org.thriftee.shaded.org.apache.http</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.apache.thrift</pattern>
+              <shadedPattern>org.thriftee.thrift</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.antlr</pattern>
+              <shadedPattern>org.thriftee.shaded.org.antlr</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.objectweb</pattern>
+              <shadedPattern>org.thriftee.shaded.org.objectweb</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.stringtemplate</pattern>
+              <shadedPattern>org.thriftee.shaded.org.stringtemplate</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.scannotation</pattern>
+              <shadedPattern>org.thriftee.shaded.org.scannotation</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.json</pattern>
+              <shadedPattern>org.thriftee.shaded.org.json</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.mozilla</pattern>
+              <shadedPattern>org.thriftee.shaded.org.mozilla</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.yahoo</pattern>
+              <shadedPattern>org.thriftee.shaded.com.yahoo</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>jargs</pattern>
+              <shadedPattern>org.thriftee.shaded.jargs</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.restlet</pattern>
+              <shadedPattern>org.thriftee.shaded.org.restlet</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>freemarker</pattern>
+              <shadedPattern>org.thriftee.shaded.freemarker</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.facebook</pattern>
+              <shadedPattern>org.thriftee</shadedPattern>
+              <excludes>
+                <exclude>com.facebook.swift.codec.ThriftConstructor</exclude>
+                <exclude>com.facebook.swift.codec.ThriftDocumentation</exclude>
+                <exclude>com.facebook.swift.codec.ThriftEnum</exclude>
+                <exclude>com.facebook.swift.codec.ThriftEnumValue</exclude>
+                <exclude>com.facebook.swift.codec.ThriftField</exclude>
+                <exclude>com.facebook.swift.codec.ThriftField$Requiredness</exclude>
+                <exclude>com.facebook.swift.codec.ThriftStruct</exclude>
+                <exclude>com.facebook.swift.codec.ThriftUnion</exclude>
+                <exclude>com.facebook.swift.codec.ThriftUnionId</exclude>
+                <exclude>com.facebook.swift.service.ThriftException</exclude>
+                <exclude>com.facebook.swift.service.ThriftMethod</exclude>
+                <exclude>com.facebook.swift.service.ThriftService</exclude>
+              </excludes>
+            </relocation>
+          </relocations>
+          <transformers>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer" />
+          </transformers>
+        </configuration>
+      </plugin>
+     -->
+    </plugins>
+  </build>
 </project>

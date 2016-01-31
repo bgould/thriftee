@@ -1,2 +1,1 @@
-thriftee.shaded.org.restlet.engine.converter.DefaultConverter
-thriftee.shaded.org.restlet.ext.freemarker.FreemarkerConverter
+org.thriftee.core.internal.org.restlet.engine.converter.DefaultConverter

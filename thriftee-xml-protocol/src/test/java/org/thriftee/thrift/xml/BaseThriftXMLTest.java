@@ -38,13 +38,13 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TException;
-import org.apache.thrift.compiler.ExecutionResult;
-import org.apache.thrift.compiler.ThriftCompiler;
 import org.apache.thrift.protocol.TMessage;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.thriftee.thrift.compiler.ExecutionResult;
+import org.thriftee.thrift.compiler.ThriftCompiler;
 import org.thriftee.thrift.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
 
@@ -221,7 +221,7 @@ public class BaseThriftXMLTest {
     for (final File idlfile : idlFiles) {
       final String basename = idlfile.getName().replaceAll(".thrift$", "");
       final File outfile = new File(tmp, basename + ".xml");
-      final ExecutionResult exec = ThriftCompiler.execute(
+      final ExecutionResult exec = ThriftCompiler.newCompiler().execute(
         "-gen", "xml:merge",
         "-out", tmp.getAbsolutePath(), 
         idlfile.getAbsolutePath()

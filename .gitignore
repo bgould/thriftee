@@ -1,6 +1,7 @@
 dependency-reduced-pom.xml
 target
 var
+.idea
 
 *.class
 
@@ -17,3 +18,5 @@ var
 .apt_generated/
 target/
 server/
+
+*.iml

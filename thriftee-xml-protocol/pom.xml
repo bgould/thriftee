@@ -37,27 +37,24 @@
       <artifactId>libthrift</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.thriftee</groupId>
-      <artifactId>thrift-compiler</artifactId>
-      <version>0.9.4-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-test-objects</artifactId>
-    </dependency>
-    <dependency>
-    <groupId>org.slf4j</groupId>
+      <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
       <groupId>net.sf.saxon</groupId>
       <artifactId>Saxon-HE</artifactId>
     </dependency>
+    <!-- 
     <dependency>
         <groupId>com.fasterxml</groupId>
         <artifactId>aalto-xml</artifactId>
         <scope>test</scope>
+    </dependency>
+     -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -65,35 +62,19 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.thriftee</groupId>
+      <artifactId>thriftee-compiler</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.thriftee</groupId>
+      <artifactId>thriftee-test-objects</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
-    <!-- 
-      <plugin>
-        <groupId>org.apache.thrift.tools</groupId>
-        <artifactId>maven-thrift-plugin</artifactId>
-        <version>0.1.11</version>
-        <executions>
-          <execution>
-            <id>thrift-generate-xml</id>
-            <phase>generate-test-sources</phase>
-            <configuration>
-              <outputDirectory>target/tests/models</outputDirectory>
-              <thriftExecutable>${thrift.exe}</thriftExecutable>
-              <generator>xml:merge</generator>
-            </configuration>
-            <goals>
-              <goal>testCompile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-       -->
       <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>

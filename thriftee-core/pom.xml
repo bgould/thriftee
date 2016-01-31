@@ -37,25 +37,16 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jcl-over-slf4j</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.thriftee</groupId>
       <artifactId>thriftee-xml-protocol</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.facebook.swift</groupId>
-      <artifactId>swift-annotations</artifactId>
+      <groupId>org.thriftee</groupId>
+      <artifactId>thriftee-compiler</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.thrift</groupId>
-      <artifactId>thrift-compiler</artifactId>
-      <version>0.9.4-SNAPSHOT</version>
+      <groupId>org.thriftee</groupId>
+      <artifactId>swift-annotations</artifactId>
     </dependency>
     <dependency>
       <groupId>org.restlet.jee</groupId>
@@ -67,11 +58,6 @@
     </dependency>
     <!-- test scoped dependencies -->
     <dependency>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>eclipselink</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.thriftee</groupId>
       <artifactId>thriftee-test-objects</artifactId>
       <scope>test</scope>
@@ -79,6 +65,11 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -101,9 +92,9 @@
               <schemas>
                 <schema>
                   <dependencyResource>
-                    <groupId>org.apache.thrift</groupId>
-                    <artifactId>thrift-compiler</artifactId>
-                    <resource>org/apache/thrift/compiler/thrift-idl.xsd</resource>
+                    <groupId>org.thriftee</groupId>
+                    <artifactId>thriftee-compiler</artifactId>
+                    <resource>org/thriftee/thrift/compiler/thrift-idl.xsd</resource>
                   </dependencyResource>
                 </schema>
               </schemas>
@@ -115,6 +106,132 @@
           </execution>
         </executions>
       </plugin>
+      <!-- 
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <configuration>
+        <artifactSet>
+          <excludes>
+            <exclude>*:*:*:test</exclude>
+            <exclude>net.sf.saxon:*</exclude>
+            <exclude>org.thriftee:thrift-compiler</exclude>
+            <exclude>org.apache.thrift:libthrift</exclude>
+            <exclude>com.facebook.swift:swift-annotations</exclude>
+          </excludes>
+        </artifactSet>
+        <relocations>
+          <relocation>
+            <pattern>com.google</pattern>
+            <shadedPattern>org.thriftee.shaded.com.google</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>com.thoughtworks</pattern>
+            <shadedPattern>org.thriftee.shaded.com.thoughtworks</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>io.airlift</pattern>
+            <shadedPattern>org.thriftee.shaded.io.airlift</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>javassist</pattern>
+            <shadedPattern>org.thriftee.shaded.javassist</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.slf4j</pattern>
+            <shadedPattern>org.thriftee.logging</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>ch.qos.logback</pattern>
+            <shadedPattern>org.thriftee.shaded.ch.qos.logback</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.apache.commons</pattern>
+            <shadedPattern>org.thriftee.shaded.org.apache.commons</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.apache.http</pattern>
+            <shadedPattern>org.thriftee.shaded.org.apache.http</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.antlr</pattern>
+            <shadedPattern>org.thriftee.shaded.org.antlr</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.objectweb</pattern>
+            <shadedPattern>org.thriftee.shaded.org.objectweb</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.stringtemplate</pattern>
+            <shadedPattern>org.thriftee.shaded.org.stringtemplate</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.scannotation</pattern>
+            <shadedPattern>org.thriftee.shaded.org.scannotation</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.json</pattern>
+            <shadedPattern>org.thriftee.shaded.org.json</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.mozilla</pattern>
+            <shadedPattern>org.thriftee.shaded.org.mozilla</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>com.yahoo</pattern>
+            <shadedPattern>org.thriftee.shaded.com.yahoo</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>jargs</pattern>
+            <shadedPattern>org.thriftee.shaded.jargs</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.restlet</pattern>
+            <shadedPattern>org.thriftee.shaded.org.restlet</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>freemarker</pattern>
+            <shadedPattern>org.thriftee.shaded.freemarker</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>com.facebook</pattern>
+            <shadedPattern>org.thriftee</shadedPattern>
+            <excludes>
+              <exclude>com.facebook.swift.codec.ThriftConstructor</exclude>
+              <exclude>com.facebook.swift.codec.ThriftDocumentation</exclude>
+              <exclude>com.facebook.swift.codec.ThriftEnum</exclude>
+              <exclude>com.facebook.swift.codec.ThriftEnumValue</exclude>
+              <exclude>com.facebook.swift.codec.ThriftField</exclude>
+              <exclude>com.facebook.swift.codec.ThriftField$Requiredness</exclude>
+              <exclude>com.facebook.swift.codec.ThriftStruct</exclude>
+              <exclude>com.facebook.swift.codec.ThriftUnion</exclude>
+              <exclude>com.facebook.swift.codec.ThriftUnionId</exclude>
+              <exclude>com.facebook.swift.service.ThriftException</exclude>
+              <exclude>com.facebook.swift.service.ThriftMethod</exclude>
+              <exclude>com.facebook.swift.service.ThriftService</exclude>
+            </excludes>
+          </relocation>
+        </relocations>
+        <createSourcesJar>true</createSourcesJar>
+          <promoteTransitiveDependencies>false</promoteTransitiveDependencies>
+          <transformers>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+              <resource>ConverterHelper</resource>
+            </transformer>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+              <resource>OSGI-INF/restlet.xml</resource>
+            </transformer>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+              <resource>META-INF/services/org.restlet.engine.converter.ConverterHelper</resource>
+              <file>${basedir}/../src/main/shade/META-INF/services/org.restlet.engine.converter.ConverterHelper</file>
+            </transformer>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+              <mainClass>thrift</mainClass>
+            </transformer>
+          </transformers>
+        </configuration>
+      </plugin>
+      -->
     </plugins>
   </build>
 </project>

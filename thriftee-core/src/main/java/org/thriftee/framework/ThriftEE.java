@@ -42,7 +42,6 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
-import org.apache.thrift.compiler.ExecutionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.compiler.ProcessIDL;
@@ -57,6 +56,8 @@ import org.thriftee.compiler.schema.ThriftSchema;
 import org.thriftee.compiler.schema.ThriftSchemaService;
 import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.framework.client.ClientTypeAlias;
+import org.thriftee.thrift.compiler.ExecutionResult;
+import org.thriftee.thrift.compiler.ThriftCompiler;
 import org.thriftee.thrift.xml.Transforms;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 import org.thriftee.util.FileUtil;
@@ -523,9 +524,10 @@ public class ThriftEE implements SchemaBuilderConfig {
   }
 
   private File unzipLibraries() throws ThriftStartupException {
-    final String rsrc = "org/apache/thrift/compiler/thrift-libs.zip";
-    final ClassLoader cl = getClass().getClassLoader();
-    final URL libzip = cl.getResource(rsrc);
+    //final String rsrc = "org/apache/thrift/compiler/thrift-libs.zip";
+    //final ClassLoader cl = ThriftCompiler.class.getClassLoader();
+    final String rsrc = "thrift-libs.zip";
+    final URL libzip = ThriftCompiler.class.getResource(rsrc); // cl.getResource(rsrc);
     if (libzip == null) {
       throw new IllegalStateException("could not find resource: " + rsrc);
     }

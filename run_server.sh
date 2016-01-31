@@ -1,2 +1,2 @@
 #!/bin/bash
-mvn clean install && (cd thriftee-examples-war && mvn tomee:run)
+mvn clean install -DskipTests=true -Dfindbugs.skip=true && (cd thriftee-examples-war && mvn tomee:run)
