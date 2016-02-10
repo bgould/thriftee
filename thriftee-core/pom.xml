@@ -24,11 +24,12 @@
   <parent>
     <artifactId>thriftee-root</artifactId>
     <groupId>org.thriftee</groupId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.0</version>
   </parent>
 
   <artifactId>thriftee-core</artifactId>
   <name>thriftee-core</name>
+  <description>Core functionality for ThriftEE</description>
 
   <dependencies>
     <!-- compile scoped dependencies -->

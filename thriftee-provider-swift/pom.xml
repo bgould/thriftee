@@ -5,10 +5,11 @@
   <parent>
     <groupId>org.thriftee</groupId>
     <artifactId>thriftee-root</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.0</version>
   </parent>
   <artifactId>thriftee-provider-swift</artifactId>
   <name>thriftee-provider-swift</name>
+  <description>Facebook Swift integration for ThriftEE</description>
   <dependencies>
     <dependency>
       <groupId>org.thriftee</groupId>

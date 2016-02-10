@@ -5,12 +5,32 @@
   
   <groupId>org.thriftee</groupId>
   <artifactId>thriftee-root</artifactId>
-  <version>0.4.0-SNAPSHOT</version>
+  <version>0.4.0</version>
   <packaging>pom</packaging>
   
   <name>thriftee-root</name>
-
+  <description>Parent module for ThriftEE</description>
+  <url>https://github.com/bgould/thriftee</url>
   <inceptionYear>2013</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+ 
+  <developers>
+    <developer>
+      <name>Benjamin Gould</name>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/bgould/thriftee</connection>
+    <developerConnection>scm:git:https://github.com/bgould/thriftee</developerConnection>
+    <url>https://github.com/bgould/thriftee</url>
+  </scm>
 
   <modules>
     <module>thriftee-test-objects</module>
@@ -261,7 +281,7 @@
   <properties>
     <thrift.exe>thrift</thrift.exe>
     <java.version>1.7</java.version>
-    <swift.version>0.17.0-SNAPSHOT</swift.version>
+    <swift.version>0.17.0</swift.version>
     <junit.version>4.11</junit.version>
     <slf4j.version>1.7.5</slf4j.version>
     <tomee.version>1.7.2</tomee.version>
@@ -534,6 +554,20 @@
               <nexusUrl>https://oss.sonatype.org/</nexusUrl>
               <autoReleaseAfterClose>false</autoReleaseAfterClose>
             </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.4</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
