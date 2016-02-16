@@ -44,21 +44,32 @@
             <configuration>
               <classpathScope>test</classpathScope>
               <source><![CDATA[
-    def inputdir = new File(project.basedir, "src/main/thrift")
-    def outputdir = new File(project.basedir, "target/generated-sources/thrift")
-    def filenames = new FileNameFinder().getFileNames(inputdir.absolutePath, "*.thrift")
-    def props = new Properties();
-    props.setProperty("thrift.compiler.native", "true")
-    def compiler = org.thriftee.thrift.compiler.ThriftCompiler.newCompiler(props)
-    outputdir.mkdirs()
-    filenames.each { filename ->
-      def file = new File(filename)
-      log.info "processing thrift file: " + file.name
-      def execResult = compiler.execute("-gen", "java", "-out", outputdir.absolutePath, file.absolutePath);
-      log.info "execution result: " + execResult.exitCode
-    }
-    project.addCompileSourceRoot(outputdir.absolutePath)
-    
+def inputdir = new File(project.basedir, "src/main/thrift")
+def outputdir = new File(project.basedir, "target/generated-sources/thrift")
+def inpath = inputdir.absolutePath
+def outpath = outputdir.absolutePath
+def filenames = new FileNameFinder().getFileNames(inpath, "*.thrift")
+def compiler = org.thriftee.thrift.compiler.ThriftCompiler.newCompiler()
+outputdir.mkdirs()
+filenames.each { filename ->
+  log.info "processing thrift file: " + filename
+  def execResult = compiler.execute("-gen", "java", "-out", outpath, filename)
+  if (execResult.errString != null && !"".equals(execResult.errString)) {
+    log.warn execResult.errString
+  }
+  if (execResult.outString != null && !"".equals(execResult.outString)) {
+    log.info execResult.outString
+  }
+  if (execResult.exitCode != 0) {
+    log.error "execution result: " + execResult.exitCode
+    fail()
+  }
+}
+def resources = new org.apache.maven.model.Resource()
+resources.directory = inpath
+resources.addInclude("*.thrift")
+project.addResource(resources)
+project.addCompileSourceRoot(outpath)
               ]]></source>
             </configuration>
           </execution>
