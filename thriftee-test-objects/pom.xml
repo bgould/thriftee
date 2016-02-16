@@ -15,6 +15,11 @@
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.thriftee</groupId>
+      <artifactId>thriftee-compiler</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -26,6 +31,39 @@
           <skip>true</skip>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.gmaven</groupId>
+        <artifactId>gmaven-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <classpathScope>test</classpathScope>
+              <source><![CDATA[
+    def inputdir = new File(project.basedir, "src/main/thrift")
+    def outputdir = new File(project.basedir, "target/generated-sources/thrift")
+    def filenames = new FileNameFinder().getFileNames(inputdir.absolutePath, "*.thrift")
+    def props = new Properties();
+    props.setProperty("thrift.compiler.native", "true")
+    def compiler = org.thriftee.thrift.compiler.ThriftCompiler.newCompiler(props)
+    outputdir.mkdirs()
+    filenames.each { filename ->
+      def file = new File(filename)
+      log.info "processing thrift file: " + file.name
+      def execResult = compiler.execute("-gen", "java", "-out", outputdir.absolutePath, file.absolutePath);
+      log.info "execution result: " + execResult.exitCode
+    }
+    project.addCompileSourceRoot(outputdir.absolutePath)
+    
+              ]]></source>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin><!-- 
       <plugin>
         <groupId>org.apache.thrift.tools</groupId>
         <artifactId>maven-thrift-plugin</artifactId>
@@ -45,6 +83,7 @@
           </execution>
         </executions>
       </plugin>
+      -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
