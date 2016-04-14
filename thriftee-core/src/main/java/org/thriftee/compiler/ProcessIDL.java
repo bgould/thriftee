@@ -18,14 +18,19 @@ package org.thriftee.compiler;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thriftee.thrift.compiler.ExecutionResult;
+import org.thriftee.thrift.compiler.ThriftCompiler;
 import org.thriftee.util.FileUtil;
 
 public class ProcessIDL {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
+
+  private static final ThriftCompiler compiler = ThriftCompiler.newCompiler();
 
   private File thriftLibDir;
 
@@ -63,7 +68,17 @@ public class ProcessIDL {
     cmd.setOutputLocation(outputDir);
     for (File file : idlFiles) {
       cmd.setThriftFile(file);
-      logger.debug("processing thrift IDL: {}", cmd.commandString());
+      final List<String> args = cmd.command();
+      args.remove(0);
+      logger.debug("processing thrift IDL: {}", args);
+      final String[] argArray = args.toArray(new String[args.size()]);
+      final ExecutionResult result = compiler.execute(argArray);
+      if (result.exitCode != 0) {
+        throw new IOException(
+            "thrift generation failed with exit code: " + result.exitCode + "; "
+            + "\nstderr: " + result.errString + ";\nstdout: " + result.outString);
+      }
+      /*
       ProcessBuilder pb = new ProcessBuilder(cmd.command());
       pb.inheritIO();
       Process process = pb.start();
@@ -77,6 +92,7 @@ public class ProcessIDL {
         throw new IOException(
             "Thrift generation process was interrupted.", e);
       }
+      */
     }
     final PostProcessor pp = getPostProcessor();
     if (pp != null) {
