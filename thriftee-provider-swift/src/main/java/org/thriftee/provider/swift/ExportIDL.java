@@ -94,11 +94,12 @@ public class ExportIDL {
       if (m.find()) {
         final String namespace = m.group(1);
         final StringBuilder sb = new StringBuilder();
-        sb.append("namespace cpp  ").append(namespace).append('\n');
-        sb.append("namespace d    ").append(namespace).append('\n');
-        sb.append("namespace java ").append(namespace).append('\n');
-        sb.append("namespace php  ").append(namespace).append('\n');
-        sb.append("namespace perl ").append(namespace).append('\n');
+        sb.append("namespace * ").append(namespace).append('\n');
+//        sb.append("namespace cpp  ").append(namespace).append('\n');
+//        sb.append("namespace d    ").append(namespace).append('\n');
+//        sb.append("namespace java ").append(namespace).append('\n');
+//        sb.append("namespace php  ").append(namespace).append('\n');
+//        sb.append("namespace perl ").append(namespace).append('\n');
         thriftFileStr = m.replaceFirst(sb.toString());
         logger.trace("Rewriting swift namespace: {}", sb);
       } else {
