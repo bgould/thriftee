@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.restlet;
+package org.thriftee.framework.proxy;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.thrift.TException;
+import org.apache.thrift.TProcessor;
+import org.apache.thrift.protocol.TProtocol;
 
-public abstract class ZipFileResource extends FrameworkResource {
+public class TProcessorProxy implements TProcessor {
 
-  protected final Logger LOG = LoggerFactory.getLogger(getClass());
-  
-  
+  @Override
+  public boolean process(TProtocol in, TProtocol out) throws TException {
+    throw new TException();
+  }
 
 }

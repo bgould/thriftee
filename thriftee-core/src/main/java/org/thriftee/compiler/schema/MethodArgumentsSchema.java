@@ -17,25 +17,25 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
-import org.thriftee.compiler.schema.UnionSchema.Builder;
+import org.thriftee.compiler.schema.MethodArgumentsSchema.Builder;
 
 import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct(builder=Builder.class)
-public final class UnionSchema extends AbstractStructSchema<ModuleSchema, UnionSchema, UnionFieldSchema, UnionFieldSchema.Builder> {
+public final class MethodArgumentsSchema extends AbstractStructSchema<MethodSchema, MethodArgumentsSchema, MethodArgumentSchema, MethodArgumentSchema.Builder> {
 
   private static final long serialVersionUID = 9173725847653740446L;
 
-  private UnionSchema(
-      ModuleSchema parent, 
+  private MethodArgumentsSchema(
+      MethodSchema parent, 
       String _name, 
-      Collection<UnionFieldSchema.Builder> _fields, 
+      Collection<MethodArgumentSchema.Builder> _fields, 
       Collection<ThriftAnnotation> _annotations
     ) throws SchemaBuilderException {
     super(
-      ModuleSchema.class, 
-      UnionSchema.class,
+      MethodSchema.class, 
+      MethodArgumentsSchema.class,
       parent, 
       _name,
       _fields,
@@ -43,45 +43,50 @@ public final class UnionSchema extends AbstractStructSchema<ModuleSchema, UnionS
     );
   }
 
+
   @Override
   public String getModuleName() {
-    return getParent().getName();
+    return getParent().getParent().getParent().getName();
   }
 
   @Override
   public String getTypeName() {
-    return getName();
+    return getParent().getParent().getName() + "." + getName();
   }
 
   public static final class Builder extends AbstractStructSchema.AbstractStructSchemaBuilder<
-    ModuleSchema, 
-    UnionSchema, 
-    ModuleSchema.Builder, 
-    UnionFieldSchema.Builder, 
-    UnionSchema.Builder> {
+    MethodSchema, 
+    MethodArgumentsSchema, 
+    MethodSchema.Builder, 
+    MethodArgumentSchema.Builder, 
+    MethodArgumentsSchema.Builder> {
 
     public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
       this(null);
       throw new NoArgConstructorOnlyExistsForSwiftValidationException();
     }
 
-    protected Builder(ModuleSchema.Builder parentBuilder) {
+    protected Builder(MethodSchema.Builder parentBuilder) {
       super(parentBuilder, Builder.class);
     }
 
     @Override
-    protected UnionFieldSchema.Builder _createFieldBuilder() {
-      return new UnionFieldSchema.Builder(this);
+    protected MethodArgumentSchema.Builder _createFieldBuilder() {
+      return new MethodArgumentSchema.Builder(this);
     }
 
     @Override
-    protected UnionSchema _createStruct(ModuleSchema _parent) throws SchemaBuilderException {
-      return new UnionSchema(_parent, getName(), _getFields(), getAnnotations());
+    protected MethodArgumentsSchema _createStruct(MethodSchema _parent) throws SchemaBuilderException {
+      return new MethodArgumentsSchema(_parent, getName(), _getFields(), getAnnotations());
+    }
+
+    public MethodArgumentSchema.Builder addArgument(String _name) {
+      return addField(_name);
     }
 
     @Override
     @ThriftConstructor
-    public UnionSchema build() throws SchemaBuilderException {
+    public MethodArgumentsSchema build() throws SchemaBuilderException {
       throw new NoArgConstructorOnlyExistsForSwiftValidationException();
     }
 

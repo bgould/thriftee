@@ -17,20 +17,10 @@ package org.thriftee.compiler.schema;
 
 public class ListSchemaType extends ContainerSchemaType {
 
-  public ListSchemaType(ISchemaType valueType) {
-    super(valueType);
-  }
-
   private static final long serialVersionUID = 1896674969956124265L;
 
-  @Override
-  public String getTypeName() {
-    return toNamespacedIDL(null);
-  }
-
-  @Override
-  public ThriftProtocolType getProtocolType() {
-    return ThriftProtocolType.LIST;
+  ListSchemaType(ISchemaType valueType) {
+    super(ThriftProtocolType.LIST, valueType);
   }
 
   @Override

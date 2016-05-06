@@ -21,23 +21,15 @@ public class MapSchemaType extends ContainerSchemaType {
 
   private final ISchemaType keyType;
   
-  public MapSchemaType(final ISchemaType _keyType, final ISchemaType _valueType) {
-    super(_valueType);
+  MapSchemaType(
+      final ISchemaType _keyType, 
+      final ISchemaType _valueType) {
+    super(ThriftProtocolType.MAP, _valueType);
     this.keyType = _keyType;
   }
   
   public ISchemaType getKeyType() {
     return this.keyType;
-  }
-  
-  @Override
-  public String getTypeName() {
-    return toNamespacedIDL(null);
-  }
-
-  @Override
-  public ThriftProtocolType getProtocolType() {
-    return ThriftProtocolType.MAP;
   }
 
   @Override

@@ -36,7 +36,7 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
   
   private final Short identifier;
 
-  private final ISchemaType type;
+  private final ThriftSchemaType type;
 
   private final Requiredness requiredness;
 
@@ -49,17 +49,17 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
       String _name, 
       Collection<ThriftAnnotation> _annotations,
       ISchemaType _type, 
-      Requiredness _requiredness, 
+      Requiredness _required, 
       Short _identifier) throws SchemaBuilderException {
     super(parentClass, thisClass, _parent, _name, _annotations);
-    this.type = _type;
-    this.requiredness = _requiredness;
+    this.type = getSchemaContext().wrap(_type);
+    this.requiredness = _required == null ? Requiredness.NONE : _required;
     this.identifier = _identifier; 
   }
-  
+
   /*verifyAndConvertToInteger(_identifier);
   }
-  
+
   private final Integer verifyAndConvertToInteger(Long _identifier) {
     if (_identifier == null) {
       return null;
@@ -71,7 +71,7 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
       return _identifier.intValue();
     }
   }*/
-  
+
   @ThriftField(THRIFT_INDEX_NAME)
   public String getName() {
     return super.getName();
@@ -84,12 +84,23 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
 
   @ThriftField(THRIFT_INDEX_TYPE)
   public ThriftSchemaType getType() {
-    return ThriftSchemaType.wrap(type);
+    return type;
   }
 
   @ThriftField(THRIFT_INDEX_REQUIRED)
   public Requiredness getRequiredness() {
     return requiredness;
+  }
+
+  @Override
+  public String toString() {
+    return String.format(
+      "%s[name=%s, type=%s, requiredness=%s]",
+      getClass().getSimpleName(), 
+      getName(), 
+      getType().getProtocolType(),
+      getRequiredness()
+    );
   }
 
   private static final long serialVersionUID = 4332069454537397041L;
@@ -100,11 +111,11 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
   }
 
   public static abstract class AbstractFieldBuilder<
-    P extends BaseSchema<?, P>, 
-    T extends BaseSchema<P, T>, 
-    PB extends AbstractSchemaBuilder<?, P, ?, ?>, 
-    B extends AbstractFieldBuilder<P, T, PB, B>
-  > extends AbstractSchemaBuilder<P, T, PB, B> {
+    Parent extends BaseSchema<?, Parent>, 
+    This extends BaseSchema<Parent, This>, 
+    ParentBuilder extends AbstractSchemaBuilder<?, Parent, ?, ?>, 
+    Builder extends AbstractFieldBuilder<Parent, This, ParentBuilder, Builder>
+  > extends AbstractSchemaBuilder<Parent, This, ParentBuilder, Builder> {
 
     private Requiredness required;
     
@@ -112,31 +123,32 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
     
     private Short identifier;
     
-    protected AbstractFieldBuilder(PB parentBuilder, Class<B> thisClass) {
+    protected AbstractFieldBuilder(
+        final ParentBuilder parentBuilder, final Class<Builder> thisClass) {
       super(parentBuilder, thisClass);
     }
 
-    public final B type(ISchemaType type) {
+    public final Builder type(ISchemaType type) {
       this.type = type;
       return $this;
     }
 
-    public final B requiredness(Requiredness required) {
+    public final Builder requiredness(Requiredness required) {
       this.required = required;
       return $this;
     }
     
-    public final B identifier(Short _identifier) {
+    public final Builder identifier(Short _identifier) {
       this.identifier = _identifier;
       return $this;
     }
     
-    public final B identifier(Integer _identifier) {
+    public final Builder identifier(Integer _identifier) {
       this.identifier = _identifier.shortValue();
       return $this;
     }
     
-    public final B identifier(Long _identifier) {
+    public final Builder identifier(Long _identifier) {
       this.identifier = _identifier.shortValue();
       return $this;
     }
@@ -154,22 +166,25 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
     }
     
     @Override
-    protected T _build(P _parent) throws SchemaBuilderException {
+    protected This _build(Parent _parent) throws SchemaBuilderException {
       super._validate();
       if (type == null) {
         throw new SchemaBuilderException(Messages.SCHEMA_002, _fieldTypeName());
       }
-      T result = _buildInstance(_parent);
+      This result = _buildInstance(_parent);
       return result;
     }
     
     protected abstract String _fieldTypeName();
     
-    protected abstract T _buildInstance(P _parent) throws SchemaBuilderException;
+    protected abstract This _buildInstance(Parent _parent)
+        throws SchemaBuilderException;
 
     @Override
     protected String[] toStringFields() {
-      return new String[] { "name", "annotations", "type", "required", "identifier" };
+      return new String[] {
+        "name", "annotations", "type", "required", "identifier"
+      };
     }
 
   }

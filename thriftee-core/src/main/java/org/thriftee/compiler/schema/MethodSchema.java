@@ -47,7 +47,7 @@ public final class MethodSchema extends BaseSchema<ServiceSchema, MethodSchema> 
 
   private final ThriftSchemaType returnType;
 
-  private final Map<String, MethodArgumentSchema> arguments;
+  private final MethodArgumentsSchema arguments;
 
   private final Map<String, MethodThrowsSchema> exceptions;
 
@@ -57,12 +57,12 @@ public final class MethodSchema extends BaseSchema<ServiceSchema, MethodSchema> 
       Collection<ThriftAnnotation> _annotations,
       boolean _oneway,
       ISchemaType _returnType, 
-      Collection<MethodArgumentSchema.Builder> _arguments,
+      MethodArgumentsSchema.Builder _arguments,
       Collection<MethodThrowsSchema.Builder> _exceptions) throws SchemaBuilderException {
     super(ServiceSchema.class, MethodSchema.class, _parent, _name, _annotations);
     this.oneway = _oneway;
-    this.returnType = ThriftSchemaType.wrap(_returnType);
-    this.arguments = toMap(this, _arguments);
+    this.returnType = getSchemaContext().wrap(_returnType);
+    this.arguments = _arguments._build(this);
     this.exceptions = toMap(this, _exceptions);
   }
   
@@ -89,7 +89,7 @@ public final class MethodSchema extends BaseSchema<ServiceSchema, MethodSchema> 
   }
 
   @ThriftField(THRIFT_INDEX_ARGUMENTS)
-  public Map<String, MethodArgumentSchema> getArguments() {
+  public MethodArgumentsSchema getArguments() {
     return arguments;
   }
 
@@ -98,45 +98,54 @@ public final class MethodSchema extends BaseSchema<ServiceSchema, MethodSchema> 
     return exceptions;
   }
 
-  public static class Builder extends AbstractSchemaBuilder<ServiceSchema, MethodSchema, ServiceSchema.Builder, Builder> {
+  public static class Builder extends AbstractSchemaBuilder<
+      ServiceSchema, 
+      MethodSchema, 
+      ServiceSchema.Builder, 
+      Builder> {
 
     public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
       this(null);
       throw new NoArgConstructorOnlyExistsForSwiftValidationException();
     }
-    
+
     Builder(ServiceSchema.Builder parentBuilder) {
       super(parentBuilder, Builder.class);
+      this.arguments = new MethodArgumentsSchema.Builder(this);
     }
-    
+
     private ISchemaType returnType = PrimitiveTypeSchema.VOID;
 
     private boolean oneway;
-    
-    private List<MethodArgumentSchema.Builder> arguments = new LinkedList<>();
-    
+
+    private MethodArgumentsSchema.Builder arguments;
+
     private List<MethodThrowsSchema.Builder> exceptions = new LinkedList<>();
-    
+
+    @Override
+    public Builder name(String name) {
+      this.arguments.name(name + "_args");
+      return super.name(name);
+    }
+
     public Builder oneway(boolean _oneway) {
       this.oneway = _oneway;
       return this;
     }
-    
+
     public Builder returnType(ISchemaType type) {
       this.returnType = type;
       return this;
     }
-    
+
     public Builder defaultValue(ISchemaValue value) {
       return this;
     }
-    
+
     public MethodArgumentSchema.Builder addArgument(String _name) {
-      MethodArgumentSchema.Builder result = new MethodArgumentSchema.Builder(this).name(_name);
-      this.arguments.add(result);
-      return result;
+      return this.arguments.addArgument(_name);
     }
-    
+
     public MethodThrowsSchema.Builder addThrows(String _name) {
       MethodThrowsSchema.Builder result = new MethodThrowsSchema.Builder(this).name(_name);
       this.exceptions.add(result);
@@ -157,7 +166,7 @@ public final class MethodSchema extends BaseSchema<ServiceSchema, MethodSchema> 
       );
       return result;
     }
-    
+
     @Override
     @ThriftConstructor
     public MethodSchema build() throws SchemaBuilderException {

@@ -16,6 +16,8 @@
 package org.thriftee.compiler.schema;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -43,13 +45,15 @@ public abstract class AbstractStructSchema<
   private static final long serialVersionUID = -7411640934657605126L;
 
   public static final int THRIFT_INDEX_NAME = 1;
-  
+
   public static final int THRIFT_INDEX_FIELDS = THRIFT_INDEX_NAME + 1;
-  
+
   public static final int THRIFT_INDEX_ANNOTATIONS = THRIFT_INDEX_FIELDS + 1;
-  
+
   private final Map<String, F> fields;
-  
+
+  private final Map<Short, F> fieldsById;
+
   protected AbstractStructSchema(
       final Class<P> _parentClass,
       final Class<T> _thisClass,
@@ -62,22 +66,15 @@ public abstract class AbstractStructSchema<
       _parentClass, 
       _thisClass,
       parent, 
-      new ReferenceSchemaType(ThriftProtocolType.STRUCT, parent.getName(), name), 
+      new SchemaReference(SchemaReference.Type.STRUCT, parent.getName(), name),
       annotations
     );
     this.fields = toMap($this, fields);
-  }
-
-  @Override
-  public String getModuleName() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public String getTypeName() {
-    // TODO Auto-generated method stub
-    return null;
+    final Map<Short, F> fieldsById = new HashMap<>();
+    for (final F field : this.fields.values()) {
+      fieldsById.put(field.getIdentifier(), field);
+    }
+    this.fieldsById = Collections.unmodifiableMap(fieldsById);
   }
 
   @Override
@@ -100,6 +97,10 @@ public abstract class AbstractStructSchema<
   @ThriftField(THRIFT_INDEX_FIELDS)
   public Map<String, F> getFields() {
     return this.fields;
+  }
+
+  public F getField(Short id) {
+    return this.fieldsById.get(id);
   }
 
   public static abstract class AbstractStructSchemaBuilder<

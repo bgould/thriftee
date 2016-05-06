@@ -15,57 +15,51 @@
  */
 package org.thriftee.compiler.schema;
 
+import java.nio.file.attribute.AclEntry.Builder;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import org.thriftee.compiler.schema.EnumSchema.Builder;
 
 import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftField;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct(builder=Builder.class)
-public final class EnumSchema extends BaseSchemaType<ModuleSchema, EnumSchema> {
+public class TypedefSchema 
+    extends BaseSchemaType<ModuleSchema, TypedefSchema> 
+    implements ISchemaType {
+
+  private static final long serialVersionUID = 1989609882619531243L;
 
   public static final int THRIFT_INDEX_NAME = 1;
-  
-  public static final int THRIFT_INDEX_VALUES = THRIFT_INDEX_NAME + 1;
-  
-  private static final long serialVersionUID = -6204420892157052800L;
-  
-  private final Map<String, EnumValueSchema> enumValues;
 
-  public EnumSchema(
-        final ModuleSchema parent, 
+  private final ThriftSchemaType _type;
+  
+  public TypedefSchema(
+        final ModuleSchema parent,
         final String name,
-        final Collection<ThriftAnnotation> annotations,
-        final Collection<EnumValueSchema.Builder> enumValues
+        final ISchemaType type,
+        final Collection<ThriftAnnotation> _annotations
       ) throws SchemaBuilderException {
     super(
       ModuleSchema.class,
-      EnumSchema.class,
+      TypedefSchema.class,
       parent,
-      new SchemaReference(SchemaReference.Type.ENUM, parent.getName(), name), 
-      annotations
+      new SchemaReference(SchemaReference.Type.TYPEDEF, parent.getName(), name),
+      _annotations
     );
-    this.enumValues = toMap(this, enumValues);
-  }
-
-  @ThriftField(THRIFT_INDEX_VALUES)
-  public Map<String, EnumValueSchema> getEnumValues() {
-    return this.enumValues;
+    if (type == null) {
+      throw new IllegalArgumentException("type cannot be null.");
+    }
+    this._type = getSchemaContext().wrap(type);
   }
 
   @Override
   public String getModuleName() {
-    return this.getParent().getName();
+    return getParent().getName();
   }
 
   @Override
   public String getTypeName() {
-    return this.getName();
+    return getName();
   }
 
   @Override
@@ -76,32 +70,37 @@ public final class EnumSchema extends BaseSchemaType<ModuleSchema, EnumSchema> {
 
   @Override
   public ThriftProtocolType getProtocolType() {
-    return ThriftProtocolType.ENUM;
+    return _type.getProtocolType();
   }
 
-  public static class Builder extends AbstractSchemaBuilder<ModuleSchema, EnumSchema, ModuleSchema.Builder, Builder> {
+
+  public static class Builder extends AbstractSchemaBuilder<
+      ModuleSchema,
+      TypedefSchema,
+      ModuleSchema.Builder,
+      Builder> {
 
     public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
       this(null);
       throw new NoArgConstructorOnlyExistsForSwiftValidationException();
     }
-    
+
     Builder(ModuleSchema.Builder parentBuilder) {
       super(parentBuilder, Builder.class);
     }
-    
-    private List<EnumValueSchema.Builder> enumValues = new LinkedList<>();
-    
-    public EnumValueSchema.Builder addEnumValue(String name) {
-      EnumValueSchema.Builder result = new EnumValueSchema.Builder(this);
-      return result.name(name);
+
+    private ISchemaType _type;
+
+    public Builder type(ISchemaType type) {
+      this._type = type;
+      return this;
     }
 
     @Override
-    protected EnumSchema _build(ModuleSchema _parent) throws SchemaBuilderException {
+    protected TypedefSchema _build(
+        final ModuleSchema _parent) throws SchemaBuilderException {
       super._validate();
-      EnumSchema result = new EnumSchema(_parent, getName(), getAnnotations(), enumValues);
-      return result;
+      return new TypedefSchema(_parent, getName(), _type, getAnnotations());
     }
 
     @Override
@@ -111,10 +110,9 @@ public final class EnumSchema extends BaseSchemaType<ModuleSchema, EnumSchema> {
 
     @Override
     @ThriftConstructor
-    public EnumSchema build() throws SchemaBuilderException {
+    public TypedefSchema build() throws SchemaBuilderException {
       throw new NoArgConstructorOnlyExistsForSwiftValidationException();
     }
     
   }
-  
 }

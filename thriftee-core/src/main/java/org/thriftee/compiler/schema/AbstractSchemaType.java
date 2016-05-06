@@ -28,12 +28,17 @@ public abstract class AbstractSchemaType implements ISchemaType, Serializable {
   }
 
   @Override
-  public ThriftProtocolType getProtocolType() {
+  public final ThriftProtocolType getProtocolType() {
     return this.protocolType;
   }
 
-  public boolean isPrimitive() {
+  public final boolean isPrimitive() {
     return Utils.isPrimitive(this);
+  }
+
+  @Override
+  public final <T extends ISchemaType> T castTo(Class<T> schemaTypeClass) {
+    return schemaTypeClass.cast(this);
   }
 
 }

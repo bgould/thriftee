@@ -24,23 +24,19 @@ import com.facebook.swift.codec.ThriftStruct;
  * @author bcg
  */
 @ThriftStruct
-public final class ThriftSchemaType implements ISchemaType {
+final class ThriftSchemaType implements ISchemaType {
 
   public static final int THRIFT_INDEX_MODULE_NAME = 1;
-  
+
   public static final int THRIFT_INDEX_TYPE_NAME = THRIFT_INDEX_MODULE_NAME + 1;
-  
+
   private final ISchemaType schemaType;
-  
-  public static ThriftSchemaType wrap(ISchemaType _schemaType) {
-    return new ThriftSchemaType(_schemaType);
+
+  public ThriftSchemaType() throws NoArgConstructorOnlyExistsForSwiftValidationException {
+    throw new NoArgConstructorOnlyExistsForSwiftValidationException();
   }
-  
-  public ThriftSchemaType() {
-    this(null);
-  }
-  
-  private ThriftSchemaType(ISchemaType _schemaType) {
+
+  ThriftSchemaType(SchemaContext ctx, ISchemaType _schemaType) {
     this.schemaType = _schemaType;
   }
 
@@ -65,9 +61,17 @@ public final class ThriftSchemaType implements ISchemaType {
   public String toNamespacedIDL(String _namespace) {
     return this.schemaType.toNamespacedIDL(_namespace);
   }
-  
-  public ISchemaType unwrap() {
-    return this.schemaType;
+
+  public String toString() {
+    return String.format(
+      "ThriftSchemaType[module=%s, typename=%s, protocolType=%s]",
+      getModuleName(), getTypeName(), getProtocolType()
+    ); 
+  }
+
+  @Override
+  public <T extends ISchemaType> T castTo(Class<T> schemaTypeClass) {
+    return this.schemaType.castTo(schemaTypeClass);
   }
 
 }

@@ -18,13 +18,15 @@ package org.thriftee.compiler.schema;
 public interface ISchemaType {
 
   public String getModuleName();
-  
+
   public String getTypeName();
-  
+
   public ThriftProtocolType getProtocolType();
-  
+
   public String toNamespacedIDL(String namespace);
-  
+
+  public <T extends ISchemaType> T castTo(Class<T> schemaTypeClass);
+
   public static class Utils {
     private Utils() {}
     public static boolean isPrimitive(ISchemaType _schemaType) {

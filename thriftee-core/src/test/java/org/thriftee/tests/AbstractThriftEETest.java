@@ -49,7 +49,8 @@ public abstract class AbstractThriftEETest {
   }
 
   protected static ThriftEE loadThriftee(
-      File tempDir, SchemaProvider schemaProvider) throws ThriftSystemException {
+        File tempDir, SchemaProvider schemaProvider, boolean generateClients
+      ) throws ThriftSystemException {
     synchronized (thrifteeInstances) {
       if (!thrifteeInstances.containsKey(tempDir.getAbsolutePath())) {
         final ThriftEE thrift = new ThriftEE(
@@ -57,6 +58,7 @@ public abstract class AbstractThriftEETest {
             .schemaBuilder(new XMLSchemaBuilder())
             .schemaProvider(schemaProvider)
             .serviceLocator(new TestServiceLocator())
+            .useDefaultClientTypeAliases(generateClients)
             .tempDir(tempDir)
             .build()
         );
@@ -75,7 +77,7 @@ public abstract class AbstractThriftEETest {
       final File tempDir = new File(prefix + "/tests/" + simpleName);
       this.tempDirForClass = tempDir;
       final SchemaProvider schemaProvider = new TestSchemaProvider();
-      this.thrift = loadThriftee(tempDir, schemaProvider);
+      this.thrift = loadThriftee(tempDir, schemaProvider, generateClients());
     } catch (ThriftSystemException e) {
       throw new RuntimeException(e);
     }
@@ -89,6 +91,10 @@ public abstract class AbstractThriftEETest {
 
   protected ThriftEE thrift() {
     return thrift;
+  }
+
+  protected boolean generateClients() {
+    return true;
   }
 
 }

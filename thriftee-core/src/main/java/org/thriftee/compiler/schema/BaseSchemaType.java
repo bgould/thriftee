@@ -17,13 +17,16 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
-abstract class BaseSchemaType<P extends BaseSchema<?, ?>, T extends BaseSchema<P, T>> extends BaseSchema<P, T> implements ISchemaType {
+abstract class BaseSchemaType<
+    P extends BaseSchema<?, ?>, 
+    T extends BaseSchema<P, T>
+  > extends BaseSchema<P, T> implements ISchemaType {
 
   private static final long serialVersionUID = -4797781153586878306L;
   
-  private final ReferenceSchemaType reference;
+  private final SchemaReference reference;
   
-  public ReferenceSchemaType getReference() {
+  public SchemaReference getReference() {
     return this.reference;
   }
 
@@ -31,7 +34,7 @@ abstract class BaseSchemaType<P extends BaseSchema<?, ?>, T extends BaseSchema<P
       Class<P> parentClass, 
       Class<T> thisClass, 
       P parent, 
-      ReferenceSchemaType _reference, 
+      SchemaReference _reference, 
       Collection<ThriftAnnotation> _annotations) throws SchemaBuilderException {
     super(
       parentClass, 
@@ -46,6 +49,11 @@ abstract class BaseSchemaType<P extends BaseSchema<?, ?>, T extends BaseSchema<P
   @Override
   public String toNamespacedIDL(String namespace) {
     return getReference().toNamespacedIDL(namespace);
+  }
+
+  @Override
+  public <C extends ISchemaType> C castTo(Class<C> schemaTypeClass) {
+    return schemaTypeClass.cast(this);
   }
 
 }

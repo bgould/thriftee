@@ -332,6 +332,11 @@ public class ThriftEEConfig {
       return this;
     }
 
+    public Builder useDefaultClientTypeAliases(boolean useDefaults) {
+      factory.setUseDefaultClientTypeAliases(useDefaults);
+      return this;
+    }
+
     public ThriftEEConfig build() {
       factory.setClientTypes(aliases);
       factory.setProtocolTypes(protocols);

@@ -38,41 +38,55 @@ import org.apache.thrift.xml.idl.Union;
 import org.thriftee.compiler.schema.AbstractFieldSchema.AbstractFieldBuilder;
 import org.thriftee.compiler.schema.AbstractFieldSchema.Requiredness;
 import org.thriftee.compiler.schema.AbstractStructSchema.AbstractStructSchemaBuilder;
+import org.thriftee.compiler.schema.SchemaReference.Type;
 import org.thriftee.compiler.schema.ThriftSchema.Builder;
 import org.thriftee.framework.SchemaBuilderConfig;
 
-public class XMLSchemaBuilder implements SchemaBuilder {
+/**
+ * <p>Builds a {@link ThriftSchema} from a JAXB model of the output from the
+ * Thrift compiler's XML generator.</p>
+ * @author bcg
+ */
+public final class XMLSchemaBuilder implements SchemaBuilder {
 
   @Override
-  public ThriftSchema buildSchema(final SchemaBuilderConfig config) 
+  public synchronized ThriftSchema buildSchema(final SchemaBuilderConfig config)
       throws SchemaBuilderException {
-    final IDL model = JAXB.unmarshal(config.globalXmlFile(), IDL.class);
-    return translate(model, "ThriftEE");
-  }
-
-  public static ThriftSchema translate(final IDL idl, final String name) 
-      throws SchemaBuilderException {
-    final Builder builder = new Builder().name("ThriftEE");
-    for (final Document document : idl.getDocument()) {
-      translate(builder, document);
+    try {
+      this.model = JAXB.unmarshal(config.globalXmlFile(), IDL.class);
+      this.schemaBuilder = new Builder().name("ThriftEE");
+      return translate(model, "ThriftEE");
+    } finally {
+      this.model = null;
+      this.schemaBuilder = null;
     }
-    return builder.build();
   }
 
-  public static ModuleSchema.Builder translate(
-      final ThriftSchema.Builder parentBuilder, 
-      final Document document
-    ) throws SchemaBuilderException {
-    final ModuleSchema.Builder val = parentBuilder.addModule(document.getName());
+  private IDL model;
+
+  private ThriftSchema.Builder schemaBuilder;
+
+  protected ThriftSchema translate(final IDL idl, final String name)
+      throws SchemaBuilderException {
+    for (final Document document : idl.getDocument()) {
+      translate(schemaBuilder, document);
+    }
+    return schemaBuilder.build();
+  }
+
+  protected ModuleSchema.Builder translate(
+        final ThriftSchema.Builder parentBuilder, final Document doc
+      ) throws SchemaBuilderException {
+    final ModuleSchema.Builder val = parentBuilder.addModule(doc.getName());
     final Set<String> includes = new LinkedHashSet<>();
-    for (final Object obj : document.getIncludeOrNamespace()) {
+    for (final Object obj : doc.getIncludeOrNamespace()) {
       if (obj instanceof Include) {
         final Include include = (Include) obj;
         includes.add(include.getName());
       }
     }
     val.addIncludes(includes);
-    final List<Object> definitions = document.getExceptionOrTypedefOrService();
+    final List<Object> definitions = doc.getExceptionOrTypedefOrService();
     for (final Object definition : definitions) {
       if (definition instanceof Service) {
         translate(val, (Service) definition);
@@ -87,7 +101,7 @@ public class XMLSchemaBuilder implements SchemaBuilder {
       } else if (definition instanceof Const) {
         continue; // TODO: implement
       } else if (definition instanceof Typedef) {
-        continue; // TODO: implement
+        translate(val, (Typedef) definition);
       } else {
         throw new SchemaBuilderException(
           SchemaBuilderException.Messages.SCHEMA_102,
@@ -97,11 +111,11 @@ public class XMLSchemaBuilder implements SchemaBuilder {
     }
     return val;
   }
-  
-  public static ExceptionSchema.Builder translate(
+
+  protected ExceptionSchema.Builder translate(
         final ModuleSchema.Builder parentBuilder, 
         final ThriftException _exception
-      ) {
+      ) throws SchemaBuilderException {
     final ExceptionSchema.Builder val = parentBuilder.addException(
       _exception.getName()
     );
@@ -113,9 +127,9 @@ public class XMLSchemaBuilder implements SchemaBuilder {
     return val;
   }
   
-  public static UnionSchema.Builder translate(
+  UnionSchema.Builder translate(
       final ModuleSchema.Builder parentBuilder, 
-      final Union _union) {
+      final Union _union) throws SchemaBuilderException {
     final UnionSchema.Builder val = parentBuilder.addUnion(_union.getName());
     final List<Field> fields = _union.getField();
     for (int i = 0, c = fields.size(); i < c; i++) {
@@ -124,10 +138,10 @@ public class XMLSchemaBuilder implements SchemaBuilder {
     }
     return val;
   }
-  
-  public static StructSchema.Builder translate(
+
+  protected StructSchema.Builder translate(
       final ModuleSchema.Builder parentBuilder, 
-      final Struct _struct) {
+      final Struct _struct) throws SchemaBuilderException {
     final StructSchema.Builder val = parentBuilder.addStruct(_struct.getName());
     final List<Field> fields = _struct.getField();
     for (int i = 0, c = fields.size(); i < c; i++) {
@@ -136,8 +150,8 @@ public class XMLSchemaBuilder implements SchemaBuilder {
     }
     return val;
   }
-  
-  public static EnumSchema.Builder translate(
+
+  protected EnumSchema.Builder translate(
       final ModuleSchema.Builder parentBuilder, 
       final ThriftEnum _enum) {
     EnumSchema.Builder val = parentBuilder.addEnum(_enum.getName());
@@ -148,8 +162,8 @@ public class XMLSchemaBuilder implements SchemaBuilder {
     }
     return val;
   }
-  
-  public static EnumValueSchema.Builder translate(
+
+  protected EnumValueSchema.Builder translate(
       final EnumSchema.Builder parentBuilder, final Member field) {
     EnumValueSchema.Builder val = parentBuilder.addEnumValue(field.getName());
     /*
@@ -160,10 +174,18 @@ public class XMLSchemaBuilder implements SchemaBuilder {
     */
     return val;
   }
-  
-  public static ServiceSchema.Builder translate(
+
+  protected TypedefSchema.Builder translate(
+      final ModuleSchema.Builder parentBuilder,
+      final Typedef _typedef) throws SchemaBuilderException {
+    TypedefSchema.Builder val = parentBuilder.addTypedef(_typedef.getName());
+    val.type(translate(_typedef));
+    return val;
+  }
+
+  protected ServiceSchema.Builder translate(
       final ModuleSchema.Builder parentBuilder, 
-      final Service _service) {
+      final Service _service) throws SchemaBuilderException {
     ServiceSchema.Builder val = parentBuilder.addService(_service.getName());
     if (_service.getParentId() != null || _service.getParentModule() != null) {
       val.parentService(_service.getParentModule()+"."+_service.getParentId());
@@ -175,10 +197,10 @@ public class XMLSchemaBuilder implements SchemaBuilder {
     }
     return val;
   }
-  
-  public static MethodSchema.Builder translate(
+
+  protected MethodSchema.Builder translate(
       ServiceSchema.Builder parentBuilder, 
-      Method _method) {
+      Method _method) throws SchemaBuilderException {
     final MethodSchema.Builder val = parentBuilder
         .addMethod(_method.getName())
         .oneway(_method.isOneway() == null ? Boolean.FALSE : _method.isOneway())
@@ -196,32 +218,34 @@ public class XMLSchemaBuilder implements SchemaBuilder {
     return val;
   }
   
-  public static <B extends AbstractFieldBuilder<?, ?, PB, B>, 
+  protected <B extends AbstractFieldBuilder<?, ?, PB, B>, 
           PB extends AbstractStructSchemaBuilder<?, ?, ?, B, PB>> 
-      B translateField(PB parentBuilder, Field _field) {
+      B translateField(PB parentBuilder, Field _field) throws SchemaBuilderException {
     B field = parentBuilder.addField(_field.getName());
     _translate(field, _field);
     return field;
   }
 
-  public static MethodThrowsSchema.Builder translateThrows(
-      MethodSchema.Builder parentBuilder, Field field) {
+  protected MethodThrowsSchema.Builder translateThrows(
+      MethodSchema.Builder parentBuilder, 
+      Field field ) throws SchemaBuilderException {
     MethodThrowsSchema.Builder exc = parentBuilder.addThrows(field.getName());
     _translate(exc, field);
     return exc;
   }
 
-  public static MethodArgumentSchema.Builder translateArgument(
-      MethodSchema.Builder parentBuilder, Field field) {
+  protected MethodArgumentSchema.Builder translateArgument(
+      MethodSchema.Builder parentBuilder, 
+      Field field) throws SchemaBuilderException {
     MethodArgumentSchema.Builder arg = parentBuilder.addArgument(field.getName());
     _translate(arg, field);
     return arg;
   }
 
-  private static <T extends AbstractFieldBuilder<?, ?, ?, ?>> T _translate(
+  protected <T extends AbstractFieldBuilder<?, ?, ?, ?>> T _translate(
         final T arg, 
         final Field field
-      ) {
+      ) throws SchemaBuilderException {
     arg.identifier(field.getFieldId());
     if (field.getRequired() != null) {
       switch (field.getRequired()) {
@@ -242,17 +266,17 @@ public class XMLSchemaBuilder implements SchemaBuilder {
     return arg;
   }
 
-  public static ISchemaType translate(ThriftType ttype) {
+  protected ISchemaType translate(ThriftType ttype) throws SchemaBuilderException {
     if (ttype == null) {
       throw new IllegalArgumentException("ThriftType cannot be null");
     }
     switch (ttype.getType()) {
     case ID:
-      return ReferenceSchemaType.referTo(
-        ThriftProtocolType.UNKNOWN, // TODO: this will definitely need work
+      return schemaBuilder.referenceTo(new SchemaReference(
+        resolveSchemaReferenceType(ttype),
         ttype.getTypeModule(), 
         ttype.getTypeId()
-      );
+      ));
     case MAP:
       return new MapSchemaType(
         translate(ttype.getKeyType()),
@@ -285,4 +309,55 @@ public class XMLSchemaBuilder implements SchemaBuilder {
       throw new IllegalStateException("unknown ThriftType: " + ttype.getType());
     }
   }
+
+  private SchemaReference.Type resolveSchemaReferenceType(ThriftType ttype) {
+    final Document doc = resolveDocument(ttype.getTypeModule());
+    final String typename = ttype.getTypeId();
+    for (final Object def : doc.getExceptionOrTypedefOrService()) {
+      final String defname;
+      final Type type;
+      if (def instanceof Struct) {
+        defname = ((Struct)def).getName();
+        type = Type.STRUCT;
+      } else if (def instanceof Union) {
+        defname = ((Union)def).getName();
+        type = Type.UNION;
+      } else if (def instanceof ThriftEnum) {
+        defname = ((ThriftEnum)def).getName();
+        type = Type.ENUM;
+      } else if (def instanceof ThriftException) {
+        defname = ((ThriftException)def).getName();
+        type = Type.EXCEPTION;
+      } else if (def instanceof Typedef) {
+        defname = ((Typedef)def).getName();
+        type = Type.TYPEDEF;
+      } else {
+        continue;
+      }
+      if (typename.equals(defname)) {
+        return type;
+      }
+    }
+    throw new IllegalArgumentException(
+      "could not find ttype: " + ttype.getTypeModule() + "." + ttype.getTypeId()
+    );
+  }
+//throw new SchemaBuilderException(
+//SchemaBuilderException.Messages.SCHEMA_102,
+//definition.getClass()
+//);
+
+  private Document resolveDocument(String name) {
+    for (final Document doc : model.getDocument()) {
+      if (name.equals(doc.getName())) {
+        return doc;
+      }
+    }
+    throw new IllegalArgumentException("could not find document: " + name);
+  }
+
+  interface SchemaContextCreatedListener {
+    void schemaContextCreated(SchemaContext ctx);
+  }
+
 }

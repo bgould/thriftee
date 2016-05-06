@@ -23,17 +23,18 @@ import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct(builder=Builder.class)
-public final class MethodArgumentSchema extends AbstractFieldSchema<MethodSchema, MethodArgumentSchema> {
+public final class MethodArgumentSchema 
+    extends AbstractFieldSchema<MethodArgumentsSchema, MethodArgumentSchema> {
 
   protected MethodArgumentSchema(
-      MethodSchema _parent, 
+      MethodArgumentsSchema _parent, 
       String _name, 
       Collection<ThriftAnnotation> _annotations,
       ISchemaType _type, 
       Requiredness _required, 
       Short _identifier) throws SchemaBuilderException {
     super(
-      MethodSchema.class, 
+      MethodArgumentsSchema.class, 
       MethodArgumentSchema.class, 
       _parent, 
       _name, 
@@ -46,10 +47,10 @@ public final class MethodArgumentSchema extends AbstractFieldSchema<MethodSchema
 
   private static final long serialVersionUID = 4332069454537397041L;
 
-  public static class Builder extends AbstractFieldBuilder<
-      MethodSchema, 
+  public static class Builder extends AbstractFieldSchema.AbstractFieldBuilder<
+      MethodArgumentsSchema, 
       MethodArgumentSchema, 
-      MethodSchema.Builder, 
+      MethodArgumentsSchema.Builder, 
       MethodArgumentSchema.Builder
     > {
     
@@ -58,7 +59,7 @@ public final class MethodArgumentSchema extends AbstractFieldSchema<MethodSchema
       throw new NoArgConstructorOnlyExistsForSwiftValidationException();
     }
 
-    protected Builder(MethodSchema.Builder parentBuilder) {
+    protected Builder(MethodArgumentsSchema.Builder parentBuilder) {
       super(parentBuilder, Builder.class);
     }
 
@@ -68,7 +69,8 @@ public final class MethodArgumentSchema extends AbstractFieldSchema<MethodSchema
     }
 
     @Override
-    protected MethodArgumentSchema _buildInstance(MethodSchema _parent) throws SchemaBuilderException {
+    protected MethodArgumentSchema _buildInstance(MethodArgumentsSchema _parent)
+        throws SchemaBuilderException {
       return new MethodArgumentSchema(
         _parent, 
         getName(), 

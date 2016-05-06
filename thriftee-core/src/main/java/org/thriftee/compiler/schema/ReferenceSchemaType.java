@@ -15,47 +15,58 @@
  */
 package org.thriftee.compiler.schema;
 
-public class ReferenceSchemaType implements ISchemaType {
+import org.thriftee.compiler.schema.XMLSchemaBuilder.SchemaContextCreatedListener;
 
-  private final ThriftProtocolType protocolType;
-  
-  private final String moduleName;
-  
-  private final String typeName;
-  
-  public static ReferenceSchemaType referTo(ThriftProtocolType protocolType, String moduleName, String typeName) {
-    return new ReferenceSchemaType(protocolType, moduleName, typeName);
-  }
-  
-  protected ReferenceSchemaType(ThriftProtocolType protocolType, String moduleName, String typeName) {
+public final class ReferenceSchemaType
+    implements ISchemaType, SchemaContextCreatedListener {
+
+  private ISchemaType resolved;
+
+  private final SchemaReference reference;
+
+  public ReferenceSchemaType(final SchemaReference reference) {
     super();
-    this.protocolType = protocolType;
-    this.moduleName = moduleName;
-    this.typeName = typeName;
+    this.reference = reference;
+  }
+
+  @Override
+  public void schemaContextCreated(final SchemaContext ctx) {
+    if (this.resolved != null) {
+      throw new IllegalStateException("reference has already been resolved.");
+    }
+    this.resolved = ctx.resolveReference(reference);
   }
 
   @Override
   public String getModuleName() {
-    return this.moduleName;
+    return resolved.getModuleName();
   }
 
   @Override
   public String getTypeName() {
-    return this.typeName;
+    return resolved.getTypeName();
   }
 
   @Override
   public ThriftProtocolType getProtocolType() {
-    return this.protocolType;
+    return resolved().getProtocolType();
   }
 
   @Override
   public String toNamespacedIDL(String namespace) {
-    if (namespace != null && getModuleName() != null && namespace.equals(getModuleName())) {
-      return getTypeName();
-    } else {
-      return getModuleName() + "." + getTypeName();
+    return resolved().toNamespacedIDL(namespace);
+  }
+
+  @Override
+  public <T extends ISchemaType> T castTo(Class<T> schemaTypeClass) {
+    return resolved().castTo(schemaTypeClass);
+  }
+
+  private ISchemaType resolved() {
+    if (resolved == null) {
+      throw new IllegalStateException("schema type has not been resolved.");
     }
+    return resolved;
   }
 
 }

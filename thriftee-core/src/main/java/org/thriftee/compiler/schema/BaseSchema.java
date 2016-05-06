@@ -15,7 +15,7 @@
  */
 package org.thriftee.compiler.schema;
 
-import static org.thriftee.compiler.schema.SchemaBuilderException.Messages.*;
+import static org.thriftee.compiler.schema.SchemaBuilderException.Messages.SCHEMA_003;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -86,6 +86,11 @@ abstract class BaseSchema<P extends BaseSchema<?, ?>,
   
   public Map<String, ThriftAnnotation> getAnnotations() {
     return this.annotations;
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "[name=" + getName() + "]";
   }
 
   protected static <P extends BaseSchema<?, P>, 

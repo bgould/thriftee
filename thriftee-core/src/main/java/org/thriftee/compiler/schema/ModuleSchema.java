@@ -38,7 +38,9 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
 
   public static final int THRIFT_INDEX_EXCEPTIONS = THRIFT_INDEX_INCLUDES + 1;
 
-  public static final int THRIFT_INDEX_SERVICES = THRIFT_INDEX_EXCEPTIONS + 1;
+  public static final int THRIFT_INDEX_TYPEDEFS = THRIFT_INDEX_EXCEPTIONS + 1;
+
+  public static final int THRIFT_INDEX_SERVICES = THRIFT_INDEX_TYPEDEFS + 1;
 
   public static final int THRIFT_INDEX_STRUCTS = THRIFT_INDEX_SERVICES + 1;
 
@@ -49,6 +51,8 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
   private static final long serialVersionUID = 1973580748761800425L;
 
   private final Map<String, ExceptionSchema> exceptions;
+
+  private final Map<String, TypedefSchema> typedefs;
 
   private final Map<String, ServiceSchema> services;
 
@@ -65,6 +69,7 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
       String _name,
       Collection<String> includes,
       Collection<ExceptionSchema.Builder> _exceptions,
+      Collection<TypedefSchema.Builder> _typedefs, 
       Collection<ServiceSchema.Builder> _services, 
       Collection<StructSchema.Builder> _structs,
       Collection<UnionSchema.Builder> _unions,
@@ -72,6 +77,7 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
     super(ThriftSchema.class, ModuleSchema.class, _parent, _name, null);
     this.includes = Collections.unmodifiableSortedSet(new TreeSet<>(includes));
     this.exceptions = toMap(this, _exceptions);
+    this.typedefs = toMap(this, _typedefs);
     this.services = toMap(this, _services);
     this.structs = toMap(this, _structs);
     this.unions = toMap(this, _unions);
@@ -91,6 +97,10 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
   @ThriftField(THRIFT_INDEX_EXCEPTIONS)
   public Map<String, ExceptionSchema> getExceptions() {
     return exceptions;
+  }
+
+  public Map<String, TypedefSchema> getTypedefs() {
+    return typedefs;
   }
 
   @ThriftField(THRIFT_INDEX_SERVICES)
@@ -118,6 +128,8 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
     private final Set<String> includes = new TreeSet<>();
 
     private final List<ExceptionSchema.Builder> exceptions = new LinkedList<>();
+
+    private final List<TypedefSchema.Builder> typedefs = new LinkedList<>();
 
     private final List<ServiceSchema.Builder> services = new LinkedList<>();
 
@@ -151,31 +163,37 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
       this.exceptions.add(result);
       return result.name(_name);
     }
-    
+
+    public TypedefSchema.Builder addTypedef(final String _name) {
+      TypedefSchema.Builder result = new TypedefSchema.Builder(this);
+      this.typedefs.add(result);
+      return result.name(_name);
+    }
+
     public ServiceSchema.Builder addService(final String _name) {
       ServiceSchema.Builder result = new ServiceSchema.Builder(this);
       this.services.add(result);
       return result.name(_name);
     }
-    
+
     public StructSchema.Builder addStruct(final String _name) {
       StructSchema.Builder result = new StructSchema.Builder(this);
       this.structs.add(result);
       return result.name(_name);
     }
-    
+
     public UnionSchema.Builder addUnion(final String _name) {
       UnionSchema.Builder result = new UnionSchema.Builder(this);
       this.unions.add(result);
       return result.name(_name);
     }
-    
+
     public EnumSchema.Builder addEnum(final String _name) {
       EnumSchema.Builder result = new EnumSchema.Builder(this);
       this.enums.add(result);
       return result.name(_name);
     }
-    
+
     @Override
     protected ModuleSchema _build(ThriftSchema parent) throws SchemaBuilderException {
       super._validate();
@@ -184,6 +202,7 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
         getName(), 
         includes,
         exceptions,
+        typedefs,
         services,
         structs,
         unions,
@@ -198,6 +217,7 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
         "name",
         "includes",
         "annotations", 
+        "typedefs",
         "services", 
         "structs", 
         "unions", 
@@ -210,7 +230,7 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
     public ModuleSchema build() throws SchemaBuilderException {
       throw new NoArgConstructorOnlyExistsForSwiftValidationException();
     }
-    
+
   }
   
 }

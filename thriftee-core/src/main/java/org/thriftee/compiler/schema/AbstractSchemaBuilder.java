@@ -69,7 +69,7 @@ public abstract class AbstractSchemaBuilder<
     return this.parentBuilder;
   }
   
-  public final B name(final String _name) {
+  public B name(final String _name) {
     this.name = _name;
     return $this;
   }

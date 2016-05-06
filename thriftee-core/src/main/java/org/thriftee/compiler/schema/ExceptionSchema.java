@@ -23,32 +23,47 @@ import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct(builder=Builder.class)
-public final class ExceptionSchema extends AbstractStructSchema<ModuleSchema, ExceptionSchema, ExceptionFieldSchema, ExceptionFieldSchema.Builder> {
-  
+public final class ExceptionSchema
+    extends AbstractStructSchema< ModuleSchema,
+                                  ExceptionSchema,
+                                  ExceptionFieldSchema,
+                                  ExceptionFieldSchema.Builder > {
+
   private static final long serialVersionUID = 9173725847653740446L;
-  
+
   private ExceptionSchema(
       ModuleSchema parent, 
-      String _name, 
-      Collection<ExceptionFieldSchema.Builder> _fields, 
-      Collection<ThriftAnnotation> _annotations
+      String name, 
+      Collection<ExceptionFieldSchema.Builder> fields, 
+      Collection<ThriftAnnotation> annotations
     ) throws SchemaBuilderException {
     super(
       ModuleSchema.class, 
       ExceptionSchema.class,
-      parent, 
-      _name,
-      _fields,
-      _annotations
+      parent,
+      name,
+      fields,
+      annotations
     );
   }
-  
-  public static final class Builder extends AbstractStructSchema.AbstractStructSchemaBuilder<
-    ModuleSchema, 
-    ExceptionSchema, 
-    ModuleSchema.Builder, 
-    ExceptionFieldSchema.Builder, 
-    ExceptionSchema.Builder> {
+
+  @Override
+  public String getModuleName() {
+    return getParent().getName();
+  }
+
+  @Override
+  public String getTypeName() {
+    return getName();
+  }
+
+  public static final class Builder 
+    extends AbstractStructSchema.AbstractStructSchemaBuilder<
+      ModuleSchema, 
+      ExceptionSchema, 
+      ModuleSchema.Builder, 
+      ExceptionFieldSchema.Builder, 
+      ExceptionSchema.Builder> {
 
     public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
       this(null);
@@ -65,8 +80,14 @@ public final class ExceptionSchema extends AbstractStructSchema<ModuleSchema, Ex
     }
 
     @Override
-    protected ExceptionSchema _createStruct(ModuleSchema _parent) throws SchemaBuilderException {
-      return new ExceptionSchema(_parent, getName(), _getFields(), getAnnotations());
+    protected ExceptionSchema _createStruct(ModuleSchema _parent) 
+        throws SchemaBuilderException {
+      return new ExceptionSchema(
+        _parent,
+        getName(),
+        _getFields(),
+        getAnnotations()
+      );
     }
 
     @Override
@@ -74,7 +95,7 @@ public final class ExceptionSchema extends AbstractStructSchema<ModuleSchema, Ex
     public ExceptionSchema build() throws SchemaBuilderException {
       throw new NoArgConstructorOnlyExistsForSwiftValidationException();
     }
-    
+
   }
-  
+
 }
