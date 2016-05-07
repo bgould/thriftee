@@ -23,8 +23,9 @@ import org.thriftee.tests.AbstractThriftEETest;
 
 public class SchemaBuilderTest extends AbstractThriftEETest {
 
-  public SchemaBuilderTest() throws ThriftStartupException {
-    super();
+  @Override
+  protected boolean generateClients() {
+    return false;
   }
 
   @Test
@@ -46,6 +47,11 @@ public class SchemaBuilderTest extends AbstractThriftEETest {
     assertNotNull("universe service should not be null");
     assertEquals("nothing_all_at_once.Metaverse", service.getParentService());
     assertNotNull(service.getParentServiceSchema());
+
+    MethodSchema method = service.findMethod("grok");
+    assertNotNull(method);
+    assertNotNull(method.getReturnType());
+
 //    assertNotNull("classicmodels module must have enums", presidents.getEnums().size() > 0);
 //    LOG.debug("enums in module: {}", presidents.getEnums());
 
@@ -58,15 +64,7 @@ public class SchemaBuilderTest extends AbstractThriftEETest {
     LOG.debug("everything struct: {}", everythingStruct);
     LOG.debug("everything struct protocol type: {}", everythingStruct.getProtocolType());
     LOG.debug("fields on everything struct: {}", everythingStruct.getFields());
-/*
-    TMemoryBuffer transport = new TMemoryBuffer(1024 * 10);
-    TSimpleJSONProtocol protocol = new TSimpleJSONProtocol(transport);
-    ThriftCodec<ThriftSchema> codec = thriftCodecManager().getCodec(
-      ThriftSchema.class
-    );
-    codec.write(schema, protocol);
-    LOG.debug(transport.toString("UTF-8"));
-*/
+
   }
-  
+
 }

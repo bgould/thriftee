@@ -17,17 +17,13 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
-import org.thriftee.compiler.schema.MethodThrowsSchema.Builder;
-
 import com.facebook.swift.codec.ThriftConstructor;
-import com.facebook.swift.codec.ThriftStruct;
 
-@ThriftStruct(builder=Builder.class)
-public final class MethodThrowsSchema extends MethodResultFieldSchema {
+public final class MethodReturnsSchema extends MethodResultFieldSchema {
 
   private static final long serialVersionUID = -1297636271308306276L;
 
-  public MethodThrowsSchema(
+  public MethodReturnsSchema(
         MethodResultSchema _parent,
         String _name,
         Collection<ThriftAnnotation> _annotations,
@@ -40,18 +36,14 @@ public final class MethodThrowsSchema extends MethodResultFieldSchema {
 
   public static class Builder extends MethodResultFieldSchema.Builder {
 
-    public Builder() throws SchemaBuilderException {
-      throw new NoArgConstructorOnlyExistsForSwiftValidationException();
-    }
-
     protected Builder(MethodResultSchema.Builder parentBuilder) {
       super(parentBuilder);
     }
 
     @Override
-    protected MethodThrowsSchema _buildInstance(MethodResultSchema _parent)
+    protected MethodReturnsSchema _buildInstance(MethodResultSchema _parent)
         throws SchemaBuilderException {
-      return new MethodThrowsSchema(
+      return new MethodReturnsSchema(
         _parent, 
         getName(), 
         getAnnotations(), 
@@ -63,12 +55,12 @@ public final class MethodThrowsSchema extends MethodResultFieldSchema {
 
     @Override
     protected String _fieldTypeName() {
-      return "thrown exception";
+      return "result";
     }
 
     @Override
     @ThriftConstructor
-    public MethodThrowsSchema build() throws SchemaBuilderException {
+    public MethodReturnsSchema build() throws SchemaBuilderException {
       throw new NoArgConstructorOnlyExistsForSwiftValidationException();
     }
 

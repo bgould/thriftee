@@ -24,42 +24,53 @@ import com.facebook.swift.codec.ThriftStruct;
  * @author bcg
  */
 @ThriftStruct
-final class ThriftSchemaType implements ISchemaType {
+public final class ThriftSchemaType implements ISchemaType {
 
   public static final int THRIFT_INDEX_MODULE_NAME = 1;
 
   public static final int THRIFT_INDEX_TYPE_NAME = THRIFT_INDEX_MODULE_NAME + 1;
 
-  private final ISchemaType schemaType;
+  private final ISchemaType _schemaType;
 
   public ThriftSchemaType() throws NoArgConstructorOnlyExistsForSwiftValidationException {
     throw new NoArgConstructorOnlyExistsForSwiftValidationException();
   }
 
-  ThriftSchemaType(SchemaContext ctx, ISchemaType _schemaType) {
-    this.schemaType = _schemaType;
+  public static final ThriftSchemaType wrap(final ISchemaType schemaType) {
+    if (schemaType instanceof ThriftSchemaType) {
+      return (ThriftSchemaType) schemaType;
+    } else {
+      return new ThriftSchemaType(schemaType);
+    }
+  }
+
+  ThriftSchemaType(ISchemaType schemaType) {
+    if (schemaType == null) {
+      throw new IllegalArgumentException("schemaType cannot be null");
+    }
+    this._schemaType = schemaType;
   }
 
   @Override
   @ThriftField(THRIFT_INDEX_MODULE_NAME)
   public String getModuleName() {
-    return this.schemaType.getModuleName();
+    return this._schemaType.getModuleName();
   }
 
   @Override
   @ThriftField(THRIFT_INDEX_TYPE_NAME)
   public String getTypeName() {
-    return this.schemaType.getTypeName();
+    return this._schemaType.getTypeName();
   }
 
   @Override
   public ThriftProtocolType getProtocolType() {
-    return this.schemaType.getProtocolType();
+    return this._schemaType.getProtocolType();
   }
 
   @Override
   public String toNamespacedIDL(String _namespace) {
-    return this.schemaType.toNamespacedIDL(_namespace);
+    return this._schemaType.toNamespacedIDL(_namespace);
   }
 
   public String toString() {
@@ -71,7 +82,7 @@ final class ThriftSchemaType implements ISchemaType {
 
   @Override
   public <T extends ISchemaType> T castTo(Class<T> schemaTypeClass) {
-    return this.schemaType.castTo(schemaTypeClass);
+    return this._schemaType.castTo(schemaTypeClass);
   }
 
 }

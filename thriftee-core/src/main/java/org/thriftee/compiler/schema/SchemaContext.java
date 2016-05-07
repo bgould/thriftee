@@ -22,10 +22,10 @@ public class SchemaContext {
   SchemaContext(ThriftSchema schema) {
     this.schema = schema;
   }
-
-  ThriftSchemaType wrap(ISchemaType type) {
-    return new ThriftSchemaType(this, type);
-  }
+//
+//  ThriftSchemaType wrap(ISchemaType type) {
+//    return new ThriftSchemaType(this, type);
+//  }
 
   ModuleSchema resolveModule(String moduleName) {
     final ModuleSchema module = schema.getModules().get(moduleName);

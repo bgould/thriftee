@@ -20,7 +20,7 @@ public class MapSchemaType extends ContainerSchemaType {
   private static final long serialVersionUID = -5613803424652950927L;
 
   private final ISchemaType keyType;
-  
+
   MapSchemaType(
       final ISchemaType _keyType, 
       final ISchemaType _valueType) {

@@ -234,10 +234,10 @@ public final class XMLSchemaBuilder implements SchemaBuilder {
     return exc;
   }
 
-  protected MethodArgumentSchema.Builder translateArgument(
+  protected MethodArgumentFieldSchema.Builder translateArgument(
       MethodSchema.Builder parentBuilder, 
       Field field) throws SchemaBuilderException {
-    MethodArgumentSchema.Builder arg = parentBuilder.addArgument(field.getName());
+    MethodArgumentFieldSchema.Builder arg = parentBuilder.addArgument(field.getName());
     _translate(arg, field);
     return arg;
   }
@@ -342,10 +342,6 @@ public final class XMLSchemaBuilder implements SchemaBuilder {
       "could not find ttype: " + ttype.getTypeModule() + "." + ttype.getTypeId()
     );
   }
-//throw new SchemaBuilderException(
-//SchemaBuilderException.Messages.SCHEMA_102,
-//definition.getClass()
-//);
 
   private Document resolveDocument(String name) {
     for (final Document doc : model.getDocument()) {

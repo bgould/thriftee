@@ -48,11 +48,9 @@ import org.thriftee.compiler.schema.AbstractFieldSchema;
 import org.thriftee.compiler.schema.AbstractStructSchema;
 import org.thriftee.compiler.schema.EnumSchema;
 import org.thriftee.compiler.schema.MethodSchema;
+import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.compiler.schema.StructSchema;
 import org.thriftee.examples.Examples;
-import org.thriftee.framework.parser.ThriftParser;
-import org.thriftee.framework.parser.ThriftParserHandler;
-import org.thriftee.framework.parser.ThriftParserHandlerChain;
 import org.thriftee.framework.proxy.TProtocolProxy;
 import org.thriftee.tests.AbstractThriftEETest;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
@@ -84,13 +82,37 @@ public class ThriftParserTest extends AbstractThriftEETest {
     this.fctry = fctry;
   }
 
-  //@Test
-  public void testReadMessage() throws TException {
+  public ServiceSchema universe() {
+    return thrift().schema().findService("everything", "Universe");
+  }
+
+  @Test
+  public void testCallMessage() throws TException {
     debug(
-      "----------------------------- Entering testReadMessage() for " + 
+      "----------------------------- " + 
+      "Entering testCallMessage() for " + fctry.getClass().getName()
+    );
+    final byte[] msgBytes = createCallMessage(fctry);
+    final TMemoryInputTransport inTrans = new TMemoryInputTransport(msgBytes);
+    final TProtocol inProto = fctry.getProtocol(inTrans);
+    final ThriftParserHandler listener = new ParserListener();
+    final ThriftParser parser = new ThriftParser(
+      thrift().schema(), listener
+    );
+    parser.readMessage(universe(), inProto);
+    debug(
+      "----------------------------- " + 
+      "Exiting testCallMessage() for " + fctry.getClass().getName()
+    );
+  }
+
+  @Test
+  public void testReplyMessage() throws TException {
+    debug(
+      "----------------------------- Entering testReplyMessage() for " + 
       fctry.getClass().getName()
     );
-    final byte[] msgBytes = createMessage(fctry);
+    final byte[] msgBytes = createCallMessage(fctry);
     final TMemoryInputTransport inTrans = new TMemoryInputTransport(msgBytes);
     final TProtocol inProto = fctry.getProtocol(inTrans);
     final ThriftParserHandler listener = new ParserListener();
@@ -99,7 +121,7 @@ public class ThriftParserTest extends AbstractThriftEETest {
     );
     parser.readMessage(thrift().schema().findService("everything", "Universe"), inProto);
     debug(
-      "----------------------------- Exiting testReadMessage() for " + 
+      "----------------------------- Exiting testReplyMessage() for " + 
       fctry.getClass().getName()
     );
   }
@@ -147,7 +169,16 @@ public class ThriftParserTest extends AbstractThriftEETest {
     );
   }
 
-  byte[] createMessage(TProtocolFactory fctry) throws TException {
+  byte[] createCallMessage(TProtocolFactory fctry) throws TException {
+    final TByteArrayOutputStream baos = new TByteArrayOutputStream();
+    final Everything o = Examples.everythingStruct();
+    final TProtocol proto = fctry.getProtocol(new TIOStreamTransport(baos));
+    final Universe.Client cl = new Universe.Client.Factory().getClient(proto);
+    cl.send_grok(o);
+    return baos.toByteArray();
+  }
+
+  byte[] createReplyMessage(TProtocolFactory fctry) throws TException {
     final TByteArrayOutputStream baos = new TByteArrayOutputStream();
     final Everything o = Examples.everythingStruct();
     final TProtocol proto = fctry.getProtocol(new TIOStreamTransport(baos));

@@ -40,7 +40,7 @@ import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.compiler.schema.SetSchemaType;
 import org.thriftee.compiler.schema.ThriftSchema;
 
-public class ThriftParser {
+public final class ThriftParser {
 
   private final ThriftSchema schema;
 
@@ -63,18 +63,14 @@ public class ThriftParser {
     final AbstractStructSchema<?, ?, ?, ?> struct;
     {
       final TMessage msg = in.readMessageBegin();
-      final MethodSchema method = svc.getMethods().get(msg.name);
-      if (method == null) {
-        throw new TException(String.format(
-          "method '%s' not found{ on %s", msg.name, svc
-        ));
-      }
+      final MethodSchema method = svc.findMethod(msg.name);
       switch (msg.type) {
       case TMessageType.CALL:
-        struct = method.getArguments();
+        struct = method.getArgumentStruct();
         break;
       case TMessageType.REPLY:
-        throw new TException("reply not supported yet");
+        struct = method.getResultStruct();
+        break;
       case TMessageType.EXCEPTION:
         throw new TException("exception not supported yet");
       case TMessageType.ONEWAY:
@@ -120,24 +116,21 @@ public class ThriftParser {
     listener.onStructEnd();
   }
 
-  public void readMap(MapSchemaType type, TProtocol in) throws TException {
+  private void readMap(MapSchemaType type, TProtocol in) throws TException {
     final TMap map = in.readMapBegin();
     listener.onMapBegin(map);
     for (int i = 0; i < map.size; i++) {
       readValue(type.getKeyType(), in);
       readValue(type.getValueType(), in);
-//      readValue(schema.resolveType(type.getKeyType()), in);
-//      readValue(schema.resolveType(type.getValueType()), in);
     }
     in.readMapEnd();
     listener.onMapEnd();
   }
 
-  public void readSet(SetSchemaType type, TProtocol in) throws TException {
+  private void readSet(SetSchemaType type, TProtocol in) throws TException {
     final TSet set = in.readSetBegin();
     listener.onSetBegin(set);
     final ISchemaType resolved = type.getValueType();
-    //final ISchemaType resolved = schema.resolveType(type.getValueType());
     for (int i = 0; i < set.size; i++) {
       readValue(resolved, in);
     }
@@ -145,11 +138,10 @@ public class ThriftParser {
     listener.onSetEnd();
   }
 
-  public void readList(ListSchemaType type, TProtocol in) throws TException {
+  private void readList(ListSchemaType type, TProtocol in) throws TException {
     final TList list = in.readListBegin();
     listener.onListBegin(list);
     final ISchemaType resolved = type.getValueType();
-    //final ISchemaType resolved = schema.resolveType(type.getValueType());
     for (int i = 0; i < list.size; i++) {
       readValue(resolved, in);
     }
@@ -157,7 +149,7 @@ public class ThriftParser {
     listener.onListEnd();
   }
 
-  public void readValue(
+  private void readValue(
       final ISchemaType type, 
       final TProtocol in) throws TException {
     switch (type.getProtocolType()) {

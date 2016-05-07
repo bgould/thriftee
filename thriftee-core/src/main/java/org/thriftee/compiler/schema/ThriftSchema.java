@@ -144,6 +144,18 @@ public final class ThriftSchema extends BaseSchema<ThriftSchema, ThriftSchema> {
       return result;
     }
 
+    public MapSchemaType map(ISchemaType keyType, ISchemaType valueType) {
+      return new MapSchemaType(keyType, valueType);
+    }
+
+    public SetSchemaType set(ISchemaType valueType) {
+      return new SetSchemaType(valueType);
+    }
+
+    public ListSchemaType list(ISchemaType valueType) {
+      return new ListSchemaType(valueType);
+    }
+
     @Override
     protected ThriftSchema _build(ThriftSchema parent) throws SchemaBuilderException {
       super._validate();

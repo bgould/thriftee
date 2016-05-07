@@ -15,8 +15,9 @@
  */
 package org.thriftee.compiler.schema;
 
-import java.nio.file.attribute.AclEntry.Builder;
 import java.util.Collection;
+
+import org.thriftee.compiler.schema.TypedefSchema.Builder;
 
 import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftField;
@@ -31,7 +32,7 @@ public class TypedefSchema
 
   public static final int THRIFT_INDEX_NAME = 1;
 
-  private final ThriftSchemaType _type;
+  private final ISchemaType _type;
   
   public TypedefSchema(
         final ModuleSchema parent,
@@ -49,7 +50,7 @@ public class TypedefSchema
     if (type == null) {
       throw new IllegalArgumentException("type cannot be null.");
     }
-    this._type = getSchemaContext().wrap(type);
+    this._type = type; //getSchemaContext().wrap(type);
   }
 
   @Override
@@ -72,7 +73,6 @@ public class TypedefSchema
   public ThriftProtocolType getProtocolType() {
     return _type.getProtocolType();
   }
-
 
   public static class Builder extends AbstractSchemaBuilder<
       ModuleSchema,

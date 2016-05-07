@@ -23,62 +23,65 @@ import com.facebook.swift.codec.ThriftConstructor;
 import com.facebook.swift.codec.ThriftStruct;
 
 @ThriftStruct(builder=Builder.class)
-public final class MethodArgumentSchema 
-    extends AbstractFieldSchema<MethodArgumentsSchema, MethodArgumentSchema> {
+public final class MethodArgumentSchema extends AbstractStructSchema<MethodSchema, MethodArgumentSchema, MethodArgumentFieldSchema, MethodArgumentFieldSchema.Builder> {
 
-  protected MethodArgumentSchema(
-      MethodArgumentsSchema _parent, 
+  private static final long serialVersionUID = 9173725847653740446L;
+
+  private MethodArgumentSchema(
+      MethodSchema parent, 
       String _name, 
-      Collection<ThriftAnnotation> _annotations,
-      ISchemaType _type, 
-      Requiredness _required, 
-      Short _identifier) throws SchemaBuilderException {
+      Collection<MethodArgumentFieldSchema.Builder> _fields, 
+      Collection<ThriftAnnotation> _annotations
+    ) throws SchemaBuilderException {
     super(
-      MethodArgumentsSchema.class, 
-      MethodArgumentSchema.class, 
-      _parent, 
-      _name, 
-      _annotations, 
-      _type, 
-      _required, 
-      _identifier
+      MethodSchema.class, 
+      MethodArgumentSchema.class,
+      parent, 
+      _name,
+      _fields,
+      _annotations
     );
   }
 
-  private static final long serialVersionUID = 4332069454537397041L;
 
-  public static class Builder extends AbstractFieldSchema.AbstractFieldBuilder<
-      MethodArgumentsSchema, 
-      MethodArgumentSchema, 
-      MethodArgumentsSchema.Builder, 
-      MethodArgumentSchema.Builder
-    > {
-    
+  @Override
+  public String getModuleName() {
+    return getParent().getParent().getParent().getName();
+  }
+
+  @Override
+  public String getTypeName() {
+    return getParent().getParent().getName() + "." + getName();
+  }
+
+  public static final class Builder extends AbstractStructSchema.AbstractStructSchemaBuilder<
+    MethodSchema, 
+    MethodArgumentSchema, 
+    MethodSchema.Builder, 
+    MethodArgumentFieldSchema.Builder, 
+    MethodArgumentSchema.Builder> {
+
     public Builder() throws NoArgConstructorOnlyExistsForSwiftValidationException {
       this(null);
       throw new NoArgConstructorOnlyExistsForSwiftValidationException();
     }
 
-    protected Builder(MethodArgumentsSchema.Builder parentBuilder) {
+    protected Builder(MethodSchema.Builder parentBuilder) {
       super(parentBuilder, Builder.class);
     }
 
     @Override
-    protected String _fieldTypeName() {
-      return "argument";
+    protected MethodArgumentFieldSchema.Builder _createFieldBuilder() {
+      return new MethodArgumentFieldSchema.Builder(this);
     }
 
     @Override
-    protected MethodArgumentSchema _buildInstance(MethodArgumentsSchema _parent)
-        throws SchemaBuilderException {
-      return new MethodArgumentSchema(
-        _parent, 
-        getName(), 
-        getAnnotations(), 
-        getType(), 
-        getRequiredness(), 
-        getIdentifier()
-      );
+    protected MethodArgumentSchema _createStruct(MethodSchema _parent) throws SchemaBuilderException {
+      return new MethodArgumentSchema(_parent, getName(), _getFields(), getAnnotations());
+    }
+
+    public MethodArgumentFieldSchema.Builder addArgument(String _name) {
+      return addField(_name);
     }
 
     @Override
@@ -88,5 +91,5 @@ public final class MethodArgumentSchema
     }
 
   }
-  
+
 }

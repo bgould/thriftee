@@ -17,18 +17,18 @@ package org.thriftee.compiler.schema;
 
 import java.io.Serializable;
 
-
-public abstract class ContainerSchemaType extends AbstractSchemaType 
-    implements ISchemaType, Serializable {
+public abstract class ContainerSchemaType implements ISchemaType, Serializable {
 
   private static final long serialVersionUID = 34730300350398087L;
 
   private final ISchemaType valueType;
 
+  private final ThriftProtocolType protocolType;
+
   protected ContainerSchemaType(
       final ThriftProtocolType protocolType, final ISchemaType valueType) {
-    super(protocolType);
     this.valueType = valueType;
+    this.protocolType = protocolType;
   }
 
   public final ISchemaType getValueType() {
@@ -43,6 +43,16 @@ public abstract class ContainerSchemaType extends AbstractSchemaType
   @Override
   public final String getModuleName() {
     return null;
+  }
+
+  @Override
+  public final ThriftProtocolType getProtocolType() {
+    return this.protocolType;
+  }
+
+  @Override
+  public final <T extends ISchemaType> T castTo(Class<T> schemaTypeClass) {
+    return schemaTypeClass.cast(this);
   }
 
 }

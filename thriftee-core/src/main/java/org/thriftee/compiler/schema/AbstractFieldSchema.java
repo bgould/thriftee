@@ -22,55 +22,41 @@ import org.thriftee.compiler.schema.SchemaBuilderException.Messages;
 import com.facebook.swift.codec.ThriftEnum;
 import com.facebook.swift.codec.ThriftField;
 
-public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends BaseSchema<P, T>> extends BaseSchema<P, T> {
+public abstract class AbstractFieldSchema<
+    P extends BaseSchema<?, ?>,
+    T extends BaseSchema<P, T>
+  > extends BaseSchema<P, T> {
 
   public static final int THRIFT_INDEX_NAME = 1;
-  
+
   public static final int THRIFT_INDEX_IDENTIFIER = THRIFT_INDEX_NAME + 1;
-  
+
   public static final int THRIFT_INDEX_TYPE = THRIFT_INDEX_IDENTIFIER + 1;
-  
+
   public static final int THRIFT_INDEX_REQUIRED = THRIFT_INDEX_TYPE + 1;
-  
+
   public static final int THRIFT_INDEX_ANNOTATIONS = THRIFT_INDEX_REQUIRED + 1;
-  
-  private final Short identifier;
 
-  private final ThriftSchemaType type;
+  private final Short _identifier;
 
-  private final Requiredness requiredness;
+  private final ThriftSchemaType _type;
 
-  //private final ConstantValue defaultValue;
+  private final Requiredness _requiredness;
 
   protected AbstractFieldSchema(
-      Class<P> parentClass,
-      Class<T> thisClass,
-      P _parent, 
-      String _name, 
-      Collection<ThriftAnnotation> _annotations,
-      ISchemaType _type, 
-      Requiredness _required, 
-      Short _identifier) throws SchemaBuilderException {
-    super(parentClass, thisClass, _parent, _name, _annotations);
-    this.type = getSchemaContext().wrap(_type);
-    this.requiredness = _required == null ? Requiredness.NONE : _required;
-    this.identifier = _identifier; 
+      final Class<P> parentClass,
+      final Class<T> thisClass,
+      final P parent, 
+      final String name, 
+      final Collection<ThriftAnnotation> annotations,
+      final ISchemaType type, 
+      final Requiredness required, 
+      final Short identifier) throws SchemaBuilderException {
+    super(parentClass, thisClass, parent, name, annotations);
+    this._type = ThriftSchemaType.wrap(type);
+    this._requiredness = required == null ? Requiredness.NONE : required;
+    this._identifier = identifier; 
   }
-
-  /*verifyAndConvertToInteger(_identifier);
-  }
-
-  private final Integer verifyAndConvertToInteger(Long _identifier) {
-    if (_identifier == null) {
-      return null;
-    }
-    if (_identifier.longValue() > Integer.MAX_VALUE || _identifier.longValue() < Integer.MIN_VALUE) {
-      throw new IllegalArgumentException(
-        "Loss of precision would have occurred on conversion from long to int.");
-    } else {
-      return _identifier.intValue();
-    }
-  }*/
 
   @ThriftField(THRIFT_INDEX_NAME)
   public String getName() {
@@ -79,17 +65,17 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
 
   @ThriftField(THRIFT_INDEX_IDENTIFIER)
   public Short getIdentifier() {
-    return identifier;
+    return _identifier;
   }
 
   @ThriftField(THRIFT_INDEX_TYPE)
   public ThriftSchemaType getType() {
-    return type;
+    return _type;
   }
 
   @ThriftField(THRIFT_INDEX_REQUIRED)
   public Requiredness getRequiredness() {
-    return requiredness;
+    return _requiredness;
   }
 
   @Override
@@ -118,11 +104,11 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
   > extends AbstractSchemaBuilder<Parent, This, ParentBuilder, Builder> {
 
     private Requiredness required;
-    
+
     private ISchemaType type;
-    
+
     private Short identifier;
-    
+
     protected AbstractFieldBuilder(
         final ParentBuilder parentBuilder, final Class<Builder> thisClass) {
       super(parentBuilder, thisClass);
@@ -137,34 +123,34 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
       this.required = required;
       return $this;
     }
-    
+
     public final Builder identifier(Short _identifier) {
       this.identifier = _identifier;
       return $this;
     }
-    
+
     public final Builder identifier(Integer _identifier) {
       this.identifier = _identifier.shortValue();
       return $this;
     }
-    
+
     public final Builder identifier(Long _identifier) {
       this.identifier = _identifier.shortValue();
       return $this;
     }
-    
+
     protected final ISchemaType getType() {
       return this.type;
     }
-    
+
     protected final Requiredness getRequiredness() {
       return this.required;
     }
-    
+
     protected final Short getIdentifier() {
       return this.identifier;
     }
-    
+
     @Override
     protected This _build(Parent _parent) throws SchemaBuilderException {
       super._validate();
@@ -174,9 +160,9 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
       This result = _buildInstance(_parent);
       return result;
     }
-    
+
     protected abstract String _fieldTypeName();
-    
+
     protected abstract This _buildInstance(Parent _parent)
         throws SchemaBuilderException;
 
@@ -188,5 +174,5 @@ public abstract class AbstractFieldSchema<P extends BaseSchema<?, ?>, T extends 
     }
 
   }
-  
+
 }

@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.thrift.TException;
 import org.thriftee.compiler.schema.ServiceSchema.Builder;
 
 import com.facebook.swift.codec.ThriftConstructor;
@@ -77,6 +78,18 @@ public final class ServiceSchema extends BaseSchema<ModuleSchema, ServiceSchema>
   @ThriftField(THRIFT_INDEX_METHODS)
   public Map<String, MethodSchema> getMethods() {
     return methods;
+  }
+
+  public MethodSchema findMethod(String name) throws TException {
+    for (ServiceSchema svc = this; svc != null; svc = svc.getParentServiceSchema()) {
+      final MethodSchema method = svc.getMethods().get(name);
+      if (method != null) {
+        return method;
+      }
+    }
+    throw new TException(String.format(
+      "method '%s' not found on %s", name, getModule()+"."+getName()
+    ));
   }
 
   public ServiceSchema getParentServiceSchema() {

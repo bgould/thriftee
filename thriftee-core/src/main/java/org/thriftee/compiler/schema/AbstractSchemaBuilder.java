@@ -96,7 +96,7 @@ public abstract class AbstractSchemaBuilder<
   
   protected void _validate() throws SchemaBuilderException {
     if (name == null || name.trim().equals("")) {
-      throw new SchemaBuilderException(SCHEMA_001, $thisClass.getSimpleName());
+      throw new SchemaBuilderException(SCHEMA_001, $thisClass.getName());
     }
     final HashSet<String> annotationNames = new HashSet<String>();
     for (ThriftAnnotation annotation : getAnnotations()) {

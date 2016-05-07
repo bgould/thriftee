@@ -84,7 +84,7 @@ public class Examples {
 
 
   public static grok_result grokResult() {
-    return new grok_result(42, null);
+    return new grok_result(42, null, null, null);
   }
 
   public static grok_result grokError() {
