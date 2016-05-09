@@ -241,8 +241,9 @@ function Client(server, callback) {
   server.init(function () {
     var mplex = new Thrift.Multiplexer(),
         trans = new Thrift.Transport(server.endpoint),
-        svcnm = 'org_thriftee_compiler_schema.ThriftSchemaService';
-    mplex.createClient(svcnm, ThriftSchemaServiceClient, trans).getSchema(
+        svcnm = 'org_thriftee_compiler_schema.ThriftSchemaService',
+        svccl = org.thriftee.compiler.schema.ThriftSchemaServiceClient;
+    mplex.createClient(svcnm, svccl, trans).getSchema(
       function on_schema_loaded(schema) {
         var svcs = {};
         for (var i in schema.modules) {
@@ -253,7 +254,23 @@ function Client(server, callback) {
             var module = schema.modules[i];
             for (var serviceName in module.services) {
               if (module.services.hasOwnProperty(serviceName)) {
-                var svcClient = window[serviceName + 'Client'],
+                var findobj = function(ctx, str) {
+                  if (!ctx || !str) {
+                    return null;
+                  }
+                  var nextdash = str.indexOf('_');
+                  if (nextdash < 0) {
+                    return ctx[str];
+                  }
+                  var thispart = str.substring(0, nextdash),
+                      nextpart = str.substring(nextdash + 1);
+                  return findobj(ctx[thispart], nextpart);
+                };
+                var ctxobj = findobj(window, module.name);
+                if (!ctxobj) {
+                  console.warn("could not find: " + module.name, serviceName);
+                }
+                var svcClient = ctxobj[serviceName + 'Client'],
                     clientName = i + '.' + serviceName;
                 if (typeof(svcClient) === 'function') {
                   Object.defineProperty(svcs[i], serviceName, {

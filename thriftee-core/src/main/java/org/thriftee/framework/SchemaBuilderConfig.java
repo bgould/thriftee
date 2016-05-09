@@ -17,11 +17,13 @@ package org.thriftee.framework;
 
 import java.io.File;
 
+import org.thriftee.thrift.compiler.ThriftCompiler;
+
 public interface SchemaBuilderConfig {
 
   File thriftLibDir();
 
-  File thriftExecutable();
+  ThriftCompiler thriftCompiler();
 
   String thriftVersionString();
 

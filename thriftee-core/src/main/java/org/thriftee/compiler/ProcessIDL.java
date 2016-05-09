@@ -30,15 +30,24 @@ public class ProcessIDL {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private static final ThriftCompiler compiler = ThriftCompiler.newCompiler();
+  private final ThriftCompiler compiler;
 
   private File thriftLibDir;
 
   private PostProcessor postProcessor;
 
-  public ProcessIDL() {}
+  public ProcessIDL(final ThriftCompiler compiler) {
+    if (compiler == null) {
+      throw new IllegalArgumentException("compiler cannot be null");
+    }
+    this.compiler = compiler;
+  }
 
-  public ProcessIDL(File thriftLibDir, PostProcessor postProcessor) {
+  public ProcessIDL(
+      final ThriftCompiler compiler, 
+      final File thriftLibDir, 
+      final PostProcessor postProcessor) {
+    this(compiler);
     this.thriftLibDir = thriftLibDir;
     this.postProcessor = postProcessor;
   }

@@ -135,8 +135,8 @@ public class ThriftEEServlet extends ServerServlet {
     }
     final ServletContext ctx = getServletContext();
     final File tempDir = (File) ctx.getAttribute(ServletContext.TEMPDIR);
-    final File thriftExecutable = readThriftExecutable();
-    final File thriftLibDir = readThriftLibDir();
+//    final File thriftExecutable = readThriftExecutable();
+//    final File thriftLibDir = readThriftLibDir();
     final ServiceLocator serviceLocator = createServiceLocator();
     final ThriftEEConfig.Builder builder = new ThriftEEConfig.Builder()
       .tempDir(tempDir)

@@ -17,8 +17,6 @@ package org.thriftee.compiler.schema;
 
 import java.util.Collection;
 
-import com.facebook.swift.codec.ThriftConstructor;
-
 public abstract class MethodResultFieldSchema 
     extends AbstractFieldSchema<MethodResultSchema, MethodResultFieldSchema> {
 

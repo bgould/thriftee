@@ -29,89 +29,9 @@ import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.util.Strings;
 
 public class ThriftCommand {
-  
+
   public static enum Generate {
-    /*
-    Available generators (and options):
-        as3 (AS3):
-        bindable:      Add [bindable] metadata to all the struct classes.
-        c_glib (C, using GLib):
-        cocoa (Cocoa):
-        log_unexpected:  Log every time an unexpected field ID or type is encountered.
-        validate_required:
-                 Throws exception if any required field is not set.
-        cpp (C++):
-        cob_style:     Generate "Continuation OBject"-style classes.
-        no_client_completion:
-                 Omit calls to completion__() in CobClient class.
-        no_default_operators:
-                 Omits generation of default operators ==, != and <
-        templates:     Generate templatized reader/writer methods.
-        pure_enums:    Generate pure enums instead of wrapper classes.
-        dense:       Generate type specifications for the dense protocol.
-        include_prefix:  Use full include paths in generated files.
-        csharp (C#):
-        async:       Adds Async support using Task.Run.
-        asyncctp:    Adds Async CTP support using TaskEx.Run.
-        wcf:       Adds bindings for WCF to generated classes.
-        serial:      Add serialization support to generated classes.
-        nullable:    Use nullable types for properties.
-        hashcode:    Generate a hashcode and equals implementation for classes.
-        union:       Use new union typing, which includes a static read function for union types.
-        d (D):
-        delphi (delphi):
-        ansistr_binary:  Use AnsiString for binary datatype (default is TBytes).
-        register_types:  Enable TypeRegistry, allows for creation of struct, union
-                 and container instances by interface or TypeInfo()
-        constprefix:   Name TConstants classes after IDL to reduce ambiguities
-        events:      Enable and use processing events in the generated code.
-        erl (Erlang):
-        go (Go):
-        package_prefix= Package prefix for generated files.
-        thrift_import=  Override thrift package import path (default:git.apache.org/thrift.git/lib/go/thrift)
-        gv (Graphviz):
-        exceptions:    Whether to draw arrows from functions to exception.
-        hs (Haskell):
-        html (HTML):
-        standalone:    Self-contained mode, includes all CSS in the HTML files.
-                 Generates no style.css file, but HTML files will be larger.
-        java (Java):
-        beans:       Members will be private, and setter methods will return void.
-        private-members: Members will be private, but setter methods will return 'this' like usual.
-        nocamel:     Do not use CamelCase field accessors with beans.
-        android_legacy:  Do not use java.io.IOException(throwable) (available for Android 2.3 and above).
-        java5:       Generate Java 1.5 compliant code (includes android_legacy flag).
-        sorted_containers:
-                 Use TreeSet/TreeMap instead of HashSet/HashMap as a implementation of set/map.
-        javame (Java ME):
-        js (Javascript):
-        jquery:      Generate jQuery compatible code.
-        node:      Generate node.js compatible code.
-        ocaml (OCaml):
-        perl (Perl):
-        php (PHP):
-        inlined:     Generate PHP inlined files
-        server:      Generate PHP server stubs
-        oop:       Generate PHP with object oriented subclasses
-        rest:      Generate PHP REST processors
-        py (Python):
-        new_style:     Generate new-style classes.
-        twisted:     Generate Twisted-friendly RPC services.
-        tornado:     Generate code for use with Tornado.
-        utf8strings:   Encode/decode strings using utf8 in the generated code.
-        slots:       Generate code using slots for instance members.
-        dynamic:     Generate dynamic code, less code generated but slower.
-        dynbase=CLS    Derive generated classes from class CLS instead of TBase.
-        dynexc=CLS     Derive generated exceptions from CLS instead of TExceptionBase.
-        dynimport='from foo.bar import CLS'
-                 Add an import line to generated code to find the dynbase class.
-        rb (Ruby):
-        rubygems:    Add a "require 'rubygems'" line to the top of each generated file.
-        st (Smalltalk):
-        xsd (XSD):
 
-
-     */
     AS3("AS3"),
     C_GLIB("C, using Glib"),
     COCOA("Cocoa"),
@@ -137,59 +57,53 @@ public class ThriftCommand {
     XML("XML"),
     XSD("XSD")
     ;
-    
+
     public final String option;
-    
+
     public final String description;
-        
+
     private Generate(String description) {
       this.description = description;
       this.option = name().toLowerCase();
     }
 
     public static final class Flag implements Comparable<Flag> {
-      
-      public static final Flag GV_EXCEPTIONS      =  new Flag( GV,  "exceptions",    "Whether to draw arrows from functions to exception.",                false );
-      
-      public static final Flag HTML_STANDALONE     =  new Flag( HTML,  "standalone",    "Self-contained mode, includes all CSS in the HTML files. Generates no style.css file, but HTML files will be larger.", false);
-      
-      public static final Flag JAVA_BEANS        =  new Flag( JAVA,  "beans",      "Members will be private, and setter methods will return void.",          false );
-      public static final Flag JAVA_PRIVATE_MEMBERS  =  new Flag( JAVA,  "private-members",  "Members will be private, but setter methods will return 'this' like usual.",    false );
-      public static final Flag JAVA_NOCAMEL      =  new Flag( JAVA,  "nocamel",      "Do not use CamelCase field accessors with beans.",                  false );
-      public static final Flag JAVA_ANDROID_LEGACY  =  new Flag( JAVA,  "android_legacy",  "Do not use java.io.IOException(throwable) (available for Android 2.3 and above).",  false );
-      public static final Flag JAVA_JAVA5        =  new Flag( JAVA,  "java5",      "Generate Java 1.5 compliant code (includes android_legacy flag).",          false );
-      
-      public static final Flag JS_JQUERY        =  new Flag( JS,  "jquery",      "Generate jQuery compatible code",                          false );
-      public static final Flag JS_NODE        =  new Flag( JS,  "node",        "Generate node.js compatible code",                          false );
-      
-      public static final Flag PHP_INLINED       =  new Flag( PHP,  "inlined",       "Generate PHP inlined files",                             false );
-      public static final Flag PHP_SERVER       =  new Flag( PHP,  "server",       "Generate PHP server stubs",                             false );
-      public static final Flag PHP_AUTOLOAD      =   new Flag( PHP,  "autoload",      "Generate PHP with autoload",                             false );
-      public static final Flag PHP_OOP         =  new Flag( PHP,  "oop",         "Generate PHP with object oriented subclasses",                   false );
-      public static final Flag PHP_REST         =  new Flag( PHP,  "rest",       "Generate PHP REST processors",                           false );
-      public static final Flag PHP_NAMESPACE       =   new Flag( PHP,  "namespace",     "Generate PHP namespaces as defined in PHP >= 5.3",                 false );
-      
-      public static final Flag RB_RUBYGEMS       =   new Flag( RB,  "rubygems",     "Add a \"require 'rubygems'\" line to the top of each generated file.",       false );
 
-      public static final Flag XML_MERGE = new Flag(XML, "merge", "Generate output with included files merged", false);
+      public static final Flag GV_EXCEPTIONS         = new Flag( false, GV,   "exceptions",      "Whether to draw arrows from functions to exception.");
+      public static final Flag HTML_STANDALONE       = new Flag( false, HTML, "standalone",      "Self-contained mode, includes all CSS in the HTML files. Generates no style.css file, but HTML files will be larger.");
+      public static final Flag JAVA_BEANS            = new Flag( false, JAVA, "beans",           "Members will be private, and setter methods will return void.");
+      public static final Flag JAVA_PRIVATE_MEMBERS  = new Flag( false, JAVA, "private-members", "Members will be private, but setter methods will return 'this' like usual.");
+      public static final Flag JAVA_NOCAMEL          = new Flag( false, JAVA, "nocamel",         "Do not use CamelCase field accessors with beans.");
+      public static final Flag JAVA_ANDROID_LEGACY   = new Flag( false, JAVA, "android_legacy",  "Do not use java.io.IOException(throwable) (available for Android 2.3 and above).");
+      public static final Flag JAVA_JAVA5            = new Flag( false, JAVA, "java5",           "Generate Java 1.5 compliant code (includes android_legacy flag).");
+      public static final Flag JS_JQUERY             = new Flag( false, JS,   "jquery",          "Generate jQuery compatible code");
+      public static final Flag JS_NODE               = new Flag( false, JS,   "node",            "Generate node.js compatible code");
+      public static final Flag PHP_INLINED           = new Flag( false, PHP,  "inlined",         "Generate PHP inlined files");
+      public static final Flag PHP_SERVER            = new Flag( false, PHP,  "server",          "Generate PHP server stubs");
+      public static final Flag PHP_AUTOLOAD          = new Flag( false, PHP,  "autoload",        "Generate PHP with autoload");
+      public static final Flag PHP_OOP               = new Flag( false, PHP,  "oop",             "Generate PHP with object oriented subclasses");
+      public static final Flag PHP_REST              = new Flag( false, PHP,  "rest",            "Generate PHP REST processors");
+      public static final Flag PHP_NAMESPACE         = new Flag( false, PHP,  "namespace",       "Generate PHP namespaces as defined in PHP >= 5.3");
+      public static final Flag RB_RUBYGEMS           = new Flag( false, RB,   "rubygems",        "Add a \"require 'rubygems'\" line to the top of each generated file.");
+      public static final Flag XML_MERGE             = new Flag( false, XML,  "merge",           "Generate output with included files merged");
 
       public final String name;
 
       public final String key;
-      
+
       public final String description;
-      
+
       public final Generate language;
-      
+
       public final boolean requiresValue;
-      
+
       public final String displayName; 
-      
+
       private Flag(
+          boolean requiresValue,
           Generate lang, 
           String key, 
-          String description, 
-          boolean requiresValue
+          String description
         ) {
         this.name = makeName(lang, key);
         this.language = lang;
@@ -237,57 +151,34 @@ public class ThriftCommand {
 
   }
 
-  public static String getDefaultExecutableName() {
-    return System.getProperty("os.name").startsWith("Windows") 
-      ? WINDOWS_EXECUTABLE 
-      : DEFAULT_EXECUTABLE;
-  }
-  
-  public static String searchPathForThrift() {
-    final String path = System.getenv("PATH");
-    final String[] parts = Strings.split(path, File.pathSeparatorChar);
-    final String executable = getDefaultExecutableName();
-    for (String part : parts) {
-      final File possible = new File(part, executable);
-      if (possible.exists() && possible.canExecute()) {
-        return possible.getAbsolutePath();
-      }
-    }
-    return executable;
-  }
-  
-  public static final String WINDOWS_EXECUTABLE = "thrift.exe";
-  
-  public static final String DEFAULT_EXECUTABLE = "thrift";
-    
-  private String thriftCommand = searchPathForThrift();
-  
+  private String thriftCommand = "thrift";
+
   private String outputDirectory;
-  
+
   private String outputLocation;
-  
+
   private List<String> includeDirectories = new ArrayList<String>();
-  
+
   private boolean noWarn;
-  
+
   private boolean strict = false;
-  
+
   private boolean verbose = false;
-  
+
   private boolean recurse = false;
-  
+
   private boolean debug = false;
-  
+
   private boolean allowNegativeFieldKeys = false;
-  
+
   private boolean allow64bitConsts = false;
-  
+
   private String thriftFile = "\"<output file>\"";
-  
+
   private final Generate language;
-  
+
   private Map<Flag, String> generateFlags = new HashMap<Flag, String>();
- 
+
   public ThriftCommand(ClientTypeAlias alias) {
     this.language = alias.getLanguage();
     for (final Flag flag : alias.getFlags()) {
@@ -297,25 +188,13 @@ public class ThriftCommand {
 
   public ThriftCommand(Generate lang) {
     this.language = lang;
-    setDefaultThriftCommand();
   }
-  
+
   public ThriftCommand(Generate lang, String thriftFile) {
     this(lang);
     this.thriftFile = thriftFile;
   }
-  
-  protected void setDefaultThriftCommand() {
-    if (System.getenv().containsKey("THRIFT_CMD")) {
-      setThriftCommand(System.getenv("THRIFT_CMD"));
-      return;
-    }
-    if (System.getProperties().containsKey("thriftee.command")) {
-      setThriftCommand(System.getProperty("thriftee.command"));
-      return;
-    }
-  }
-  
+
   public void addFlag(Flag flag) {
     addFlag(flag, null);
   }
@@ -338,7 +217,7 @@ public class ThriftCommand {
     }
     this.generateFlags.put(flag, value);
   }
-  
+
   public boolean isNoWarn() {
     return noWarn;
   }
@@ -394,7 +273,7 @@ public class ThriftCommand {
   public void setAllow64bitConsts(boolean allow64bitConsts) {
     this.allow64bitConsts = allow64bitConsts;
   }
-  
+
   public void setOutputDirectory(File file) {
     if (file == null) {
       setOutputDirectory((String) null);
@@ -402,7 +281,7 @@ public class ThriftCommand {
       setOutputDirectory(file.getAbsolutePath());
     }
   }
-  
+
   public String getOutputDirectory() {
     return outputDirectory;
   }
@@ -410,7 +289,7 @@ public class ThriftCommand {
   public void setOutputDirectory(String outputDirectory) {
     this.outputDirectory = outputDirectory;
   }
-  
+
   public void setOutputLocation(File file) {
     if (file == null) {
       setOutputLocation((String) null);
@@ -426,7 +305,7 @@ public class ThriftCommand {
   public void setOutputLocation(String outputLocation) {
     this.outputLocation = outputLocation;
   }
-  
+
   public String getThriftCommand() {
     return thriftCommand;
   }
@@ -437,18 +316,18 @@ public class ThriftCommand {
     }
     this.thriftCommand = thriftCommand;
   }
-  
+
   public String getThriftFile() {
     return thriftFile;
   }
 
   public void setThriftFile(String thriftFile) {
-    if (Strings.isBlank(thriftCommand)) {
+    if (Strings.isBlank(thriftFile)) {
       throw new IllegalArgumentException("thriftFile cannot be blank");
     }
     this.thriftFile = thriftFile;
   }
-  
+
   public void setThriftFile(File thriftFile) {
     if (thriftFile == null) {
       throw new IllegalArgumentException("thriftFile cannot be blank");
@@ -475,7 +354,7 @@ public class ThriftCommand {
     }
     return gstr.toString();
   }
-  
+
   public List<String> extraOptions() {
     List<String> opts = new LinkedList<String>();
     if (this.outputDirectory != null) {
@@ -513,7 +392,7 @@ public class ThriftCommand {
     }
     return opts;
   }
-  
+
   public List<String> command() {
     List<String> extraOptions = extraOptions();
     List<String> command = new ArrayList<String>(extraOptions.size() + 5);
@@ -528,37 +407,37 @@ public class ThriftCommand {
     );
     return command;
   }
-  
+
   public String commandString() {
     return Strings.join(command(), ' ');
   }
-  
+
   public List<String> versionCommand() {
     List<String> command = new ArrayList<String>(2);
     command.add(escape(this.thriftCommand));
     command.add("-version");
     return command;
   }
-  
+
   public String versionCommandString() {
     return Strings.join(versionCommand(), ' ');
   }
-  
+
   public List<String> helpCommand() {
     List<String> command = new ArrayList<String>(2);
     command.add(escape(this.thriftCommand));
     command.add("-help");
     return command;
   }
-  
+
   public String helpCommandString() {
     return Strings.join(helpCommand(), ' ');
   }
-  
+
   public String toString() {
     return "ThriftCommand[" + commandString() + "]";
   }
-  
+
   protected String escape(String value) {
     if (value.contains(" ")) {
       return new StringBuilder()

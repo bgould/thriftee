@@ -84,8 +84,8 @@ public class ThriftEE implements SchemaBuilderConfig {
     return this.thriftLibDir;
   }
 
-  public File thriftExecutable() {
-    return this.thriftExecutable;
+  public ThriftCompiler thriftCompiler() {
+    return this.compiler;
   }
 
   public String thriftVersionString() {
@@ -180,6 +180,8 @@ public class ThriftEE implements SchemaBuilderConfig {
     }
   }
 
+  private final ThriftCompiler compiler;
+
   private final File tempDir;
 
   private final File clientsDir;
@@ -187,8 +189,6 @@ public class ThriftEE implements SchemaBuilderConfig {
   private final File wsdlClientDir;
 
   private final File idlDir;
-
-  private final File thriftExecutable;
 
   private final File thriftLibDir;
 
@@ -274,28 +274,13 @@ public class ThriftEE implements SchemaBuilderConfig {
     // Next we will validate the thrift executable and make note of the //
     // version that it returns when called.                             //
     //------------------------------------------------------------------//
-    // TODO: If the native executable does not exist or cannot be called, 
-    //       we should use NestedVM. Maybe use NestedVM no matter what.
-    // TODO: Figure out a way to check the Thrift version against the version
-    //       for the support libraries
-    if (config.thriftExecutable() != null && 
-        config.thriftExecutable().exists() && 
-        config.thriftExecutable().canExecute()) {
-      this.thriftExecutable = config.thriftExecutable();
-    } else {
-      final String thriftOnPath = ThriftCommand.searchPathForThrift();
-      if (thriftOnPath == null) {
-        throw new ThriftStartupException(STARTUP_007);
-      }
-      final File thriftExecutableFile = new File(thriftOnPath);
-      this.thriftExecutable = thriftExecutableFile;
-    }
+    this.compiler = ThriftCompiler.newCompiler();
     try {
       this.thriftVersionString = getVersionString();
     } catch (ThriftCommandException e) {
       throw new ThriftStartupException(e, STARTUP_008, e.getMessage());
     }
-    LOG.info("Using Thrift executable: {}", this.thriftExecutable);
+    LOG.info("Thrift compiler implementation: {}", this.compiler);
     LOG.info("Thrift version string: {}", this.thriftVersionString);
 
     idlFiles = config.schemaProvider().exportIdl(idlDir());
@@ -391,9 +376,7 @@ public class ThriftEE implements SchemaBuilderConfig {
 
   private ThriftCommandRunner newCommandRunner() {
     final ThriftCommand command = new ThriftCommand((Generate) null);
-    command.setThriftCommand(this.thriftExecutable().getAbsolutePath());
-    final ThriftCommandRunner run = ThriftCommandRunner.instanceFor(command);
-    return run;
+    return ThriftCommandRunner.instanceFor(compiler, command);
   }
 
   private String getVersionString() {
@@ -464,10 +447,10 @@ public class ThriftEE implements SchemaBuilderConfig {
       LOG.debug("using native Thrift compiler to generate XML model output.");
       final String path = globalIdlFile().getAbsolutePath();
       final ThriftCommand cmd = new ThriftCommand(Generate.XML, path);
-      cmd.setThriftCommand(this.thriftExecutable().getAbsolutePath());
       cmd.setOutputLocation(xmlDir);
       cmd.addFlag(Generate.Flag.XML_MERGE);
-      final ThriftCommandRunner runner = ThriftCommandRunner.instanceFor(cmd);
+      final ThriftCommandRunner runner = 
+          ThriftCommandRunner.instanceFor(compiler, cmd);
       final ExecutionResult result = runner.executeCommand();
       return result.successful();
     }
@@ -495,9 +478,6 @@ public class ThriftEE implements SchemaBuilderConfig {
     try {
       final ThriftCommand cmd = new ThriftCommand(alias);
       cmd.setRecurse(true);
-      if (thriftExecutable() != null) {
-        cmd.setThriftCommand(thriftExecutable().getAbsolutePath());
-      }
       final File[] extraDirs;
       if (thriftLibDir() != null && alias.getLibDir() != null) {
         final File libDir = new File(thriftLibDir(), alias.getLibDir());
@@ -506,7 +486,11 @@ public class ThriftEE implements SchemaBuilderConfig {
         extraDirs = new File[0];
       }
       final File[] files = new File[] { globalIdlFile() };
-      final ProcessIDL idlProcessor = new ProcessIDL(thriftLibDir(), alias);
+      final ProcessIDL idlProcessor = new ProcessIDL(
+        thriftCompiler(),
+        thriftLibDir(), 
+        alias
+      );
       final String zipName = clientLibraryPrefix(name);
       final File clientLibrary = idlProcessor.process(
         files, clientsDir, zipName, cmd, extraDirs

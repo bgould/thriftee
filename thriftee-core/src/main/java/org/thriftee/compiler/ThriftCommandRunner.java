@@ -25,15 +25,17 @@ import org.thriftee.thrift.compiler.ThriftCompiler;
 
 public class ThriftCommandRunner {
 
-  private static final ThriftCompiler compiler = ThriftCompiler.newCompiler();
+  private final ThriftCompiler compiler;
 
   private final ThriftCommand thriftCommand;
 
-  public static ThriftCommandRunner instanceFor(ThriftCommand cmd) {
-    return new ThriftCommandRunner(cmd);
+  public static ThriftCommandRunner instanceFor(
+      final ThriftCompiler compiler, final ThriftCommand cmd) {
+    return new ThriftCommandRunner(compiler, cmd);
   }
 
-  ThriftCommandRunner(ThriftCommand thriftCommand) {
+  ThriftCommandRunner(ThriftCompiler compiler, ThriftCommand thriftCommand) {
+    this.compiler = compiler;
     this.thriftCommand = thriftCommand;
   }
 
