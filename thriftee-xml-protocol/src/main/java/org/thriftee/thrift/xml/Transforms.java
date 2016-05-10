@@ -119,7 +119,13 @@ public class Transforms {
   }
 
   public URL schemaUrl() {
-    return resolveInternalXsl("thrift-idl.xsd");
+    final ClassLoader cl = getClass().getClassLoader();
+    final String rsrc = "org/thriftee/thrift/compiler/thrift-idl.xsd";
+    final URL url = cl.getResource(rsrc);
+    if (url == null) {
+      throw new IllegalArgumentException("resource not found: " + rsrc);
+    }
+    return url;
   }
 
   public void preload(File file) throws IOException {

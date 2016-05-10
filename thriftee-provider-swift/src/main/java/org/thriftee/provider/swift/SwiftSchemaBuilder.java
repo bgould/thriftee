@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
 package org.thriftee.provider.swift;
 
 import static org.thriftee.compiler.schema.SchemaBuilderException.Messages.*;
@@ -250,7 +251,7 @@ public class SwiftSchemaBuilder implements SchemaBuilder {
     return field;
   }
   
-  /*
+  *
   private StructFieldSchema.Builder translateField(StructSchema.Builder parentBuilder, ThriftField _field) {
     StructFieldSchema.Builder field = parentBuilder.addField(_field.getName());
     _translate(field, _field);
@@ -262,7 +263,7 @@ public class SwiftSchemaBuilder implements SchemaBuilder {
     _translate(field, _field);
     return field;
   }
-  */
+  *
   
   private MethodThrowsSchema.Builder translateThrows(MethodSchema.Builder parentBuilder, ThriftField field) {
     MethodThrowsSchema.Builder exc = parentBuilder.addThrows(field.getName());
@@ -341,3 +342,4 @@ public class SwiftSchemaBuilder implements SchemaBuilder {
   }
 
 }
+*/

@@ -43,7 +43,7 @@ public class ThriftStartupException extends ThriftSystemException {
     STARTUP_009("Error generating client library %s: %s"),
     STARTUP_010("Error locating implementation for service %s: %s"),
     STARTUP_011("Error exporting XML schema: %s"),
-    STARTUP_012("An error occurred while validation model against XSD: %s"),
+    STARTUP_012("An error occurred while validating model against XSD: %s"),
     STARTUP_013("Validation of model against XSD failed: %s"),
     STARTUP_014("An error occurred generated XML artifacts: %s"),
     STARTUP_015("An error occurred unzipped Thrift libraries: %s"),

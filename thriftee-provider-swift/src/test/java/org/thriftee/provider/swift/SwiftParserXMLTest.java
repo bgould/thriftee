@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
 package org.thriftee.provider.swift;
 
 import static org.junit.Assert.fail;
@@ -56,3 +57,4 @@ public class SwiftParserXMLTest {
   }
 
 }
+*/

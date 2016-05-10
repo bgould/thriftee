@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
 package org.thriftee.provider.swift;
 
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
@@ -468,3 +469,4 @@ public class SwiftParserXML {
   }
 
 }
+*/

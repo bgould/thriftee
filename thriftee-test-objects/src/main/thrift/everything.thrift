@@ -111,7 +111,7 @@ exception AThirdException {
 
 /** this service has some documentation */
 service Universe extends nothing_all_at_once.Metaverse {
-  i32 grok(1: Everything everything) throws (0: EndOfTheUniverseException endOfIt, -6: SomeOtherException another, -4: AThirdException craziness),
+  i32 grok(1: Everything everything) throws (1: EndOfTheUniverseException endOfIt, 2: SomeOtherException another, 3: AThirdException craziness),
   /** this is oneway so should have a void result */
   oneway void sendIt(),
   Everything bang(1: i32 fortyTwo);

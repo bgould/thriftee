@@ -49,11 +49,9 @@ import org.thriftee.compiler.ThriftCommand;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommandException;
 import org.thriftee.compiler.ThriftCommandRunner;
-import org.thriftee.compiler.schema.SchemaBuilder;
 import org.thriftee.compiler.schema.SchemaBuilderException;
 import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.compiler.schema.ThriftSchema;
-import org.thriftee.compiler.schema.ThriftSchemaService;
 import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.thrift.compiler.ExecutionResult;
@@ -62,11 +60,9 @@ import org.thriftee.thrift.xml.Transforms;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 import org.thriftee.util.FileUtil;
 
-public class ThriftEE implements SchemaBuilderConfig {
+public final class ThriftEE implements SchemaBuilderConfig {
 
   public static final Charset XML_CHARSET = Charset.forName("UTF-8");
-
-  private final Logger LOG = LoggerFactory.getLogger(getClass());
 
   public ServiceLocator serviceLocator() {
     return serviceLocator;
@@ -180,6 +176,8 @@ public class ThriftEE implements SchemaBuilderConfig {
     }
   }
 
+  private final Logger LOG = LoggerFactory.getLogger(getClass());
+
   private final ThriftCompiler compiler;
 
   private final File tempDir;
@@ -237,36 +235,6 @@ public class ThriftEE implements SchemaBuilderConfig {
       this.protocolTypeAliases = config.protocolTypeAliases();
     }
 
-    //------------------------------------------------------------------//
-    // Here we are checking the configured Thrift library directory to  //
-    // make sure that it actually contains code libraries for the       //
-    // various target languages.  In actuality, the support libraries   //
-    // are not strictly needed for using ThriftEE, however in almost    //
-    // all scenarios that I can think of the best way to make sure that //
-    // the same versions of the support library and the generated code  //
-    // are used is to export both.  Especially for dynamic languages    //
-    // like PHP, Python, Javascript, etc., it is very easy to           //
-    // distribute the support library as part of the generated client.  //
-    // For compiled languages like C++ and Java this is a bit less      //
-    // useful but I do not think that the requirement that it exist is  //
-    // too burdensome.  Can always change in the future if it proves to //
-    // be problematic.                                                  //
-    //------------------------------------------------------------------//
-    // TODO: consider adding option to specify if missing dir is an error
-    // TODO: consider making validation more robust 
-    /*
-    if (config.thriftLibDir() != null) {
-      if (!config.thriftLibDir().exists()) {
-        throw new ThriftStartupException(STARTUP_005, config.thriftLibDir());
-      } else if (!(validateThriftLibraryDir(config.thriftLibDir()))) {
-        throw new ThriftStartupException(STARTUP_006, config.thriftLibDir());
-      } else {
-        this.thriftLibDir = config.thriftLibDir();
-      }
-    } else {
-      this.thriftLibDir = null;
-    }
-    */
     this.thriftLibDir = unzipLibraries();
     LOG.info("Thrift library dir: {}", thriftLibDir);
 
@@ -283,6 +251,9 @@ public class ThriftEE implements SchemaBuilderConfig {
     LOG.info("Thrift compiler implementation: {}", this.compiler);
     LOG.info("Thrift version string: {}", this.thriftVersionString);
 
+    //------------------------------------------------------------------//
+    // Generate a global IDL file that includes all other IDL files     //
+    //------------------------------------------------------------------//
     idlFiles = config.schemaProvider().exportIdl(idlDir());
     File globalFile = null;
     for (int i = 0, c = idlFiles.length; globalFile == null && i < c; i++) {
@@ -297,9 +268,7 @@ public class ThriftEE implements SchemaBuilderConfig {
     this.globalIdlFile = globalFile;
 
     //------------------------------------------------------------------//
-    // Generate the XML artifacts for thrift-to-SOAP conversion         //
-    // TODO: this class is starting to smell bad; refactor to be leaner //
-    // TODO: refactor XML to be "just another client"                   //
+    // Export global IDL file as XML for building the schema model      //
     //------------------------------------------------------------------//
     LOG.debug("Exporting XML definitions from IDL files");
     final File globalXml = new File(idlDir(), "global.xml");
@@ -319,14 +288,6 @@ public class ThriftEE implements SchemaBuilderConfig {
       throw new ThriftStartupException(STARTUP_013, xmlValidationError);
     }
     this.globalXmlFile = globalXml;
-    this.wsdlClientDir.mkdirs();
-    try {
-      transforms.preload(globalXmlFile);
-      transforms.exportSchemas(globalXmlFile, this.wsdlClientDir);
-      transforms.exportWsdls(globalXmlFile, this.wsdlClientDir);
-    } catch (IOException e) {
-      throw new ThriftStartupException(e, STARTUP_014, e.getMessage());
-    }
 
     //------------------------------------------------------------------//
     // At this point we will parse the generated IDL and store the meta //
@@ -341,6 +302,19 @@ public class ThriftEE implements SchemaBuilderConfig {
     }
 
     //------------------------------------------------------------------//
+    // Generate the XML artifacts for thrift-to-SOAP conversion         //
+    // TODO: refactor XML to be "just another client"                   //
+    //------------------------------------------------------------------//
+    this.wsdlClientDir.mkdirs();
+    try {
+      transforms.preload(globalXmlFile);
+      transforms.exportSchemas(globalXmlFile, this.wsdlClientDir);
+      transforms.exportWsdls(globalXmlFile, this.wsdlClientDir);
+    } catch (IOException e) {
+      throw new ThriftStartupException(e, STARTUP_014, e.getMessage());
+    }
+
+    //------------------------------------------------------------------//
     // Export the client libraries                                      //
     //------------------------------------------------------------------//
     LOG.debug("Exporting configured clients");
@@ -352,13 +326,13 @@ public class ThriftEE implements SchemaBuilderConfig {
     // Register the thrift processors                                   //
     //------------------------------------------------------------------//
     LOG.debug("Setting up thrift processor map");
-    try {
-      final ThriftSchemaService impl = new ThriftSchemaService.Impl(schema());
-      serviceLocator.register(ThriftSchemaService.class, impl);
-    } catch (ServiceLocatorException e) {
-      throw new ThriftStartupException(
-          e, e.getThrifteeMessage(), e.getArguments());
-    }
+//    try {
+//      final ThriftSchemaService impl = new ThriftSchemaService.Impl(schema());
+//      serviceLocator.register(ThriftSchemaService.class, impl);
+//    } catch (ServiceLocatorException e) {
+//      throw new ThriftStartupException(
+//          e, e.getThrifteeMessage(), e.getArguments());
+//    }
     this.processors = Collections.unmodifiableSortedMap(
       config.schemaProvider().buildProcessorMap(serviceLocator)
     );
@@ -508,10 +482,8 @@ public class ThriftEE implements SchemaBuilderConfig {
   }
 
   private File unzipLibraries() throws ThriftStartupException {
-    //final String rsrc = "org/apache/thrift/compiler/thrift-libs.zip";
-    //final ClassLoader cl = ThriftCompiler.class.getClassLoader();
     final String rsrc = "thrift-libs.zip";
-    final URL libzip = ThriftCompiler.class.getResource(rsrc); // cl.getResource(rsrc);
+    final URL libzip = ThriftCompiler.class.getResource(rsrc);
     if (libzip == null) {
       throw new IllegalStateException("could not find resource: " + rsrc);
     }

@@ -23,7 +23,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.compiler.schema.XMLSchemaBuilder;
 import org.thriftee.exceptions.ThriftSystemException;
 import org.thriftee.framework.SchemaProvider;
 import org.thriftee.framework.ThriftEE;
@@ -64,9 +63,9 @@ public abstract class AbstractSwiftTest {
       if (!thrifteeInstances.containsKey(tempDir.getAbsolutePath())) {
         final ThriftEE thrift = new ThriftEE(
           (new ThriftEEConfig.Builder())
-            .schemaBuilder(new XMLSchemaBuilder())
             .schemaProvider(schemaProvider)
             .serviceLocator(new SwiftTestServiceLocator())
+            .useDefaultClientTypeAliases(false)
             .tempDir(tempDir)
             .build()
         );

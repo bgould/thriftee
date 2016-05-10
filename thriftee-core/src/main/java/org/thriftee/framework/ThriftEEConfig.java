@@ -30,8 +30,6 @@ import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TTupleProtocol;
 import org.thriftee.compiler.ThriftCommand.Generate;
 import org.thriftee.compiler.ThriftCommand.Generate.Flag;
-import org.thriftee.compiler.schema.SchemaBuilder;
-import org.thriftee.compiler.schema.XMLSchemaBuilder;
 import org.thriftee.framework.client.ClientTypeAlias;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 import org.thriftee.util.New;
@@ -140,7 +138,7 @@ public class ThriftEEConfig {
     private SortedMap<String, BaseProtocolTypeAlias> protocols = new TreeMap<>();
 
     private boolean useDefaultClientTypeAliases = true;
-    
+
     private boolean useDefaultProtocolTypeAliases = true;
 
     public void setTempDir(File tempDir) {
@@ -228,7 +226,7 @@ public class ThriftEEConfig {
         tempDir, 
         thriftExecutable, 
         thriftLibDir, 
-        schemaBuilder == null ? new XMLSchemaBuilder() : schemaBuilder,
+        schemaBuilder == null ? new SchemaBuilder.FromXML() : schemaBuilder,
         schemaProvider,
         serviceLocator,
         clientTypes,

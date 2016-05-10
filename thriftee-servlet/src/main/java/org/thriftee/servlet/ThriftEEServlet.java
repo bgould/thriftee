@@ -24,7 +24,6 @@ import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Context;
 import org.restlet.ext.servlet.ServerServlet;
-import org.thriftee.compiler.schema.XMLSchemaBuilder;
 import org.thriftee.framework.ServiceLocator;
 import org.thriftee.framework.ThriftEE;
 import org.thriftee.framework.ThriftEEConfig;
@@ -38,10 +37,6 @@ import org.thriftee.restlet.ThriftApplication;
  * @author bcg
  */
 public class ThriftEEServlet extends ServerServlet {
-
-  public static final String THRIFT_EXECUTABLE_PARAM = "thrift.executable";
-
-  public static final String THRIFT_LIB_DIR_PARAM = "thrift.lib.dir";
 
   @Override
   public void init() throws ServletException {
@@ -90,34 +85,6 @@ public class ThriftEEServlet extends ServerServlet {
     return _thriftee;
   }
 
-  protected File readThriftExecutable() {
-    String executable = getInitParameter(THRIFT_EXECUTABLE_PARAM);
-    if (executable == null) {
-      executable = getServletContext().getInitParameter(THRIFT_EXECUTABLE_PARAM);
-      if (executable == null) {
-        executable = System.getProperty(THRIFT_EXECUTABLE_PARAM);
-      }
-    }
-    if (executable != null) {
-      return new File(executable);
-    }
-    return new File("/usr/local/src/bin/thrift");
-  }
-
-  protected File readThriftLibDir() {
-    String libDir = getInitParameter(THRIFT_LIB_DIR_PARAM);
-    if (libDir == null) {
-      libDir = getServletContext().getInitParameter(THRIFT_LIB_DIR_PARAM);
-      if (libDir == null) {
-        libDir = System.getProperty(THRIFT_LIB_DIR_PARAM);
-      }
-    }
-    if (libDir != null) {
-      return new File(libDir);
-    }
-    return new File("/usr/local/src/thrift/lib");
-  }
-
   protected ServiceLocator createServiceLocator() {
     final DefaultEJBServiceLocator locator = new DefaultEJBServiceLocator();
     locator.setSearchAllModules(true);
@@ -135,14 +102,11 @@ public class ThriftEEServlet extends ServerServlet {
     }
     final ServletContext ctx = getServletContext();
     final File tempDir = (File) ctx.getAttribute(ServletContext.TEMPDIR);
-//    final File thriftExecutable = readThriftExecutable();
-//    final File thriftLibDir = readThriftLibDir();
     final ServiceLocator serviceLocator = createServiceLocator();
     final ThriftEEConfig.Builder builder = new ThriftEEConfig.Builder()
       .tempDir(tempDir)
       .serviceLocator(serviceLocator)
-      .schemaProvider(new SwiftSchemaProvider(true, new WarFileClasspath(ctx)))
-      .schemaBuilder(new XMLSchemaBuilder());
+      .schemaProvider(new SwiftSchemaProvider(true, new WarFileClasspath(ctx)));
     initConfigBuilder(builder);
     final ThriftEEConfig config = builder.build();
     final ThriftEE svcs = new ThriftEEFactory().create(config);

@@ -44,4 +44,9 @@ public class ClientsResourceTest extends ResourceTestBase {
     assertTrue(rsp().getEntityAsText().indexOf("<?php") > -1);
   }
 
+  @Override
+  protected boolean generateClients() {
+    return true;
+  }
+
 }

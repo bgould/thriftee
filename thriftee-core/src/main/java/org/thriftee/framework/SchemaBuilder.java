@@ -13,13 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.compiler.schema;
+package org.thriftee.framework;
 
-import org.thriftee.framework.SchemaBuilderConfig;
+import org.thriftee.compiler.schema.SchemaBuilderException;
+import org.thriftee.compiler.schema.ThriftSchema;
+import org.thriftee.compiler.schema.XMLSchemaBuilder;
 
 public interface SchemaBuilder {
 
   public abstract ThriftSchema buildSchema(SchemaBuilderConfig config) 
       throws SchemaBuilderException;
+
+  public static class FromXML implements SchemaBuilder {
+
+    @Override
+    public ThriftSchema buildSchema(SchemaBuilderConfig config) 
+        throws SchemaBuilderException {
+      final XMLSchemaBuilder xmlSchemaBuilder = new XMLSchemaBuilder();
+      return xmlSchemaBuilder.buildSchema(config.globalXmlFile());
+    }
+
+  }
 
 }

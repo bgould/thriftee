@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.compiler.schema.XMLSchemaBuilder;
 import org.thriftee.examples.usergroup.service.UserService;
 import org.thriftee.exceptions.ThriftSystemException;
 import org.thriftee.framework.SchemaProvider;
@@ -39,15 +38,6 @@ public abstract class AbstractThriftEETest {
   public static final String USERGROUP_SERVICES_MODULE = 
                     UserService.class.getPackage().getName().replace('.', '_');
 
-  static {
-    final Logger logger = LoggerFactory.getLogger(AbstractThriftEETest.class);
-    logger.trace("TRACE level enabled");
-    logger.debug("DEBUG level enabled");
-    logger.info( " INFO level enabled");
-    logger.warn( " WARN level enabled");
-    logger.error("ERROR level enabled");
-  }
-
   protected static ThriftEE loadThriftee(
         File tempDir, SchemaProvider schemaProvider, boolean generateClients
       ) throws ThriftSystemException {
@@ -55,7 +45,6 @@ public abstract class AbstractThriftEETest {
       if (!thrifteeInstances.containsKey(tempDir.getAbsolutePath())) {
         final ThriftEE thrift = new ThriftEE(
           (new ThriftEEConfig.Builder())
-            .schemaBuilder(new XMLSchemaBuilder())
             .schemaProvider(schemaProvider)
             .serviceLocator(new TestServiceLocator())
             .useDefaultClientTypeAliases(generateClients)
@@ -94,7 +83,7 @@ public abstract class AbstractThriftEETest {
   }
 
   protected boolean generateClients() {
-    return true;
+    return false;
   }
 
 }

@@ -17,8 +17,11 @@ package org.thriftee.framework.parser;
 
 import static org.apache.thrift.protocol.TType.STOP;
 
+import static org.apache.thrift.TApplicationException.UNKNOWN_METHOD;
+
 import java.nio.ByteBuffer;
 
+import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TList;
@@ -32,10 +35,11 @@ import org.apache.thrift.protocol.TStruct;
 import org.thriftee.compiler.schema.AbstractFieldSchema;
 import org.thriftee.compiler.schema.AbstractStructSchema;
 import org.thriftee.compiler.schema.EnumSchema;
-import org.thriftee.compiler.schema.ISchemaType;
 import org.thriftee.compiler.schema.ListSchemaType;
 import org.thriftee.compiler.schema.MapSchemaType;
 import org.thriftee.compiler.schema.MethodSchema;
+import org.thriftee.compiler.schema.SchemaException;
+import org.thriftee.compiler.schema.SchemaType;
 import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.compiler.schema.SetSchemaType;
 import org.thriftee.compiler.schema.ThriftSchema;
@@ -61,7 +65,7 @@ public final class ThriftParser {
 
   public void readMessage(ServiceSchema svc, TProtocol in) throws TException {
     final AbstractStructSchema<?, ?, ?, ?> struct;
-    {
+    try {
       final TMessage msg = in.readMessageBegin();
       final MethodSchema method = svc.findMethod(msg.name);
       switch (msg.type) {
@@ -79,6 +83,8 @@ public final class ThriftParser {
         throw new TException("unknown message type: " + msg.type);
       }
       listener.onMessageBegin(msg, method);
+    } catch (final SchemaException e) {
+      throw new TApplicationException(UNKNOWN_METHOD, e.getMessage());
     }
     readStruct(struct, in);
     in.readMessageEnd();
@@ -99,7 +105,7 @@ public final class ThriftParser {
         if (field == null) {
           TProtocolUtil.skip(in, tfield.type);
         } else {
-          final ISchemaType type = field.getType();
+          final SchemaType type = field.getType();
           if (type.getProtocolType().getType() != tfield.type) {
             TProtocolUtil.skip(in, tfield.type);
           } else {
@@ -130,7 +136,7 @@ public final class ThriftParser {
   private void readSet(SetSchemaType type, TProtocol in) throws TException {
     final TSet set = in.readSetBegin();
     listener.onSetBegin(set);
-    final ISchemaType resolved = type.getValueType();
+    final SchemaType resolved = type.getValueType();
     for (int i = 0; i < set.size; i++) {
       readValue(resolved, in);
     }
@@ -141,7 +147,7 @@ public final class ThriftParser {
   private void readList(ListSchemaType type, TProtocol in) throws TException {
     final TList list = in.readListBegin();
     listener.onListBegin(list);
-    final ISchemaType resolved = type.getValueType();
+    final SchemaType resolved = type.getValueType();
     for (int i = 0; i < list.size; i++) {
       readValue(resolved, in);
     }
@@ -150,7 +156,7 @@ public final class ThriftParser {
   }
 
   private void readValue(
-      final ISchemaType type, 
+      final SchemaType type, 
       final TProtocol in) throws TException {
     switch (type.getProtocolType()) {
     case BOOL: {
