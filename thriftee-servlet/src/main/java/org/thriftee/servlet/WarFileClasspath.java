@@ -21,7 +21,7 @@ import java.net.URL;
 import javax.servlet.ServletContext;
 
 import org.scannotation.WarUrlFinder;
-import org.thriftee.framework.Classpath;
+import org.thriftee.core.Classpath;
 
 public class WarFileClasspath implements Classpath {
 

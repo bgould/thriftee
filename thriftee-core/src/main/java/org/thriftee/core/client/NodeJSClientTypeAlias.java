@@ -13,16 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
+package org.thriftee.core.client;
 
-import org.thriftee.core.DefaultServiceLocator;
-import org.thriftee.core.ServiceLocatorException;
+import java.io.IOException;
 
-public class SwiftTestServiceLocator extends DefaultServiceLocator {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.thriftee.core.compiler.PostProcessorEvent;
+import org.thriftee.core.compiler.ThriftCommand.Generate;
+import org.thriftee.core.compiler.ThriftCommand.Generate.Flag;
 
-  public SwiftTestServiceLocator() throws ServiceLocatorException {
-    CalculatorService orderSvc = new CalculatorImpl();
-    register(CalculatorService.class, orderSvc);
+public class NodeJSClientTypeAlias extends ClientTypeAlias {
+
+  protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
+  public NodeJSClientTypeAlias() {
+    super("nodejs", Generate.JS, Flag.JS_NODE);
+  }
+
+  @Override
+  public void postProcess(PostProcessorEvent event) throws IOException {
+    
   }
 
 }

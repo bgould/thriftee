@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
+package org.thriftee.core;
 
-import org.thriftee.core.DefaultServiceLocator;
-import org.thriftee.core.ServiceLocatorException;
+public interface ServiceLocator {
 
-public class SwiftTestServiceLocator extends DefaultServiceLocator {
+  public <I> void register(Class<I> i, I svc) throws ServiceLocatorException;
 
-  public SwiftTestServiceLocator() throws ServiceLocatorException {
-    CalculatorService orderSvc = new CalculatorImpl();
-    register(CalculatorService.class, orderSvc);
-  }
+  public <I> I locate(Class<I> svcIntf) throws ServiceLocatorException;
 
 }

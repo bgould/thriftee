@@ -27,12 +27,12 @@ import javax.naming.NamingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.framework.DefaultServiceLocator;
-import org.thriftee.framework.ServiceLocator;
-import org.thriftee.framework.ServiceLocatorException;
-import org.thriftee.framework.ServiceLocatorException.Messages;
-import org.thriftee.util.New;
-import org.thriftee.util.Strings;
+import org.thriftee.core.DefaultServiceLocator;
+import org.thriftee.core.ServiceLocator;
+import org.thriftee.core.ServiceLocatorException;
+import org.thriftee.core.ServiceLocatorException.Messages;
+import org.thriftee.core.util.New;
+import org.thriftee.core.util.Strings;
 
 public class DefaultEJBServiceLocator 
         extends DefaultServiceLocator 

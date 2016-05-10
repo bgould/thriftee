@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
+package org.thriftee.core.exceptions;
 
-import org.thriftee.core.DefaultServiceLocator;
-import org.thriftee.core.ServiceLocatorException;
+import java.io.Serializable;
 
-public class SwiftTestServiceLocator extends DefaultServiceLocator {
+public interface ThriftMessage extends Serializable {
 
-  public SwiftTestServiceLocator() throws ServiceLocatorException {
-    CalculatorService orderSvc = new CalculatorImpl();
-    register(CalculatorService.class, orderSvc);
-  }
-
+	public String getCode();
+	
+	public String getMessage();
+	
 }

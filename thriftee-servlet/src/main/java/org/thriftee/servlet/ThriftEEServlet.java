@@ -24,14 +24,14 @@ import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Context;
 import org.restlet.ext.servlet.ServerServlet;
-import org.thriftee.framework.ServiceLocator;
-import org.thriftee.framework.ThriftEE;
-import org.thriftee.framework.ThriftEEConfig;
-import org.thriftee.framework.ThriftEEFactory;
-import org.thriftee.framework.ThriftStartupException;
+import org.thriftee.core.ServiceLocator;
+import org.thriftee.core.ThriftEE;
+import org.thriftee.core.ThriftEEConfig;
+import org.thriftee.core.ThriftEEFactory;
+import org.thriftee.core.ThriftStartupException;
 import org.thriftee.provider.swift.SwiftSchemaProvider;
-import org.thriftee.restlet.FrameworkResource;
-import org.thriftee.restlet.ThriftApplication;
+import org.thriftee.core.restlet.FrameworkResource;
+import org.thriftee.core.restlet.ThriftApplication;
 
 /*
  * @author bcg

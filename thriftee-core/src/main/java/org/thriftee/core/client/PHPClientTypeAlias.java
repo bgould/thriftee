@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
+package org.thriftee.core.client;
 
-import org.thriftee.core.DefaultServiceLocator;
-import org.thriftee.core.ServiceLocatorException;
+import org.thriftee.core.compiler.ThriftCommand.Generate;
+import org.thriftee.core.compiler.ThriftCommand.Generate.Flag;
 
-public class SwiftTestServiceLocator extends DefaultServiceLocator {
+public class PHPClientTypeAlias extends ClientTypeAlias {
 
-  public SwiftTestServiceLocator() throws ServiceLocatorException {
-    CalculatorService orderSvc = new CalculatorImpl();
-    register(CalculatorService.class, orderSvc);
+  public PHPClientTypeAlias() {
+    super("php", Generate.PHP, "php/lib", Flag.PHP_OOP);
   }
 
 }

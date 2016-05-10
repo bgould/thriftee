@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
+package org.thriftee.core.exceptions;
 
-import org.thriftee.core.DefaultServiceLocator;
-import org.thriftee.core.ServiceLocatorException;
+public class ThriftSystemException extends ThriftExceptionBase {
 
-public class SwiftTestServiceLocator extends DefaultServiceLocator {
+	private static final long serialVersionUID = 2082197768718947206L;
 
-  public SwiftTestServiceLocator() throws ServiceLocatorException {
-    CalculatorService orderSvc = new CalculatorImpl();
-    register(CalculatorService.class, orderSvc);
-  }
+	public ThriftSystemException(ThriftMessage thrifteeMessage, Object... arguments) {
+		super(thrifteeMessage, arguments);
+	}
 
+	public ThriftSystemException(Throwable cause, ThriftMessage thrifteeMessage, Object... arguments) {
+		super(cause, thrifteeMessage, arguments);
+	}
 }

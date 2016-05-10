@@ -30,7 +30,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.thriftee.compiler.schema.ModuleSchema;
 import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.framework.ThriftStartupException;
+import org.thriftee.core.ThriftStartupException;
 import org.thriftee.provider.swift.tests.AbstractSwiftTest;
 import org.thriftee.provider.swift.tests.CalculatorService;
 import org.thriftee.provider.swift.tests.Op;

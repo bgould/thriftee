@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
+package org.thriftee.core.restlet;
 
-import org.thriftee.core.DefaultServiceLocator;
-import org.thriftee.core.ServiceLocatorException;
+import static org.junit.Assert.assertEquals;
 
-public class SwiftTestServiceLocator extends DefaultServiceLocator {
+import org.junit.Test;
 
-  public SwiftTestServiceLocator() throws ServiceLocatorException {
-    CalculatorService orderSvc = new CalculatorImpl();
-    register(CalculatorService.class, orderSvc);
+public class IndexResourceTest extends ResourceTestBase {
+
+  @Test
+  public void testGet() {
+    this.handleGet("/");
+    assertEquals(200, rsp().getStatus().getCode());
+    assertHasLink("clients/");
+    assertHasLink("endpoints/");
+    assertHasLink("idl/");
   }
 
+  @Test
+  public void testIdl() {
+    this.handleGet("/idl/");
+    assertEquals(200, rsp().getStatus().getCode());
+  }
 }

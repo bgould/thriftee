@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
+package org.thriftee.core;
 
-import org.thriftee.core.DefaultServiceLocator;
-import org.thriftee.core.ServiceLocatorException;
+import java.io.IOException;
+import java.net.URL;
 
-public class SwiftTestServiceLocator extends DefaultServiceLocator {
+/**
+ * Implementors of this class are responsible for configuring an
+ * {@link org.scannotation.AnnotationDB} in order to search for runtime
+ * annotations.
+ * 
+ * @author bcg 
+ */
+public interface Classpath {
 
-  public SwiftTestServiceLocator() throws ServiceLocatorException {
-    CalculatorService orderSvc = new CalculatorImpl();
-    register(CalculatorService.class, orderSvc);
-  }
+  /**
+   * Configures and instance of {@link org.scannotation.AnnotationDB} with classpaths to search.
+   * 
+   * @param db The database to configure
+   * @throws IOException
+   */
+  public URL[] getUrls();
 
 }

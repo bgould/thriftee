@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
+package org.thriftee.core;
 
-import org.thriftee.core.DefaultServiceLocator;
-import org.thriftee.core.ServiceLocatorException;
+import java.io.File;
+import java.util.SortedMap;
 
-public class SwiftTestServiceLocator extends DefaultServiceLocator {
+import org.apache.thrift.TProcessor;
 
-  public SwiftTestServiceLocator() throws ServiceLocatorException {
-    CalculatorService orderSvc = new CalculatorImpl();
-    register(CalculatorService.class, orderSvc);
-  }
+public interface SchemaProvider {
+
+  public File[] exportIdl(File idlDir) throws ThriftStartupException;
+
+  public SortedMap<String, TProcessor> buildProcessorMap(
+    ServiceLocator serviceLocator
+  ) throws ThriftStartupException;
 
 }

@@ -76,6 +76,7 @@
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
       </plugin>
+
       <!--
       <plugin>
         <groupId>org.jvnet.jaxb2.maven2</groupId>

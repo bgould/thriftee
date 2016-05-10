@@ -1,7 +1,7 @@
 package org.thriftee.provider.swift;
 
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_001;
-import static org.thriftee.framework.ThriftStartupException.ThriftStartupMessage.STARTUP_002;
+import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.STARTUP_001;
+import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.STARTUP_002;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,14 +17,14 @@ import org.apache.thrift.TProcessor;
 import org.scannotation.AnnotationDB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.framework.Classpath;
-import org.thriftee.framework.SchemaProvider;
-import org.thriftee.framework.ServiceLocator;
-import org.thriftee.framework.ServiceLocatorException;
-import org.thriftee.framework.ThriftStartupException;
-import org.thriftee.framework.ThriftStartupException.ThriftStartupMessage;
-import org.thriftee.util.FileUtil;
-import org.thriftee.util.Strings;
+import org.thriftee.core.Classpath;
+import org.thriftee.core.SchemaProvider;
+import org.thriftee.core.ServiceLocator;
+import org.thriftee.core.ServiceLocatorException;
+import org.thriftee.core.ThriftStartupException;
+import org.thriftee.core.ThriftStartupException.ThriftStartupMessage;
+import org.thriftee.core.util.FileUtil;
+import org.thriftee.core.util.Strings;
 
 import com.facebook.nifty.processor.NiftyProcessorAdapters;
 import com.facebook.swift.codec.ThriftCodecManager;

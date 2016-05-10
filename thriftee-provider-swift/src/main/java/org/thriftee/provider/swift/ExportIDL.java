@@ -15,7 +15,7 @@
  */
 package org.thriftee.provider.swift;
 
-import static org.thriftee.util.FileUtil.UTF_8;
+import static org.thriftee.core.util.FileUtil.UTF_8;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.util.FileUtil;
+import org.thriftee.core.util.FileUtil;
 
 /**
  * <p>

@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
+package org.thriftee.core.client;
 
-import org.thriftee.core.DefaultServiceLocator;
-import org.thriftee.core.ServiceLocatorException;
+import java.util.Arrays;
 
-public class SwiftTestServiceLocator extends DefaultServiceLocator {
+import org.thriftee.core.compiler.ThriftCommand.Generate;
+import org.thriftee.core.compiler.ThriftCommand.Generate.Flag;
 
-  public SwiftTestServiceLocator() throws ServiceLocatorException {
-    CalculatorService orderSvc = new CalculatorImpl();
-    register(CalculatorService.class, orderSvc);
+public class JSONClientTypeAlias extends ClientTypeAlias {
+
+  public JSONClientTypeAlias() {
+    super("json", Generate.JSON, Arrays.asList(new Flag[0]));
   }
 
 }

@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
+package org.thriftee.core.restlet;
 
-import org.thriftee.core.DefaultServiceLocator;
-import org.thriftee.core.ServiceLocatorException;
+import org.restlet.representation.Representation;
+import org.restlet.resource.Get;
+import org.thriftee.core.client.ClientTypeAlias;
 
-public class SwiftTestServiceLocator extends DefaultServiceLocator {
+public class ClientsResource extends FrameworkResource {
 
-  public SwiftTestServiceLocator() throws ServiceLocatorException {
-    CalculatorService orderSvc = new CalculatorImpl();
-    register(CalculatorService.class, orderSvc);
+  @Get
+  public Representation get() {
+    final DirectoryListingModel directory = createDefaultModel();
+    for (final ClientTypeAlias alias : thrift().clientTypeAliases().values()) {
+      directory.getFiles().put(alias.getName() + "/", alias.getName() + "/");
+    }
+    return listing(directory);
   }
 
 }

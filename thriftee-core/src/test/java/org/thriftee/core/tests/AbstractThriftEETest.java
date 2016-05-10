@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
-
-import static org.thriftee.provider.swift.SwiftSchemaProvider.moduleNameFor;
+package org.thriftee.core.tests;
 
 import java.io.File;
 import java.util.HashMap;
@@ -23,49 +21,33 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.core.exceptions.ThriftSystemException;
 import org.thriftee.core.SchemaProvider;
 import org.thriftee.core.ThriftEE;
 import org.thriftee.core.ThriftEEConfig;
-import org.thriftee.provider.swift.SwiftSchemaProvider;
+import org.thriftee.core.exceptions.ThriftSystemException;
+import org.thriftee.examples.usergroup.service.UserService;
 
-import com.facebook.swift.codec.ThriftCodecManager;
-
-public abstract class AbstractSwiftTest {
-
-  private final SwiftSchemaProvider schemaProvider;
+public abstract class AbstractThriftEETest {
 
   private final File tempDirForClass;
 
-  private static final Map<String, ThriftEE> thrifteeInstances = new HashMap<>();
+  private static final Map<String, ThriftEE> thrifteeInstances = new HashMap<String, ThriftEE>();
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-  public static final String TEST_MODULE = 
-                    moduleNameFor(Op.class.getPackage().getName());
-
-  static {
-    final Logger logger = LoggerFactory.getLogger(AbstractSwiftTest.class);
-    logger.trace("TRACE level enabled");
-    logger.debug("DEBUG level enabled");
-    logger.info( " INFO level enabled");
-    logger.warn( " WARN level enabled");
-    logger.error("ERROR level enabled");
-  }
-
-  public ThriftCodecManager thriftCodecManager() {
-    return schemaProvider.codecManager();
-  }
+  public static final String USERGROUP_SERVICES_MODULE = 
+                    UserService.class.getPackage().getName().replace('.', '_');
 
   protected static ThriftEE loadThriftee(
-      File tempDir, SchemaProvider schemaProvider) throws ThriftSystemException {
+        File tempDir, SchemaProvider schemaProvider, boolean generateClients
+      ) throws ThriftSystemException {
     synchronized (thrifteeInstances) {
       if (!thrifteeInstances.containsKey(tempDir.getAbsolutePath())) {
         final ThriftEE thrift = new ThriftEE(
           (new ThriftEEConfig.Builder())
             .schemaProvider(schemaProvider)
-            .serviceLocator(new SwiftTestServiceLocator())
-            .useDefaultClientTypeAliases(false)
+            .serviceLocator(new TestServiceLocator())
+            .useDefaultClientTypeAliases(generateClients)
             .tempDir(tempDir)
             .build()
         );
@@ -77,14 +59,14 @@ public abstract class AbstractSwiftTest {
 
   private final ThriftEE thrift;
 
-  public AbstractSwiftTest() {
+  public AbstractThriftEETest() {
     try {
       final String simpleName = getClass().getSimpleName();
       final String prefix = System.getProperty("thriftee.build.dir", "target");
       final File tempDir = new File(prefix + "/tests/" + simpleName);
       this.tempDirForClass = tempDir;
-      this.schemaProvider = new SwiftSchemaProvider(true, new SwiftTestClasspath());
-      this.thrift = loadThriftee(tempDir, schemaProvider);
+      final SchemaProvider schemaProvider = new TestSchemaProvider();
+      this.thrift = loadThriftee(tempDir, schemaProvider, generateClients());
     } catch (ThriftSystemException e) {
       throw new RuntimeException(e);
     }
@@ -98,6 +80,10 @@ public abstract class AbstractSwiftTest {
 
   protected ThriftEE thrift() {
     return thrift;
+  }
+
+  protected boolean generateClients() {
+    return false;
   }
 
 }

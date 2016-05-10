@@ -13,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.provider.swift.tests;
+package org.thriftee.core;
 
-import java.net.URL;
-
-import org.scannotation.ClasspathUrlFinder;
+import org.thriftee.compiler.schema.SchemaBuilderException;
 import org.thriftee.compiler.schema.ThriftSchema;
-import org.thriftee.core.Classpath;
+import org.thriftee.compiler.schema.XMLSchemaBuilder;
 
-public class SwiftTestClasspath implements Classpath {
+public interface SchemaBuilder {
 
-  @Override
-  public URL[] getUrls() {
-    URL url1 = ClasspathUrlFinder.findClassBase(CalculatorService.class);
-    URL url2 = ClasspathUrlFinder.findClassBase(ThriftSchema.class);
-    return new URL[] { url1, url2, };
+  public abstract ThriftSchema buildSchema(SchemaBuilderConfig config) 
+      throws SchemaBuilderException;
+
+  public static class FromXML implements SchemaBuilder {
+
+    @Override
+    public ThriftSchema buildSchema(SchemaBuilderConfig config) 
+        throws SchemaBuilderException {
+      final XMLSchemaBuilder xmlSchemaBuilder = new XMLSchemaBuilder();
+      return xmlSchemaBuilder.buildSchema(config.globalXmlFile());
+    }
+
   }
 
 }
