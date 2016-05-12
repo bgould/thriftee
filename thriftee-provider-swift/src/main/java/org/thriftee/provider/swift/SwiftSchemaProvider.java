@@ -111,7 +111,8 @@ public class SwiftSchemaProvider implements SchemaProvider {
     try {
       final ExportIDL exporter = new ExportIDL();
       idlFiles = exporter.export(idlDir, allClasses);
-      createIdlZip(idlDir, "swift");
+      //createIdlZip(idlDir, "swift");
+      //FileUtil.deleteRecursively(new File(idlDir, "swift"));
       createIdlZip(idlDir, "thrift");
     } catch (final IOException e) {
       throw new ThriftStartupException(e, STARTUP_001, e.getMessage());
@@ -155,7 +156,7 @@ public class SwiftSchemaProvider implements SchemaProvider {
   }
 
   public static String moduleNameFor(final String _packageName) {
-    return _packageName.replace('.', '_');
+    return _packageName; //.replace('.', '_');
   }
 
   public static String serviceNameFor(Class<?> c) {

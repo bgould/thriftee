@@ -55,8 +55,8 @@ public class ExportIDL {
    * @return An array of <code>{@link java.io.File}</code> objects representing the IDL that was generated.
    * @throws IOException
    */
-  public File[] export(final File basedir, final Set<Class<?>> classes) throws IOException {    
-    
+  public File[] export(final File basedir, final Set<Class<?>> classes) throws IOException {
+
     // Set up the directories where the output from the process will be saved
     if (basedir.exists()) {
       FileUtil.deleteRecursively(basedir);
@@ -72,19 +72,19 @@ public class ExportIDL {
 
     logger.trace("Creating IDL in temp directory: {}", basedir);
     logger.trace("Generating IDL for classes: {}", classes);
-    
+
     // run the "Swift2Thrift" generator to produce IDL from annotated classes
     final Generator generator = new Generator();
     generator.setTempDir(swiftDir);
     generator.setClasses(classes.toArray(new Class[classes.size()]));
     generator.generate();
-    
+
     // create a single file that includes all of the others
-    final StringBuilder global_thrift = new StringBuilder();
-    
+//    final StringBuilder global_thrift = new StringBuilder();
+
     // copy to the 'swift' files to 'thrift'
     for (final File swiftFile : thriftFilesIn(swiftDir)) { 
-      
+
       // Read the swift file and replace the swift namespace with standard
       // thrift namespaces
       final String swiftFileStr = FileUtil.readAsString(swiftFile, "UTF-8");
@@ -95,11 +95,6 @@ public class ExportIDL {
         final String namespace = m.group(1);
         final StringBuilder sb = new StringBuilder();
         sb.append("namespace * ").append(namespace).append('\n');
-//        sb.append("namespace cpp  ").append(namespace).append('\n');
-//        sb.append("namespace d    ").append(namespace).append('\n');
-//        sb.append("namespace java ").append(namespace).append('\n');
-//        sb.append("namespace php  ").append(namespace).append('\n');
-//        sb.append("namespace perl ").append(namespace).append('\n');
         thriftFileStr = m.replaceFirst(sb.toString());
         logger.trace("Rewriting swift namespace: {}", sb);
       } else {
@@ -110,23 +105,23 @@ public class ExportIDL {
         );
         thriftFileStr = swiftFileStr;
       }
-      
+
       // Create the modified thrift IDL file and append it to the global include
       final File thriftFile = new File(thriftDir, swiftFile.getName());
       FileUtil.writeStringToFile(thriftFileStr, thriftFile, UTF_8);
-      global_thrift.append("include \"" + thriftFile.getName() + "\"\n");
+//      global_thrift.append("include \"" + thriftFile.getName() + "\"\n");
       logger.trace(
         "Swift file `{}` copied to `{}`", 
         swiftFile.getAbsolutePath(), 
         thriftFile.getAbsolutePath()
       );
-      
+
     }
-    
+
     // Write the global include file
-    final File globalFile = new File(thriftDir, "global.thrift");
-    FileUtil.writeStringToFile(global_thrift.toString(), globalFile, UTF_8);
-    
+//    final File globalFile = new File(thriftDir, "global.thrift");
+//    FileUtil.writeStringToFile(global_thrift.toString(), globalFile, UTF_8);
+
     // Return an array of the files in the directory we just created
     return thriftFilesIn(thriftDir);
     

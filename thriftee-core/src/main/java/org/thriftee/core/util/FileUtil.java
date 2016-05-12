@@ -35,21 +35,19 @@ public class FileUtil {
 
   public static final Charset UTF_8 = Charset.forName("UTF-8");
 
-  public static String readAsString(File file, String encoding) throws IOException {
-    InputStream in = null;
-    ByteArrayOutputStream baos = new ByteArrayOutputStream((int) file.length());
-    try {
-      in = new FileInputStream(file);
-      if (((int) file.length()) > 0) {
-        byte[] buffer = new byte[1024];
-        for (int n = -1; (n = in.read(buffer)) > -1; ) {
-          baos.write(buffer, 0, n);
-        }
-      }
-    } finally {
-      forceClosed(in);
-    }
+  public static String readAsString(InputStream in, String encoding) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    copy(in, baos);
     return baos.toString(encoding);
+  }
+
+  public static String readAsString(File file, String encoding) throws IOException {
+    if (((int) file.length()) > 0) {
+      try (final InputStream in = new FileInputStream(file)) {
+        return readAsString(in, encoding);
+      }
+    }
+    return "";
   }
 
   public static void writeStringToFile(String s, File file, Charset encoding) 
@@ -251,12 +249,16 @@ public class FileUtil {
     }
   }
 
-  public static void copyResourceToDir(String rsrc, File dir) throws IOException {
+  public static File copyResourceToDir(String rsrc, File dir) throws IOException {
     final URL url = FileUtil.class.getClassLoader().getResource(rsrc);
     if (url == null) {
       throw new IllegalArgumentException("resource not found: " + rsrc);
     }
-    final File file = new File(dir, rsrc);
+    final String filename = rsrc.substring(rsrc.indexOf('/') + 1);
+    if ("".equals(filename.trim())) {
+      throw new IllegalArgumentException("invalid filename: " + filename);
+    }
+    final File file = new File(dir, filename);
     try (final FileOutputStream out = new FileOutputStream(file)) {
       try (final InputStream in = url.openStream()) {
         final byte[] buffer = new byte[1024];
@@ -265,5 +267,6 @@ public class FileUtil {
         }
       }
     }
+    return file;
   }
 }

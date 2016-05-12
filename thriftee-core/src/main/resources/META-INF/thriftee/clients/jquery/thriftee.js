@@ -236,56 +236,133 @@ function Server(id, base, options) {
 
 }
 
+function ThriftSchema(model) {
+  var _this = this;
+  Object.defineProperties(_this, {
+    'model' : { 'value' : model, 'enumerable' : true },
+    'modules' : { 'value' : {}, 'enumerable' : true },
+  });
+  model.documents.forEach(function (doc) {
+    var docname = doc.name;
+    Object.defineProperty(_this.modules, docname, {
+      'value' : {},
+      'enumerable': true
+    });
+    Object.defineProperties(_this.modules[docname], {
+      'exceptions' : { 'value' : {}, 'enumerable' : true },
+      'typedefs'   : { 'value' : {}, 'enumerable' : true },
+      'services'   : { 'value' : {}, 'enumerable' : true },
+      'structs'    : { 'value' : {}, 'enumerable' : true },
+      'unions'     : { 'value' : {}, 'enumerable' : true },
+      'enums'      : { 'value' : {}, 'enumerable' : true },
+    });
+    doc.definitions.forEach(function (definition, index) {
+      var type = (definition.exceptionDef ? 'exception' :
+                 (definition.typedefDef   ? 'typedef'   :
+                 (definition.serviceDef   ? 'service'   :
+                 (definition.structDef    ? 'struct'    :
+                 (definition.unionDef     ? 'union'     :
+                 (definition.enumDef      ? 'enum'      :
+                 (null)))))));
+      if (!type) {
+        console.warn("could not determine type for ", type, " in ", docname);
+        return;
+      }
+      var def = definition[type + 'Def'];
+      var obj = {};
+      Object.defineProperty(_this.modules[docname][type + 's'], def.name, {
+        'value' : obj,
+        'enumerable' : true
+      })
+      switch (type) {
+        case 'exception':
+        case 'struct':
+        case 'union':
+          (function(){
+            var fields = {};
+            Object.defineProperties(obj, {
+              'name' : { 'value' : def.name, 'enumerable' : true },
+              'fields' : { 'value' : fields, 'enumerable' : true }
+            });
+            def.fields.forEach(function (fielddef) {
+              Object.defineProperty(fields, fielddef.name, {
+                'value' : fielddef,
+                'enumerable' : true
+              });
+            });
+          }());
+          break;
+        default:
+          break;
+      }
+      _freeze(obj);
+    });
+    _freeze(_this.modules[docname].exceptions);
+    _freeze(_this.modules[docname].typedefs);
+    _freeze(_this.modules[docname].services);
+    _freeze(_this.modules[docname].structs);
+    _freeze(_this.modules[docname].unions);
+    _freeze(_this.modules[docname].enums);
+    _freeze(_this.modules[docname]);
+  });
+  _freeze(_this.modules);
+  _freeze(_this.model);
+}
+
 function Client(server, callback) {
   var client = this;
   server.init(function () {
     var mplex = new Thrift.Multiplexer(),
         trans = new Thrift.Transport(server.endpoint),
-        svcnm = 'org_thriftee_compiler_schema.ThriftSchemaService',
-        svccl = org.thriftee.compiler.schema.ThriftSchemaServiceClient;
+        svcnm = 'org.thriftee.meta.idl.ThriftSchemaService',
+        svccl = org.thriftee.meta.idl.ThriftSchemaServiceClient;
     mplex.createClient(svcnm, svccl, trans).getSchema(
-      function on_schema_loaded(schema) {
+      function on_schema_loaded(model) {
         var svcs = {};
-        for (var i in schema.modules) {
-          if (schema.modules.hasOwnProperty(i)) {
-            if (typeof(svcs[i]) === 'undefined') {
-              Object.defineProperty(svcs, i, { value : {}, enumerable: true });
-            }
-            var module = schema.modules[i];
-            for (var serviceName in module.services) {
-              if (module.services.hasOwnProperty(serviceName)) {
-                var findobj = function(ctx, str) {
-                  if (!ctx || !str) {
-                    return null;
-                  }
-                  var nextdash = str.indexOf('_');
-                  if (nextdash < 0) {
-                    return ctx[str];
-                  }
-                  var thispart = str.substring(0, nextdash),
-                      nextpart = str.substring(nextdash + 1);
-                  return findobj(ctx[thispart], nextpart);
-                };
-                var ctxobj = findobj(window, module.name);
-                if (!ctxobj) {
-                  console.warn("could not find: " + module.name, serviceName);
-                }
-                var svcClient = ctxobj[serviceName + 'Client'],
-                    clientName = i + '.' + serviceName;
-                if (typeof(svcClient) === 'function') {
-                  Object.defineProperty(svcs[i], serviceName, {
-                    'value' : mplex.createClient(clientName, svcClient, trans),
-                    'enumerable' : true
-                  });
-                }
-              }
-            }
-            _freeze(svcs[i]);
+        var schema = new ThriftSchema(model);
+        var findobj = function(ctx, str) {
+          if (!ctx || !str) {
+            return null;
           }
-        }
+          var nextdot = str.indexOf('.');
+          if (nextdot < 0) {
+            return ctx[str];
+          }
+          var thispart = str.substring(0, nextdot),
+              nextpart = str.substring(nextdot + 1);
+          return findobj(ctx[thispart], nextpart);
+        };
+        model.documents.forEach(function (doc, index) {
+          var docname = doc.name;
+          var ctxobj = findobj(window, docname);
+          if (!ctxobj) {
+            console.warn("could not find: " + docname);
+            return;
+          }
+          Object.defineProperty(svcs, docname, {
+            'value' : {},
+            'enumerable' : true
+          });
+          doc.definitions.forEach(function (def, index) {
+            if (def.serviceDef) {
+              var svcname = def.serviceDef.name;
+              var fullname = docname + "." + svcname;
+              var svcClient = ctxobj[svcname + 'Client'];
+              if (typeof(svcClient) !== 'function') {
+                console.warn("service was not a 'function'", fullname);
+                return;
+              }
+              Object.defineProperty(svcs[docname], svcname, {
+                'value' : mplex.createClient(fullname, svcClient, trans),
+                'enumerable' : true
+              });
+            }
+          });
+          _freeze(svcs[docname]);
+        });
         Object.defineProperties(client, {
           'server' : { 'value' : server, 'enumerable' : true },
-          'schema' : { 'value' : _freeze(schema), 'enumerable' : true },
+          'schema' : { 'value' : schema, 'enumerable' : true },
           'services' : { 'value' : _freeze(svcs), 'enumerable' : true }
         });
         _freeze(client);

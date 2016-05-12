@@ -17,27 +17,21 @@ package org.thriftee.core;
 
 import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.*;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.StringReader;
-import java.io.Writer;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.xml.transform.Result;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TMultiplexedProcessor;
@@ -51,10 +45,12 @@ import org.thriftee.core.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.core.client.ClientTypeAlias;
 import org.thriftee.core.compiler.ProcessIDL;
 import org.thriftee.core.compiler.ThriftCommand;
+import org.thriftee.core.compiler.ThriftCommand.Generate;
 import org.thriftee.core.compiler.ThriftCommandException;
 import org.thriftee.core.compiler.ThriftCommandRunner;
-import org.thriftee.core.compiler.ThriftCommand.Generate;
+import org.thriftee.core.service.ThriftSchemaServiceImpl;
 import org.thriftee.core.util.FileUtil;
+import org.thriftee.meta.idl.ThriftSchemaService;
 import org.thriftee.thrift.compiler.ExecutionResult;
 import org.thriftee.thrift.compiler.ThriftCompiler;
 import org.thriftee.thrift.xml.Transforms;
@@ -63,6 +59,12 @@ import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 public final class ThriftEE implements SchemaBuilderConfig {
 
   public static final Charset XML_CHARSET = Charset.forName("UTF-8");
+
+  public static final String MODULE_NAME_META = "org.thriftee.meta";
+  
+  public static final String MODULE_NAME_META_IDL = "org.thriftee.meta.idl";
+
+  public static final String MODULE_NAME_COMPILER_IDL = "org.thriftee.compiler.idl";
 
   public ServiceLocator serviceLocator() {
     return serviceLocator;
@@ -149,13 +151,13 @@ public final class ThriftEE implements SchemaBuilderConfig {
   }
 
   public TMultiplexedProcessor multiplexedProcessor() {
-    LOG.debug("Building multiplexed processor");
+    LOG.trace("Building multiplexed processor");
     final TMultiplexedProcessor multiplex = new TMultiplexedProcessor();
     for (Entry<String, TProcessor> entry : this.processors.entrySet()) {
       if (entry.getKey() == null) {
         throw new IllegalStateException("One or more processors was null.");
       }
-      LOG.debug("registering with multiplex processor: {}", entry.getKey());
+      LOG.trace("registering with multiplex processor: {}", entry.getKey());
       multiplex.registerProcessor(entry.getKey(), entry.getValue());
     }
     return multiplex;
@@ -254,24 +256,15 @@ public final class ThriftEE implements SchemaBuilderConfig {
     //------------------------------------------------------------------//
     // Generate a global IDL file that includes all other IDL files     //
     //------------------------------------------------------------------//
-    idlFiles = config.schemaProvider().exportIdl(idlDir());
-    File globalFile = null;
-    for (int i = 0, c = idlFiles.length; globalFile == null && i < c; i++) {
-      final File idlFile = idlFiles[i];
-      if ("global.thrift".equals(idlFile.getName())) {
-        globalFile = idlFile;
-      }
-    }
-    if (globalFile == null) {
-      throw new ThriftStartupException(STARTUP_004); 
-    }
-    this.globalIdlFile = globalFile;
+    final File[] idlFiles = config.schemaProvider().exportIdl(idlDir());
+    this.idlFiles = createGlobalIdlFile(idlFiles);
+    this.globalIdlFile = this.idlFiles[0];
 
     //------------------------------------------------------------------//
     // Export global IDL file as XML for building the schema model      //
     //------------------------------------------------------------------//
     LOG.debug("Exporting XML definitions from IDL files");
-    final File globalXml = new File(idlDir(), "global.xml");
+    final File globalXml = new File(idlDir(), MODULE_NAME_META + ".xml");
     final boolean xmlSuccessful = generateGlobalXml(globalXml);
     if (!xmlSuccessful) {
       throw new ThriftStartupException(STARTUP_011, "unknown error");
@@ -327,15 +320,24 @@ public final class ThriftEE implements SchemaBuilderConfig {
     //------------------------------------------------------------------//
     LOG.debug("Setting up thrift processor map");
 //    try {
-//      final ThriftSchemaService impl = new ThriftSchemaService.Impl(schema());
-//      serviceLocator.register(ThriftSchemaService.class, impl);
+//      final ThriftSchemaService.Iface svc = new ThriftSchemaServiceImpl(this);
+//      serviceLocator.register(ThriftSchemaService.Iface.class, svc);
+//    } catch (SchemaBuilderException e) {
+//      throw new ThriftStartupException(e, STARTUP_000);
 //    } catch (ServiceLocatorException e) {
 //      throw new ThriftStartupException(
 //          e, e.getThrifteeMessage(), e.getArguments());
 //    }
-    this.processors = Collections.unmodifiableSortedMap(
-      config.schemaProvider().buildProcessorMap(serviceLocator)
-    );
+    final SortedMap<String, TProcessor> processorMap;
+    try {
+      final String svcname = MODULE_NAME_META_IDL + ".ThriftSchemaService";
+      final ThriftSchemaService.Iface svc = new ThriftSchemaServiceImpl(this);
+      processorMap = config.schemaProvider().buildProcessorMap(serviceLocator);
+      processorMap.put(svcname, new ThriftSchemaService.Processor<>(svc));
+    } catch (SchemaBuilderException e) {
+      throw new ThriftStartupException(e, STARTUP_000);
+    }
+    this.processors = Collections.unmodifiableSortedMap(processorMap);
 
     LOG.info("Thrift initialization completed");
   }
@@ -353,11 +355,11 @@ public final class ThriftEE implements SchemaBuilderConfig {
     return ThriftCommandRunner.instanceFor(compiler, command);
   }
 
-  private String getVersionString() {
+  public final String getVersionString() {
     return newCommandRunner().executeVersion();
   }
 
-  private String getHelpString() {
+  public final  String getHelpString() {
     return newCommandRunner().executeHelp();
   }
 
@@ -372,6 +374,46 @@ public final class ThriftEE implements SchemaBuilderConfig {
     return "client-" + validateLibrary(name);
   }
 
+  private File[] createGlobalIdlFile(final File[] idlFiles)
+      throws ThriftStartupException {
+    final File outdir = new File(idlDir(), "thrift");
+    if (outdir.exists() && !outdir.isDirectory()) {
+      throw new ThriftStartupException(STARTUP_004, 
+        outdir.getAbsolutePath() + " exists and is not a directory.");
+    } else if (!outdir.exists() && !outdir.mkdirs()) {
+      throw new ThriftStartupException(STARTUP_004,
+        outdir.getAbsolutePath() + " does not exist and could not be created.");
+    }
+    final String meta = MODULE_NAME_META + ".thrift";
+    final String metaIdl = MODULE_NAME_META_IDL + ".thrift";
+    final String compilerIdl = MODULE_NAME_COMPILER_IDL + ".thrift";
+    try {
+      final File globalFile = new File(outdir, meta);
+      final File metaIdlFile = FileUtil.copyResourceToDir(metaIdl, outdir);
+      final File compilerIdlFile = FileUtil.copyResourceToDir(compilerIdl, outdir); 
+      final List<File> allFiles = new ArrayList<>(idlFiles.length + 3);
+      allFiles.add(globalFile);
+      allFiles.add(metaIdlFile);
+      allFiles.add(compilerIdlFile);
+//      final String content = FileUtil.readAsString(in, "UTF-8");
+      final StringBuilder includes = new StringBuilder();
+      includes.append("include \"" + metaIdlFile.getName() + "\"\n");
+      includes.append("include \"" + compilerIdlFile.getName() + "\"\n");
+//      includes.append("-- autogenerated includes : start -- */\n");
+      for (File idlFile : idlFiles) {
+        includes.append("include \"" + idlFile.getName() + "\"\n");
+        allFiles.add(idlFile);
+      }
+//      includes.append("/* -- autogenerated includes :  end  --");
+//      final String rplc = "autogenerated list of includes will be placed here";
+//      final String global = content.replaceFirst(rplc, includes.toString());
+      FileUtil.writeStringToFile(includes.toString(), globalFile, FileUtil.UTF_8);
+      return allFiles.toArray(new File[allFiles.size()]);
+    } catch (IOException e) {
+      throw new ThriftStartupException(e, STARTUP_004, "IOException occurred");
+    }
+  }
+
   private boolean generateGlobalXml(File out) throws ThriftStartupException {
     final File xmlDir = out.getParentFile();
     if (!xmlDir.exists()) {
@@ -380,7 +422,7 @@ public final class ThriftEE implements SchemaBuilderConfig {
           "could not create directory for XML model output: %s", 
             xmlDir.getAbsolutePath()));
       }
-    }
+    }/*
     final boolean nativeXmlSupported = isNativeXmlSupported();
     if (!nativeXmlSupported) {
       try {
@@ -418,7 +460,7 @@ public final class ThriftEE implements SchemaBuilderConfig {
       }
       return true;
     } else {
-      LOG.debug("using native Thrift compiler to generate XML model output.");
+      LOG.debug("using native Thrift compiler to generate XML model output.");*/
       final String path = globalIdlFile().getAbsolutePath();
       final ThriftCommand cmd = new ThriftCommand(Generate.XML, path);
       cmd.setOutputLocation(xmlDir);
@@ -427,9 +469,10 @@ public final class ThriftEE implements SchemaBuilderConfig {
           ThriftCommandRunner.instanceFor(compiler, cmd);
       final ExecutionResult result = runner.executeCommand();
       return result.successful();
-    }
+//    }
   }
 
+/*
   private boolean isNativeXmlSupported() {
     final String helpString = getHelpString();
     final StringReader str = new StringReader(helpString);
@@ -444,6 +487,7 @@ public final class ThriftEE implements SchemaBuilderConfig {
     }
     return false;
   }
+*/
 
   private void generateClientLibrary(ClientTypeAlias alias) 
       throws ThriftStartupException {

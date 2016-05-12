@@ -71,11 +71,12 @@ public class TestSchemaProvider implements SchemaProvider {
       "org_thriftee_examples_usergroup_domain.thrift",
       "org_thriftee_examples_usergroup_service.thrift"
     };
-    final StringBuilder global = new StringBuilder();
+//    final StringBuilder global = new StringBuilder();
     try {
       if (idlDir.exists()) {
         FileUtil.deleteRecursively(idlDir);
       }
+      idlDir = new File(idlDir, "thrift");
       if (!idlDir.mkdirs()) {
         throw new IOException("could not create idlDir: " + idlDir);
       }
@@ -88,10 +89,10 @@ public class TestSchemaProvider implements SchemaProvider {
         if (!idlFile.exists()) {
           throw new IOException("IDL should have been copied: " + idlFile);
         }
-        global.append(String.format("include \"%s\"%n", rsrc));
+//        global.append(String.format("include \"%s\"%n", rsrc));
       }
-      final File globalFile = new File(idlDir, "global.thrift");
-      FileUtil.writeStringToFile(global.toString(), globalFile, FileUtil.UTF_8);
+//      final File globalFile = new File(idlDir, "org.thriftee.meta.thrift");
+//      FileUtil.writeStringToFile(global.toString(), globalFile, FileUtil.UTF_8);
       return idlDir.listFiles();
     } catch (IOException e) {
       throw new ThriftStartupException(e, STARTUP_001, e.getMessage());

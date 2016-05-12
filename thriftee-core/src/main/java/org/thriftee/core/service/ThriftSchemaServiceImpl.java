@@ -13,28 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.core;
+
+package org.thriftee.core.service;
 
 import javax.xml.transform.stream.StreamSource;
 
-import org.thriftee.compiler.schema.IdlSchemaBuilder;
+import org.apache.thrift.TException;
+import org.thriftee.compiler.schema.IdlXmlUtils;
 import org.thriftee.compiler.schema.SchemaBuilderException;
-import org.thriftee.compiler.schema.ThriftSchema;
+import org.thriftee.compiler.idl.IdlSchema;
+import org.thriftee.core.ThriftEE;
+import org.thriftee.meta.idl.ThriftSchemaService;
 
-public interface SchemaBuilder {
+public class ThriftSchemaServiceImpl implements ThriftSchemaService.Iface {
 
-  public abstract ThriftSchema buildSchema(SchemaBuilderConfig config) 
-      throws SchemaBuilderException;
+  private final IdlSchema _schemaDef;
 
-  public static class FromXML implements SchemaBuilder {
+  public ThriftSchemaServiceImpl(final ThriftEE thrift)
+      throws SchemaBuilderException {
+    final StreamSource src = new StreamSource(thrift.globalXmlFile());
+    this._schemaDef = IdlXmlUtils.fromXml(src);
+  }
 
-    @Override
-    public ThriftSchema buildSchema(SchemaBuilderConfig config) 
-        throws SchemaBuilderException {
-      final IdlSchemaBuilder bldr = new IdlSchemaBuilder();
-      return bldr.buildFromXml(new StreamSource(config.globalXmlFile()));
-    }
-
+  @Override
+  public IdlSchema getSchema() throws TException {
+    return _schemaDef.deepCopy();
   }
 
 }

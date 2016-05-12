@@ -213,7 +213,7 @@ public class JQueryClientTypeAlias extends ClientTypeAlias {
           "  lineSource = %s,%n" +
           "  line = %s,%n" + 
           "  offset = %s,%n" + 
-          "  message = %s%n" + 
+          "  message = %s%n",
           src, lineSrc, line, offset, msg
         );
       }
