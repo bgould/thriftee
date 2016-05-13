@@ -535,6 +535,7 @@
               <effort>Max</effort>
               <threshold>High</threshold>
               <xmlOutput>true</xmlOutput>
+              <excludeFilterFile>${project.basedir}/../findbugs-exclude.xml</excludeFilterFile>
             </configuration>
             <executions>
               <execution>
