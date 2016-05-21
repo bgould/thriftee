@@ -24,7 +24,7 @@ public class JavaClientTypeAlias extends ClientTypeAlias {
 
   public JavaClientTypeAlias() {
     super("java", Generate.JAVA, Arrays.asList(new Flag[] {
-    	Flag.JAVA_BEANS
+      Flag.JAVA_BEANS
     }));
   }
 
