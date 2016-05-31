@@ -15,12 +15,18 @@
  */
 package org.thriftee.core;
 
-import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.*;
+import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.STARTUP_000;
+import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.STARTUP_003;
+import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.STARTUP_004;
+import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.STARTUP_008;
+import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.STARTUP_011;
+import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.STARTUP_012;
+import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.STARTUP_013;
+import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.STARTUP_014;
+import static org.thriftee.core.ThriftStartupException.ThriftStartupMessage.STARTUP_015;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -29,8 +35,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import javax.xml.transform.stream.StreamSource;
 
@@ -61,7 +65,7 @@ public final class ThriftEE implements SchemaBuilderConfig {
   public static final Charset XML_CHARSET = Charset.forName("UTF-8");
 
   public static final String MODULE_NAME_META = "org.thriftee.meta";
-  
+
   public static final String MODULE_NAME_META_IDL = "org.thriftee.meta.idl";
 
   public static final String MODULE_NAME_COMPILER_IDL = "org.thriftee.compiler.idl";
@@ -78,18 +82,22 @@ public final class ThriftEE implements SchemaBuilderConfig {
     return protocolTypeAliases;
   }
 
+  @Override
   public File thriftLibDir() {
     return this.thriftLibDir;
   }
 
+  @Override
   public ThriftCompiler thriftCompiler() {
     return this.compiler;
   }
 
+  @Override
   public String thriftVersionString() {
     return this.thriftVersionString;
   }
 
+  @Override
   public File tempDir() {
     return this.tempDir;
   }
@@ -102,10 +110,12 @@ public final class ThriftEE implements SchemaBuilderConfig {
     return this.wsdlClientDir;
   }
 
+  @Override
   public File idlDir() {
     return this.idlDir;
   }
 
+  @Override
   public File[] idlFiles() {
     File[] newArr = new File[idlFiles == null ? 0 : idlFiles.length];
     if (newArr.length > 0) {
@@ -138,10 +148,12 @@ public final class ThriftEE implements SchemaBuilderConfig {
     return this.schema;
   }
 
+  @Override
   public File globalIdlFile() {
     return this.globalIdlFile;
   }
 
+  @Override
   public File globalXmlFile() {
     return this.globalXmlFile;
   }
@@ -319,15 +331,6 @@ public final class ThriftEE implements SchemaBuilderConfig {
     // Register the thrift processors                                   //
     //------------------------------------------------------------------//
     LOG.debug("Setting up thrift processor map");
-//    try {
-//      final ThriftSchemaService.Iface svc = new ThriftSchemaServiceImpl(this);
-//      serviceLocator.register(ThriftSchemaService.Iface.class, svc);
-//    } catch (SchemaBuilderException e) {
-//      throw new ThriftStartupException(e, STARTUP_000);
-//    } catch (ServiceLocatorException e) {
-//      throw new ThriftStartupException(
-//          e, e.getThrifteeMessage(), e.getArguments());
-//    }
     final SortedMap<String, TProcessor> processorMap;
     try {
       final String svcname = MODULE_NAME_META_IDL + ".ThriftSchemaService";
@@ -378,7 +381,7 @@ public final class ThriftEE implements SchemaBuilderConfig {
       throws ThriftStartupException {
     final File outdir = new File(idlDir(), "thrift");
     if (outdir.exists() && !outdir.isDirectory()) {
-      throw new ThriftStartupException(STARTUP_004, 
+      throw new ThriftStartupException(STARTUP_004,
         outdir.getAbsolutePath() + " exists and is not a directory.");
     } else if (!outdir.exists() && !outdir.mkdirs()) {
       throw new ThriftStartupException(STARTUP_004,
@@ -390,23 +393,18 @@ public final class ThriftEE implements SchemaBuilderConfig {
     try {
       final File globalFile = new File(outdir, meta);
       final File metaIdlFile = FileUtil.copyResourceToDir(metaIdl, outdir);
-      final File compilerIdlFile = FileUtil.copyResourceToDir(compilerIdl, outdir); 
+      final File compilerIdlFile = FileUtil.copyResourceToDir(compilerIdl, outdir);
       final List<File> allFiles = new ArrayList<>(idlFiles.length + 3);
       allFiles.add(globalFile);
       allFiles.add(metaIdlFile);
       allFiles.add(compilerIdlFile);
-//      final String content = FileUtil.readAsString(in, "UTF-8");
       final StringBuilder includes = new StringBuilder();
       includes.append("include \"" + metaIdlFile.getName() + "\"\n");
       includes.append("include \"" + compilerIdlFile.getName() + "\"\n");
-//      includes.append("-- autogenerated includes : start -- */\n");
       for (File idlFile : idlFiles) {
         includes.append("include \"" + idlFile.getName() + "\"\n");
         allFiles.add(idlFile);
       }
-//      includes.append("/* -- autogenerated includes :  end  --");
-//      final String rplc = "autogenerated list of includes will be placed here";
-//      final String global = content.replaceFirst(rplc, includes.toString());
       FileUtil.writeStringToFile(includes.toString(), globalFile, FileUtil.UTF_8);
       return allFiles.toArray(new File[allFiles.size()]);
     } catch (IOException e) {
@@ -419,77 +417,21 @@ public final class ThriftEE implements SchemaBuilderConfig {
     if (!xmlDir.exists()) {
       if (!xmlDir.mkdirs()) {
         throw new ThriftStartupException(STARTUP_011, String.format(
-          "could not create directory for XML model output: %s", 
+          "could not create directory for XML model output: %s",
             xmlDir.getAbsolutePath()));
       }
-    }/*
-    final boolean nativeXmlSupported = isNativeXmlSupported();
-    if (!nativeXmlSupported) {
-      try {
-        final Class<?> swiftParserXmlClass = Class.forName(
-          "org.thriftee.provider.swift.SwiftParserXML"
-        );
-        final Method export = swiftParserXmlClass.getMethod(
-          "export", new Class[] { File.class, Charset.class, Result.class}
-        );
-        LOG.debug("using Swift IDL parser to generate XML model output.");
-        final Object swiftParserXml = swiftParserXmlClass.newInstance();
-        final Charset utf8 = Charset.forName("UTF-8");
-        if (utf8 == null) {
-          throw new IllegalStateException("UTF-8 not found?");
-        }
-        try (final FileOutputStream fileout = new FileOutputStream(out)) {
-          try (final Writer w = new OutputStreamWriter(fileout, utf8)) {
-            final StreamResult streamResult = new StreamResult(w);
-            export.invoke(swiftParserXml, new Object[] {
-              globalIdlFile, utf8, streamResult
-            });
-          } catch (final InvocationTargetException e) {
-            throw new ThriftStartupException(e, STARTUP_011, e.getMessage());
-          }
-        } catch (final IOException e) {
-          throw new ThriftStartupException(e, STARTUP_011, e.getMessage());
-        }
-      } catch (ClassNotFoundException e) {
-        throw new UnsupportedOperationException(
-            "Thrift executable cannot create and XML model.");
-      } catch ( IllegalAccessException|
-                InstantiationException|
-                NoSuchMethodException e) {
-        throw new RuntimeException(e);
-      }
-      return true;
-    } else {
-      LOG.debug("using native Thrift compiler to generate XML model output.");*/
-      final String path = globalIdlFile().getAbsolutePath();
-      final ThriftCommand cmd = new ThriftCommand(Generate.XML, path);
-      cmd.setOutputLocation(xmlDir);
-      cmd.addFlag(Generate.Flag.XML_MERGE);
-      final ThriftCommandRunner runner = 
-          ThriftCommandRunner.instanceFor(compiler, cmd);
-      final ExecutionResult result = runner.executeCommand();
-      return result.successful();
-//    }
-  }
-
-/*
-  private boolean isNativeXmlSupported() {
-    final String helpString = getHelpString();
-    final StringReader str = new StringReader(helpString);
-    try (BufferedReader reader = new BufferedReader(str)) {
-      for (String line; (line = reader.readLine()) != null; ) {
-        if (line.startsWith("  xml (XML)")) {
-          return true;
-        }
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
-    return false;
+    final String path = globalIdlFile().getAbsolutePath();
+    final ThriftCommand cmd = new ThriftCommand(Generate.XML, path);
+    cmd.setOutputLocation(xmlDir);
+    cmd.addFlag(Generate.Flag.XML_MERGE);
+    final ThriftCommandRunner runner =
+        ThriftCommandRunner.instanceFor(compiler, cmd);
+    final ExecutionResult result = runner.executeCommand();
+    return result.successful();
   }
-*/
 
-  private void generateClientLibrary(ClientTypeAlias alias) 
+  private void generateClientLibrary(ClientTypeAlias alias)
       throws ThriftStartupException {
     final String name = alias.getName();
     LOG.debug("Generating library for client type alias: {}", name);
@@ -506,7 +448,7 @@ public final class ThriftEE implements SchemaBuilderConfig {
       final File[] files = new File[] { globalIdlFile() };
       final ProcessIDL idlProcessor = new ProcessIDL(
         thriftCompiler(),
-        thriftLibDir(), 
+        thriftLibDir(),
         alias
       );
       final String zipName = clientLibraryPrefix(name);
@@ -526,41 +468,12 @@ public final class ThriftEE implements SchemaBuilderConfig {
   }
 
   private File unzipLibraries() throws ThriftStartupException {
-    final String rsrc = "thrift-libs.zip";
-    final URL libzip = ThriftCompiler.class.getResource(rsrc);
-    if (libzip == null) {
-      throw new IllegalStateException("could not find resource: " + rsrc);
-    }
     final File libdir = new File(tempDir(), "lib");
     try {
       if (libdir.exists()) {
         FileUtil.deleteRecursively(libdir);
       }
-      if (!libdir.mkdirs()) {
-        throw new IllegalStateException(
-          "could not create libdir: " + libdir.getAbsolutePath());
-      }
-      try (final InputStream raw = libzip.openStream()) {
-        try (final ZipInputStream zip = new ZipInputStream(raw)) {
-          final byte[] buffer = new byte[1024];
-          for (ZipEntry entry; (entry = zip.getNextEntry()) != null; ) {
-            final File file = new File(tempDir(), entry.getName());
-            if (!entry.getName().startsWith("lib/")) {
-              throw new IllegalStateException(
-                "entry should start with lib/: " + entry.getName());
-            }
-            if (entry.isDirectory()) {
-              file.mkdirs();
-            } else {
-              try (final FileOutputStream out = new FileOutputStream(file)) {
-                for (int n = -1; (n = zip.read(buffer)) > -1; ) {
-                  out.write(buffer, 0, n);
-                }
-              }
-            }
-          }
-        }
-      }
+      ThriftCompiler.unzipLibs(tempDir());
     } catch (IOException e) {
       throw new ThriftStartupException(e, STARTUP_015, e.getMessage());
     }
