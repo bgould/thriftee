@@ -94,8 +94,8 @@
         <version>${logback.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.thrift</groupId>
-        <artifactId>libthrift</artifactId>
+        <groupId>org.thriftee</groupId>
+        <artifactId>thriftee-libthrift</artifactId>
         <version>${thrift.version}</version>
         <exclusions>
           <exclusion>
@@ -130,7 +130,7 @@
       <dependency>
         <groupId>org.thriftee</groupId>
         <artifactId>thriftee-compiler</artifactId>
-        <version>${project.version}</version>
+        <version>${thrift.version}</version>
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
@@ -199,6 +199,10 @@
         <artifactId>swift-service</artifactId>
         <version>${swift.version}</version>
         <exclusions>
+          <exclusion>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+          </exclusion>
           <exclusion>
             <artifactId>annotations</artifactId>
             <groupId>com.google.code.findbugs</groupId>
@@ -291,7 +295,7 @@
     <junit.version>4.11</junit.version>
     <slf4j.version>1.7.5</slf4j.version>
     <tomee.version>1.7.2</tomee.version>
-    <thrift.version>0.9.3</thrift.version>
+    <thrift.version>0.10.0-SNAPSHOT</thrift.version>
     <restlet.version>2.2.2</restlet.version>
     <eclipselink.version>2.6.0</eclipselink.version>
     <scannotation.version>1.0.2</scannotation.version>
