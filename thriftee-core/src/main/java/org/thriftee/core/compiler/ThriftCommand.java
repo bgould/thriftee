@@ -78,6 +78,7 @@ public class ThriftCommand {
       public static final Flag JAVA_JAVA5            = new Flag( false, JAVA, "java5",           "Generate Java 1.5 compliant code (includes android_legacy flag).");
       public static final Flag JS_JQUERY             = new Flag( false, JS,   "jquery",          "Generate jQuery compatible code");
       public static final Flag JS_NODE               = new Flag( false, JS,   "node",            "Generate node.js compatible code");
+      public static final Flag JS_WITH_NS            = new Flag( false, JS,   "with_ns",         "Create namespace object heirarchy for node.js");
       public static final Flag PHP_INLINED           = new Flag( false, PHP,  "inlined",         "Generate PHP inlined files");
       public static final Flag PHP_SERVER            = new Flag( false, PHP,  "server",          "Generate PHP server stubs");
       public static final Flag PHP_AUTOLOAD          = new Flag( false, PHP,  "autoload",        "Generate PHP with autoload");
@@ -97,12 +98,12 @@ public class ThriftCommand {
 
       public final boolean requiresValue;
 
-      public final String displayName; 
+      public final String displayName;
 
       private Flag(
           boolean requiresValue,
-          Generate lang, 
-          String key, 
+          Generate lang,
+          String key,
           String description
         ) {
         this.name = makeName(lang, key);
@@ -203,9 +204,9 @@ public class ThriftCommand {
   public void addFlag(Flag flag, String value) {
     if (!flag.language.equals(this.language)) {
       throw new IllegalArgumentException(
-        "Flag `" + flag.displayName + "` is not applicable for " + 
+        "Flag `" + flag.displayName + "` is not applicable for " +
         this.language.description
-      ); 
+      );
     }
     if (flag.requiresValue && Strings.isBlank(value)) {
       throw new IllegalArgumentException(
@@ -401,8 +402,8 @@ public class ThriftCommand {
     command.add(this.generateString());
     command.addAll(extraOptions);
     command.add(
-      Strings.isBlank(thriftFile) 
-        ? "\"<output file>\"" 
+      Strings.isBlank(thriftFile)
+        ? "\"<output file>\""
         : escape(thriftFile)
     );
     return command;
@@ -434,6 +435,7 @@ public class ThriftCommand {
     return Strings.join(helpCommand(), ' ');
   }
 
+  @Override
   public String toString() {
     return "ThriftCommand[" + commandString() + "]";
   }
@@ -444,7 +446,7 @@ public class ThriftCommand {
             .append('"')
             .append(value)
             .append('"')
-            .toString();  
+            .toString();
     } else {
       return value;
     }

@@ -33,7 +33,7 @@ public class NodeJSClientTypeAlias extends ClientTypeAlias {
 
   @Override
   public void postProcess(PostProcessorEvent event) throws IOException {
-    
+
   }
 
 }
