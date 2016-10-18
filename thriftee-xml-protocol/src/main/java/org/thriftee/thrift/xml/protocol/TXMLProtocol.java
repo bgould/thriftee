@@ -16,8 +16,12 @@
 package org.thriftee.thrift.xml.protocol;
 
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
-import static javax.xml.stream.XMLStreamConstants.*;
-import static org.apache.thrift.protocol.TType.*;
+import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
+import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
+import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
+import static org.apache.thrift.protocol.TType.MAP;
+import static org.apache.thrift.protocol.TType.STOP;
+import static org.apache.thrift.protocol.TType.STRUCT;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -47,6 +51,7 @@ import org.apache.thrift.protocol.TList;
 import org.apache.thrift.protocol.TMap;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.transport.TTransport;
@@ -76,7 +81,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
   public static final String ATTRIBUTE_NAME =       "n";
   public static final String ATTRIBUTE_ID =         "i";
   public static final String ATTRIBUTE_SEQID =      "q";
-  
+
   public TXMLProtocol(TTransport trans) {
     super(trans);
   }
@@ -118,8 +123,8 @@ public class TXMLProtocol extends AbstractContextProtocol {
     return ex(msg == null ? "<message was null>" : t.getMessage());
   }
 
-  public abstract class XMLValueHolderContext 
-      extends AbstractContext 
+  public abstract class XMLValueHolderContext
+      extends AbstractContext
       implements ValueHolderContext {
 
     public XMLValueHolderContext(Context context) {
@@ -235,17 +240,17 @@ public class TXMLProtocol extends AbstractContextProtocol {
       }
     }
 
-    @Override 
+    @Override
     public XMLListContext newList() {
       return new XMLListContext(this);
     }
 
-    @Override 
+    @Override
     public XMLSetContext newSet() {
       return new XMLSetContext(this);
     }
 
-    @Override 
+    @Override
     public XMLMapContext newMap() {
       return new XMLMapContext(this);
     }
@@ -263,7 +268,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
       super(type);
     }
 
-    @Override 
+    @Override
     public MessageContext newMessage() {
       return new XMLMessageContext(this);
     }
@@ -279,8 +284,8 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   }
 
-  public class XMLMessageContext 
-        extends AbstractContext 
+  public class XMLMessageContext
+        extends AbstractContext
         implements MessageContext {
 
     private String name;
@@ -345,15 +350,15 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   }
 
-  public class XMLStructContext 
-        extends AbstractStructContext 
+  public class XMLStructContext
+        extends AbstractStructContext
         implements StructContext {
 
     public XMLStructContext(Context parent) {
       super(parent);
     }
 
-    @Override 
+    @Override
     public StructContext writeStart() throws TXMLException {
       final Context parent = parent();
       if (!(parent instanceof FieldContext)) {
@@ -379,7 +384,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
       return this;
     }
 
-    @Override 
+    @Override
     public XMLStructContext readStart() throws TXMLException {
       final Context parent = parent();
       if (!(parent instanceof FieldContext)) {
@@ -388,20 +393,20 @@ public class TXMLProtocol extends AbstractContextProtocol {
       return this;
     }
 
-    @Override 
+    @Override
     public XMLStructContext readEnd() throws TXMLException {
       return this;
     }
 
-    @Override 
+    @Override
     public XMLFieldContext newField() throws TXMLException {
       return new XMLFieldContext(this);
     }
 
   }
 
-  public class XMLFieldContext 
-      extends XMLValueHolderContext 
+  public class XMLFieldContext
+      extends XMLValueHolderContext
       implements FieldContext {
 
     private String name;
@@ -432,6 +437,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
       return new TField(name, type, id);
     }
 
+    @Override
     public String toString() {
       return emit().toString();
     }
@@ -478,8 +484,8 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   }
 
-  public abstract class XMLContainerContext<T> 
-      extends XMLValueHolderContext 
+  public abstract class XMLContainerContext<T>
+      extends XMLValueHolderContext
       implements ContainerContext<T> {
 
     protected byte elemType;
@@ -489,7 +495,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
     protected XMLContainerContext(
         ValueHolderContext parent,
-        Class<T> emitType, 
+        Class<T> emitType,
         ContainerType containerType) {
       super(parent);
       if (parent == null) {
@@ -499,6 +505,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
       this.containerType = containerType;
     }
 
+    @Override
     public String toString() {
       return "<"+emitType.getSimpleName()+" type:"+elemType+" size:"+size+">";
     }
@@ -508,7 +515,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
       return containerType;
     }
 
-    @Override 
+    @Override
     public ContainerContext<T> writeStart() throws TXMLException {
       if (parent() instanceof ContainerContext<?>) {
         writeStartElement(byteToElement(containerType.byteval()));
@@ -518,7 +525,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
       return this;
     }
 
-    @Override 
+    @Override
     public ContainerContext<T> writeEnd() throws TXMLException {
       if (parent() instanceof ContainerContext<?>) {
         writeEndElement();
@@ -526,7 +533,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
       return this;
     }
 
-    @Override 
+    @Override
     public ContainerContext<T> readStart() throws TXMLException {
       final String name;
       if (parent() instanceof ContainerContext<?>) {
@@ -543,7 +550,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
       this.size = readIntAttribute(ATTRIBUTE_SIZE);
       this.elemType = elementToByte(readAttribute(ATTRIBUTE_VALUE_TYPE));
       if (ctype == MAP) {
-        ((XMLMapContext)this).keyType = elementToByte( 
+        ((XMLMapContext)this).keyType = elementToByte(
           readAttribute(ATTRIBUTE_KEY_TYPE)
         );
       }
@@ -579,8 +586,8 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   }
 
-  public class XMLListContext 
-      extends XMLContainerContext<TList> 
+  public class XMLListContext
+      extends XMLContainerContext<TList>
       implements ListContext {
 
     public XMLListContext(ValueHolderContext field) {
@@ -600,8 +607,8 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   }
 
-  public class XMLSetContext 
-      extends XMLContainerContext<TSet> 
+  public class XMLSetContext
+      extends XMLContainerContext<TSet>
       implements SetContext {
 
     public XMLSetContext(ValueHolderContext field) {
@@ -621,8 +628,8 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   }
 
-  public class XMLMapContext 
-      extends XMLContainerContext<TMap> 
+  public class XMLMapContext
+      extends XMLContainerContext<TMap>
       implements MapContext {
 
     private byte keyType;
@@ -751,14 +758,14 @@ public class TXMLProtocol extends AbstractContextProtocol {
   }
 
   private static final XMLInputFactory XML_IN;
-  
+
   private static final XMLOutputFactory XML_OUT;
- 
+
   static {
 
     XML_IN = XMLInputFactory.newFactory();
     XML_IN.setProperty(XMLInputFactory.IS_COALESCING, true);
-    
+
     XML_OUT = XMLOutputFactory.newFactory();
 
   }
@@ -787,13 +794,13 @@ public class TXMLProtocol extends AbstractContextProtocol {
   }
 
   protected final String expectStartElement() throws TXMLException {
-    final int etype = (reader().getEventType() == CHARACTERS) 
+    final int etype = (reader().getEventType() == CHARACTERS)
                     ? (readerNext())
                     : (reader().getEventType());
     if (etype == START_ELEMENT) {
       return reader().getLocalName();
     } else {
-      throw new TXMLException(
+      throw ex(
         "Expected START_ELEMENT but was " + XML.streamEventToString(etype)
       );
     }
@@ -810,7 +817,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
   }
 
   protected final String expectEndElement() throws TXMLException {
-    final int etype = (reader().getEventType() == CHARACTERS) 
+    final int etype = (reader().getEventType() == CHARACTERS)
                     ? (readerNext())
                     : (reader().getEventType());
     if (etype == END_ELEMENT) {
@@ -898,6 +905,16 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
   }
 
+  public static class TXMLException extends TProtocolException {
+
+    private static final long serialVersionUID = 5007685985697860252L;
+
+    public TXMLException(String message) {
+      super(message);
+    }
+
+  }
+
   public static enum XML {
     Utils;
     public static String streamEventToString(int event) {
@@ -939,7 +956,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     public static String dumpCurrentState(XMLStreamReader reader) {
       try {
       return String.format(
-        "reader = { eventType: %s, hasNext: %s, %s }", 
+        "reader = { eventType: %s, hasNext: %s, %s }",
         XML.streamEventToString(reader.getEventType()),
         reader.hasNext(),
         reader.hasName() ? reader.getLocalName() : "..."
@@ -969,7 +986,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
         throw new RuntimeException(e);
       }
     }
-    public static String validate(final URL schemaUrl, final Source source) 
+    public static String validate(final URL schemaUrl, final Source source)
             throws SAXException, IOException {
       final SchemaFactory sf = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI);
       final Schema schema = sf.newSchema(schemaUrl);
@@ -979,14 +996,14 @@ public class TXMLProtocol extends AbstractContextProtocol {
         return null;
       } catch (SAXParseException e) {
         return String.format(
-          "%nParse error:%n------------%n" + 
+          "%nParse error:%n------------%n" +
           "line number: %s%n" +
           " col number: %s%n" +
           "  system id: %s%n" +
           "  public id: %s%n" +
           "    message: %s%n",
-          e.getLineNumber(), 
-          e.getColumnNumber(), 
+          e.getLineNumber(),
+          e.getColumnNumber(),
           e.getSystemId(),
           e.getPublicId(),
           e.getLocalizedMessage()

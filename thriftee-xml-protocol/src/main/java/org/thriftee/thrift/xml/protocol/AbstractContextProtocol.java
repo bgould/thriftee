@@ -41,27 +41,11 @@ public abstract class AbstractContextProtocol extends TProtocol {
     ctx.read(msg);
     ctx.push();
     ctx.writeStart();
-    /*
-    final String msgType;
-    switch (arg0.type) {
-    case TMessageType.CALL:      msgType = "call";      break;
-    case TMessageType.REPLY:     msgType = "reply";     break;
-    case TMessageType.EXCEPTION: msgType = "exception"; break;
-    case TMessageType.ONEWAY:    msgType = "oneway";    break;
-    default: throw new IllegalStateException("unknown msg type: " + arg0.type);
-    }
-    try {
-      writer().writeStartElement(msgType);
-    } catch (XMLStreamException e) {
-      throw wrap(e);
-    }
-    */
   }
 
   @Override
   public void writeMessageEnd() throws TException {
     writectx.peek(MessageContext.class).writeEnd().pop();
-    //writeEndElement();
   }
 
   @Override
@@ -271,7 +255,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
   public void readSetEnd() throws TException {
     readctx.peek(SetContext.class).readEnd().pop();
   }
-  
+
   @Override
   public ByteBuffer readBinary() throws TException {
     return readctx.peek(ValueHolderContext.class).readBinary();
@@ -381,7 +365,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
     int readI32() throws TException;
     long readI64() throws TException;
     String readString() throws TException;
-  
+
   }
 
   public interface MessageContext extends TypedContext<TMessage> {
@@ -402,9 +386,9 @@ public abstract class AbstractContextProtocol extends TProtocol {
   }
 
   public interface ListContext extends ContainerContext<TList> {}
-  
+
   public interface SetContext extends ContainerContext<TSet> {}
-  
+
   public interface MapContext extends ContainerContext<TMap> {}
 
   public abstract class AbstractContext implements Context {
@@ -418,32 +402,43 @@ public abstract class AbstractContextProtocol extends TProtocol {
         this.base = this.parent.base();
       }
     }
+    @Override
     public final Context parent() {
       return this.parent;
     }
+    @Override
     public final BaseContext base() {
       return base;
     }
+    @Override
     public final ContextType type() {
       return base().type;
     }
+    @Override
     public Context peek() {
       return base().peek();
     }
+    @Override
     public Context pop() throws TException {
       return base().pop();
     }
+    @Override
     public Context push() throws TException {
       return base().push(this);
     }
+    @Override
     public <T extends Context> T peek(Class<T> type) {
       return _ensure(type, peek());
     }
+    @Override
     public <T extends Context> T pop(Class<T> type) throws TException {
       return _ensure(type, pop());
     }
+    @Override
     public void pushed() throws TException { } // debug("push: "); }
+    @Override
     public void popped() throws TException { } // debug("pop:  "); }
+    @Override
     public final void debug(String op) {
       final StringBuilder sb = new StringBuilder();
       sb.append(type().name().toLowerCase());
@@ -468,10 +463,15 @@ public abstract class AbstractContextProtocol extends TProtocol {
       }
       this.type = type;
     }
+    @Override
     public final BaseContext writeStart() throws TException { throw up(); }
+    @Override
     public final BaseContext readStart() throws TException { throw up(); }
+    @Override
     public final BaseContext writeEnd() throws TException { throw up(); }
+    @Override
     public final BaseContext readEnd() throws TException { throw up(); }
+    @Override
     public final Context peek() {
       return head;
     }
@@ -505,7 +505,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
     abstract MessageContext newMessage() throws TException;
   }
 
-  public abstract class AbstractStructContext 
+  public abstract class AbstractStructContext
       extends AbstractContext implements StructContext {
 
     String name;
@@ -514,18 +514,22 @@ public abstract class AbstractContextProtocol extends TProtocol {
       super(parent);
     }
 
+    @Override
     public void read(TStruct obj) {
       this.name = obj.name;
     }
 
+    @Override
     public TStruct emit() {
       return new TStruct(name);
     }
 
+    @Override
     public String toString() {
       return "<TStruct name:'" + name + "'>";
     }
 
+    @Override
     public abstract FieldContext newField() throws TException;
 
   }
@@ -535,7 +539,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
       return type.cast(ctx);
     }
     throw new IllegalArgumentException(
-      "Expected " + type.getSimpleName() + 
+      "Expected " + type.getSimpleName() +
       " but was actually " + ctx.getClass().getSimpleName()
     );
   }
