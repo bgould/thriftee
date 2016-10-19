@@ -35,17 +35,22 @@ import org.junit.Assert;
 
 import everything.Everything;
 
-//@RunWith(Parameterized.class)
 public class SpeedTest {
 
-//  @Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-      new Object[] { new TCompactProtocol.Factory() },
-      new Object[] { new TBinaryProtocol.Factory() },
-      new Object[] { new TJSONProtocol.Factory() },
-      new Object[] { new TXMLProtocol.Factory() },
+  public static Collection<TProtocolFactory> data() {
+    return Arrays.asList(new TProtocolFactory[] {
+      new TCompactProtocol.Factory(),
+      new TBinaryProtocol.Factory(),
+      new TJSONProtocol.Factory(),
+      new TXMLProtocol.Factory(),
     });
+  }
+
+  public static void main(String[] args) throws Exception {
+    for (TProtocolFactory fctry : data()) {
+      final SpeedTest test = new SpeedTest(fctry);
+      test.testSpeed();
+    }
   }
 
   private final TProtocolFactory factory;
@@ -54,7 +59,6 @@ public class SpeedTest {
     this.factory = factory;
   }
 
-//  @Test
   public void testSpeed() throws TException, IOException {
 
     final int count = 100000;

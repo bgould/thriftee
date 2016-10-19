@@ -13,26 +13,27 @@
   <xsl:param name="root_module" select="document($schema)/idl:idl/idl:document[1]/@name" />
 
   <xsl:variable name="idl" select="document($schema)/idl:idl" />
+  <xsl:variable name="txp" select="'http://thriftee.org/xml/protocol'" />
 
-  <xsl:template match="/txp:r">
+  <xsl:template match="/r">
     <xsl:apply-templates mode="match-service" select="$idl/idl:document[$root_module]/idl:service[@name=$service_name]">
       <xsl:with-param name="call" select="current()" />
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="/txp:s">
+  <xsl:template match="/s">
     <xsl:apply-templates mode="match-service" select="$idl/idl:document[$root_module]/idl:service[@name=$service_name]">
       <xsl:with-param name="call" select="current()" />
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="/txp:t">
+  <xsl:template match="/t">
     <xsl:variable name="name" select="@n|@name" />
     <xsl:variable name="seqid" select="@q|@seqid" />
     <xsl:variable name="data" select="*[1]/*[1]" />
     <soap:Envelope>
       <soap:Header>
-        <txp:exception name="{$name}" seqid="{$seqid}" />
+        <exception name="{$name}" seqid="{$seqid}" />
       </soap:Header>
       <soap:Body>
         <soap:Fault>
@@ -54,13 +55,13 @@
     </soap:Envelope>
   </xsl:template>
 
-  <xsl:template match="/txp:u">
+  <xsl:template match="/u">
     <xsl:apply-templates mode="match-service" select="$idl/idl:document[1]/idl:service[@name=$service_name]">
       <xsl:with-param name="call" select="current()" />
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template match="/txp:m">
+  <xsl:template match="/m">
     <xsl:if test="not($root_struct)">
       <xsl:message terminate="yes">root_struct parameter must be specified if the root element is a struct</xsl:message>
     </xsl:if>
@@ -131,7 +132,7 @@
     <xsl:message terminate="yes">Could not find method for: <xsl:copy-of select="$call" /></xsl:message>
   </xsl:template>
 
-  <xsl:template mode="dispatch-method" match="/txp:r">
+  <xsl:template mode="dispatch-method" match="/r">
     <xsl:param name="method" />
     <xsl:variable name="seqid" select="@q|@seqid" />
     <xsl:variable name="data" select="*[1]" />
@@ -140,7 +141,7 @@
     </xsl:variable>
     <soap:Envelope>
       <soap:Header>
-        <txp:call method="{$method/@name}" seqid="{$seqid}" />
+        <call method="{$method/@name}" seqid="{$seqid}" />
       </soap:Header>
       <soap:Body>
         <xsl:element name="{$method/@name}Request" namespace="{string($ns)}">
@@ -153,14 +154,14 @@
     </soap:Envelope>
   </xsl:template>
 
-  <xsl:template mode="dispatch-method" match="/txp:s">
+  <xsl:template mode="dispatch-method" match="/s">
     <xsl:param name="method" />
     <xsl:apply-templates mode="dispatch-reply" select="current()">
       <xsl:with-param name="method" select="$method" />
     </xsl:apply-templates>
   </xsl:template>
 
-  <xsl:template mode="dispatch-reply" match="/txp:s[txp:m/*/@i='0']">
+  <xsl:template mode="dispatch-reply" match="/s[m/*/@i='0']">
     <xsl:param name="method" />
     <xsl:variable name="seqid" select="@q|@seqid" />
     <xsl:variable name="data" select="*[1]/*[1]" />
@@ -169,7 +170,7 @@
     </xsl:variable>
     <soap:Envelope>
       <soap:Header>
-        <txp:reply method="{$method/@name}" seqid="{$seqid}" />
+        <reply method="{$method/@name}" seqid="{$seqid}" />
       </soap:Header>
       <soap:Body>
         <xsl:element name="{$method/@name}Response" namespace="{string($ns)}">
@@ -217,13 +218,13 @@
     </xsl:variable>
     <soap:Envelope>
       <soap:Header>
-        <txp:exception method="{$method/@name}" seqid="{$seqid}" />
+        <exception method="{$method/@name}" seqid="{$seqid}" />
       </soap:Header>
       <soap:Body>
         <soap:Fault>
           <faultcode>soap:Server</faultcode>
           <faultstring>An application error occurred.</faultstring>
-          <faultactor>txp:<xsl:value-of select="concat($service/@name,'.',$method/@name)" /></faultactor>
+          <faultactor><xsl:value-of select="concat($service/@name,'.',$method/@name)" /></faultactor>
           <detail>
             <xsl:element name="{concat($method/@name, 'Response')}" namespace="{$ns}">
               <xsl:element name="{$throws/@name}" namespace="{$ns}">
@@ -243,12 +244,12 @@
     <xsl:message terminate="yes">Could not find exception clause for: <xsl:copy-of select="$call" /></xsl:message>
   </xsl:template>
 
-  <xsl:template mode="application-exception" match="/txp:t">
+  <xsl:template mode="application-exception" match="/t">
     <xsl:param name="method" />
     <xsl:message terminate="yes">not implemented yet</xsl:message>
   </xsl:template>
 
-  <xsl:template mode="dispatch-method" match="/txp:t">
+  <xsl:template mode="dispatch-method" match="/t">
     <xsl:param name="method" />
     <xsl:message terminate="yes">not implemented yet</xsl:message>
   </xsl:template>
@@ -424,6 +425,11 @@
   <xsl:template mode="transform-thrift-type" match="*" priority="-1">
     <xsl:param name="data" />
     <xsl:variable name="typeinfo" select="current()" />
+    <xsl:if test="$data/@b = '1'">
+      <xsl:attribute name="enc">
+        <xsl:value-of select="'base64'" />
+      </xsl:attribute>
+    </xsl:if>
     <xsl:value-of select="$data" />
   </xsl:template>
 

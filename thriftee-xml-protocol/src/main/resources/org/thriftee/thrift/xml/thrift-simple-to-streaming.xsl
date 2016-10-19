@@ -12,7 +12,7 @@
 
   <xsl:variable name="idl" select="document($schema)/idl:idl" />
 
-  <xsl:variable name="txp_ns" select="'http://thriftee.org/xml/protocol'" />
+  <xsl:variable name="txp_ns" select="''" />
   <xsl:variable name="include_names" select="false()" />
 
   <xsl:variable name="key_attr"   select="'k'" />
@@ -401,7 +401,18 @@
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template mode="transform-thrift-type" match="*" priority="-1">
+  <xsl:template mode="transform-thrift-type" match="*[@type='string']" priority="-1">
+    <xsl:param name="data" />
+    <xsl:variable name="typeinfo" select="current()" />
+    <xsl:if test="$data[@enc = 'base64']">
+      <xsl:attribute name="b" namespace="{$txp_ns}">
+        <xsl:value-of select="'1'" />
+      </xsl:attribute>
+    </xsl:if>
+    <xsl:value-of select="$data" />
+  </xsl:template>
+
+  <xsl:template mode="transform-thrift-type" match="*" priority="-2">
     <xsl:param name="data" />
     <xsl:variable name="typeinfo" select="current()" />
     <xsl:value-of select="$data" />

@@ -68,6 +68,7 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
 
     final TestProtocol protocol = createOutProtocol();
     final Everything everything = everythingStruct();
+    everything.str = everything.str + "\1";
     everything.write(protocol);
 
     final String xml = protocol.getStringOutput();

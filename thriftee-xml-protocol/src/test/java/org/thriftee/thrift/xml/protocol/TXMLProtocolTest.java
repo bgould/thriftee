@@ -57,6 +57,14 @@ public class TXMLProtocolTest {
   }
 
   @Test
+  public void testControlChars() throws Exception {
+    final Everything struct = everythingStruct();
+    struct.str = "some control chars: \1 (?\2??)";
+//    struct.str_list.add("tester\1");
+    testRoundtrip(Everything.class, struct);
+  }
+
+  @Test
   public void testElementToByte() throws Exception {
     for (final Field field : TType.class.getDeclaredFields()) {
       final String name = field.getName();

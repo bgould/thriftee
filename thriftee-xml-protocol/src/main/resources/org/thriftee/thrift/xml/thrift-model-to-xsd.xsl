@@ -21,6 +21,19 @@
       <xsl:apply-templates mode="process-includes-as-imports" select="$doc/idl:include" />
       <xsl:apply-templates mode="process-documentation" select="$doc" />
       <xsl:apply-templates select="$doc" />
+      <xsd:complexType name="string">
+        <xsd:simpleContent>
+          <xsd:extension base="xsd:string">
+            <xsd:attribute name="enc">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                  <xsd:enumeration value="base64" />
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:attribute>
+          </xsd:extension>
+        </xsd:simpleContent>
+      </xsd:complexType>
     </xsd:schema>
   </xsl:template>
 
@@ -258,6 +271,10 @@
     <xsl:value-of select="concat(@type-module, ':', @type-id)" />
   </xsl:template>
 
+  <xsl:template mode="xsd-type-name" match="*[@type='string']">
+    <xsl:value-of select="concat($doc/@name, ':string')" />
+  </xsl:template>
+
   <xsl:template mode="xsd-type-name" match="*[@type='i8'    ]">xsd:byte</xsl:template>
   <xsl:template mode="xsd-type-name" match="*[@type='i16'   ]">xsd:short</xsl:template>
   <xsl:template mode="xsd-type-name" match="*[@type='i32'   ]">xsd:int</xsl:template>
@@ -265,7 +282,6 @@
   <xsl:template mode="xsd-type-name" match="*[@type='byte'  ]">xsd:byte</xsl:template>
   <xsl:template mode="xsd-type-name" match="*[@type='bool'  ]">xsd:boolean</xsl:template>
   <xsl:template mode="xsd-type-name" match="*[@type='binary']">xsd:base64Binary</xsl:template>
-  <xsl:template mode="xsd-type-name" match="*[@type='string']">xsd:string</xsl:template>
   <xsl:template mode="xsd-type-name" match="*[@type='double']">xsd:double</xsl:template>
 
   <xsl:template mode="xsd-type-name" match="*" priority="-1">

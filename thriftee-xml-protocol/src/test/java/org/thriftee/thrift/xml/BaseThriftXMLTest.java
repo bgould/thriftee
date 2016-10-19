@@ -15,7 +15,11 @@
  */
 package org.thriftee.thrift.xml;
 
-import static org.thriftee.examples.Examples.*;
+import static org.thriftee.examples.Examples.blotto;
+import static org.thriftee.examples.Examples.everythingStruct;
+import static org.thriftee.examples.Examples.grokArgs;
+import static org.thriftee.examples.Examples.grokError;
+import static org.thriftee.examples.Examples.grokResult;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -37,6 +41,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.thrift.TBase;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TMessage;
 import org.junit.Before;
@@ -47,6 +52,8 @@ import org.thriftee.thrift.compiler.ExecutionResult;
 import org.thriftee.thrift.compiler.ThriftCompiler;
 import org.thriftee.thrift.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
+
+import another.Blotto;
 
 public class BaseThriftXMLTest {
 
@@ -95,12 +102,19 @@ public class BaseThriftXMLTest {
 
     new TestObject("everything", "everything", everythingStruct()),
     new TestObject("blotto", "nothing_all_at_once", blotto()),
+    new TestObject("control_chars", "nothing_all_at_once", controlChars()),
 
     new TestCall("grok_args",   "everything", "Universe", grokArgs()   ),
-//    new TestCall("grok_result", "everything", "Universe", grokResult() ),
+    new TestCall("grok_result", "everything", "Universe", grokResult() ),
     new TestCall("grok_error",  "everything", "Universe", grokError()  ),
 
   };
+
+  public static TBase<?,?> controlChars() {
+    final Blotto blotto = blotto();
+    blotto.sparticle = "has some control chars: \1";
+    return blotto;
+  }
 
   @BeforeClass
   public synchronized static void beforeClass() throws Exception {
@@ -211,6 +225,7 @@ public class BaseThriftXMLTest {
   public static Map<String, File> exportModels(File tmp) throws IOException {
     final Map<String, File> xmlFiles = new LinkedHashMap<>();
     final File[] idlFiles = testIdlDir.listFiles(new FilenameFilter() {
+      @Override
       public boolean accept(File dir, String name) {
         return name.endsWith(".thrift");
       }
@@ -223,7 +238,7 @@ public class BaseThriftXMLTest {
       final File outfile = new File(tmp, basename + ".xml");
       final ExecutionResult exec = ThriftCompiler.newCompiler().execute(
         "-gen", "xml:merge",
-        "-out", tmp.getAbsolutePath(), 
+        "-out", tmp.getAbsolutePath(),
         idlfile.getAbsolutePath()
       );
       if (exec.exitCode != 0) {
@@ -301,7 +316,7 @@ public class BaseThriftXMLTest {
     trns.transform(new StreamSource(src), new StreamResult(tgt));
   }
 
-  private static void transformToStreaming(TestObject obj, File src, File tgt) 
+  private static void transformToStreaming(TestObject obj, File src, File tgt)
       throws IOException, TransformerException {
     final Transformation trns = Transforms.newSimpleToStreaming();
     trns.setFormatting(true);

@@ -1,228 +1,234 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" 
-        targetNamespace="http://thriftee.org/xml/protocol" 
-        xmlns:tns="http://thriftee.org/xml/protocol" 
-        elementFormDefault="qualified">
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-  <element name="r" type="tns:MessageType" />
-  <element name="s" type="tns:MessageType" />
-  <element name="t" type="tns:MessageType" />
-  <element name="u" type="tns:MessageType" />
-  <element name="m" type="tns:StructType" />
+  <xsd:element name="r" type="MessageType" />
+  <xsd:element name="s" type="MessageType" />
+  <xsd:element name="t" type="MessageType" />
+  <xsd:element name="u" type="MessageType" />
+  <xsd:element name="m" type="StructType" />
 
-  <complexType name="MessageType">
-    <sequence>
-      <element name="m" type="tns:StructType" />
-    </sequence>
-    <attribute name="n" type="string" />
-    <attribute name="q" type="int" />
-  </complexType>
+  <xsd:complexType name="MessageType">
+    <xsd:sequence>
+      <xsd:element name="m" type="StructType" />
+    </xsd:sequence>
+    <xsd:attribute name="n" type="xsd:string" />
+    <xsd:attribute name="q" type="xsd:int" />
+  </xsd:complexType>
 
-  <complexType name="StructType">
-    <sequence>
-      <choice minOccurs="1" maxOccurs="unbounded">
-        <element name="c">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:bool">
-                <attributeGroup ref="tns:FieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="d">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:i8">
-                <attributeGroup ref="tns:FieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="e">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:double">
-                <attributeGroup ref="tns:FieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="g">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:i16">
-                <attributeGroup ref="tns:FieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="i">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:i32">
-                <attributeGroup ref="tns:FieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="k">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:i64">
-                <attributeGroup ref="tns:FieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="l">
-          <complexType>
-            <simpleContent>
-              <extension base="tns:string">
-                <attributeGroup ref="tns:FieldAttributes" />
-              </extension>
-            </simpleContent>
-          </complexType>
-        </element>
-        <element name="m">
-          <complexType>
-            <complexContent>
-              <extension base="tns:StructType">
-                <attributeGroup ref="tns:FieldAttributes" />
-              </extension>
-            </complexContent>
-          </complexType>
-        </element>
-        <element name="n">
-          <complexType>
-            <complexContent>
-              <extension base="tns:MapType">
-                <attributeGroup ref="tns:FieldAttributes" />
-              </extension>
-            </complexContent>
-          </complexType>
-        </element>
-        <element name="o">
-          <complexType>
-            <complexContent>
-              <extension base="tns:SetType">
-                <attributeGroup ref="tns:FieldAttributes" />
-              </extension>
-            </complexContent>
-          </complexType>
-        </element>
-        <element name="p">
-          <complexType>
-            <complexContent>
-              <extension base="tns:ListType">
-                <attributeGroup ref="tns:FieldAttributes" />
-              </extension>
-            </complexContent>
-          </complexType>
-        </element>
-        <element name="a">
-          <complexType>
-            <sequence />
-          </complexType>
-        </element>
-      </choice>
-    </sequence>
-  </complexType>
+  <xsd:complexType name="StructType">
+    <xsd:sequence>
+      <xsd:choice minOccurs="1" maxOccurs="unbounded">
+        <xsd:element name="a">
+          <xsd:complexType>
+            <xsd:sequence />
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="c">
+          <xsd:complexType>
+            <xsd:simpleContent>
+              <xsd:extension base="bool">
+                <xsd:attributeGroup ref="FieldAttributes" />
+              </xsd:extension>
+            </xsd:simpleContent>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="d">
+          <xsd:complexType>
+            <xsd:simpleContent>
+              <xsd:extension base="i8">
+                <xsd:attributeGroup ref="FieldAttributes" />
+              </xsd:extension>
+            </xsd:simpleContent>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="e">
+          <xsd:complexType>
+            <xsd:simpleContent>
+              <xsd:extension base="double">
+                <xsd:attributeGroup ref="FieldAttributes" />
+              </xsd:extension>
+            </xsd:simpleContent>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="g">
+          <xsd:complexType>
+            <xsd:simpleContent>
+              <xsd:extension base="i16">
+                <xsd:attributeGroup ref="FieldAttributes" />
+              </xsd:extension>
+            </xsd:simpleContent>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="i">
+          <xsd:complexType>
+            <xsd:simpleContent>
+              <xsd:extension base="i32">
+                <xsd:attributeGroup ref="FieldAttributes" />
+              </xsd:extension>
+            </xsd:simpleContent>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="k">
+          <xsd:complexType>
+            <xsd:simpleContent>
+              <xsd:extension base="i64">
+                <xsd:attributeGroup ref="FieldAttributes" />
+              </xsd:extension>
+            </xsd:simpleContent>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="l">
+          <xsd:complexType>
+            <xsd:simpleContent>
+              <xsd:extension base="string">
+                <xsd:attributeGroup ref="FieldAttributes" />
+                <xsd:attribute name="b" type="string" />
+              </xsd:extension>
+            </xsd:simpleContent>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="m">
+          <xsd:complexType>
+            <xsd:complexContent>
+              <xsd:extension base="StructType">
+                <xsd:attributeGroup ref="FieldAttributes" />
+              </xsd:extension>
+            </xsd:complexContent>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="n">
+          <xsd:complexType>
+            <xsd:complexContent>
+              <xsd:extension base="MapType">
+                <xsd:attributeGroup ref="FieldAttributes" />
+              </xsd:extension>
+            </xsd:complexContent>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="o">
+          <xsd:complexType>
+            <xsd:complexContent>
+              <xsd:extension base="SetType">
+                <xsd:attributeGroup ref="FieldAttributes" />
+              </xsd:extension>
+            </xsd:complexContent>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="p">
+          <xsd:complexType>
+            <xsd:complexContent>
+              <xsd:extension base="ListType">
+                <xsd:attributeGroup ref="FieldAttributes" />
+              </xsd:extension>
+            </xsd:complexContent>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:choice>
+    </xsd:sequence>
+  </xsd:complexType>
 
-  <attributeGroup name="FieldAttributes">
-    <attribute name="i" type="tns:FieldIdType" use="required" />
-    <attribute name="n" type="tns:IdentifierType" />
-  </attributeGroup>
+  <xsd:attributeGroup name="FieldAttributes">
+    <xsd:attribute name="i" type="FieldIdType" use="required" />
+    <xsd:attribute name="n" type="IdentifierType" />
+  </xsd:attributeGroup>
 
-  <group name="ThriftValue">
-    <choice>
-      <element name="c" type="tns:bool" />
-      <element name="d" type="tns:i8" />
-      <element name="e" type="tns:double" />
-      <element name="g" type="tns:i16" />
-      <element name="i" type="tns:i32" />
-      <element name="k" type="tns:i64" />
-      <element name="l" type="tns:string" />
-      <element name="m" type="tns:StructType" />
-      <element name="n" type="tns:MapType" />
-      <element name="o" type="tns:SetType" />
-      <element name="p" type="tns:ListType" />
-    </choice>
-  </group>
+  <xsd:group name="ThriftValue">
+    <xsd:choice>
+      <xsd:element name="c" type="bool" />
+      <xsd:element name="d" type="i8" />
+      <xsd:element name="e" type="double" />
+      <xsd:element name="g" type="i16" />
+      <xsd:element name="i" type="i32" />
+      <xsd:element name="k" type="i64" />
+      <xsd:element name="l">
+        <xsd:complexType>
+          <xsd:simpleContent>
+            <xsd:extension base="string">
+              <xsd:attribute name="b" type="string" />
+            </xsd:extension>
+          </xsd:simpleContent>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="m" type="StructType" />
+      <xsd:element name="n" type="MapType" />
+      <xsd:element name="o" type="SetType" />
+      <xsd:element name="p" type="ListType" />
+    </xsd:choice>
+  </xsd:group>
 
-  <attributeGroup name="ContainerAttributes">
-    <attribute name="z" type="int" />
-    <attribute name="v" type="tns:typename" />
-  </attributeGroup>
+  <xsd:attributeGroup name="ContainerAttributes">
+    <xsd:attribute name="z" type="xsd:int" />
+    <xsd:attribute name="v" type="typename" />
+  </xsd:attributeGroup>
 
-  <attributeGroup name="MapAttributes">
-    <attribute name="k" type="tns:typename" />
-    <attributeGroup ref="tns:ContainerAttributes" />
-  </attributeGroup>
+  <xsd:attributeGroup name="MapAttributes">
+    <xsd:attribute name="k" type="typename" />
+    <xsd:attributeGroup ref="ContainerAttributes" />
+  </xsd:attributeGroup>
 
-  <complexType name="MapType">
-    <sequence minOccurs="0" maxOccurs="unbounded">
-      <group ref="tns:ThriftValue" minOccurs="1" maxOccurs="1" />
-      <group ref="tns:ThriftValue" minOccurs="1" maxOccurs="1" />
-    </sequence>
-    <attributeGroup ref="tns:MapAttributes" />
-  </complexType>
+  <xsd:complexType name="MapType">
+    <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+      <xsd:group ref="ThriftValue" minOccurs="1" maxOccurs="1" />
+      <xsd:group ref="ThriftValue" minOccurs="1" maxOccurs="1" />
+    </xsd:sequence>
+    <xsd:attributeGroup ref="MapAttributes" />
+  </xsd:complexType>
 
-  <complexType name="SetType">
-    <sequence minOccurs="0" maxOccurs="unbounded">
-      <group ref="tns:ThriftValue" minOccurs="1" maxOccurs="1" />
-    </sequence>
-    <attributeGroup ref="tns:ContainerAttributes" />
-  </complexType>
+  <xsd:complexType name="SetType">
+    <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+      <xsd:group ref="ThriftValue" minOccurs="1" maxOccurs="1" />
+    </xsd:sequence>
+    <xsd:attributeGroup ref="ContainerAttributes" />
+  </xsd:complexType>
 
-  <complexType name="ListType">
-    <sequence minOccurs="0" maxOccurs="unbounded">
-      <group ref="tns:ThriftValue" minOccurs="1" maxOccurs="1" />
-    </sequence>
-    <attributeGroup ref="tns:ContainerAttributes" />
-  </complexType>
+  <xsd:complexType name="ListType">
+    <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+      <xsd:group ref="ThriftValue" minOccurs="1" maxOccurs="1" />
+    </xsd:sequence>
+    <xsd:attributeGroup ref="ContainerAttributes" />
+  </xsd:complexType>
 
-  <simpleType name="typename">
-    <restriction base="string" />
-  </simpleType>
+  <xsd:simpleType name="typename">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
 
-  <simpleType name="i8">
-    <restriction base="byte" />
-  </simpleType>
+  <xsd:simpleType name="i8">
+    <xsd:restriction base="xsd:byte" />
+  </xsd:simpleType>
 
-  <simpleType name="i16">
-    <restriction base="short" />
-  </simpleType>
+  <xsd:simpleType name="i16">
+    <xsd:restriction base="xsd:short" />
+  </xsd:simpleType>
 
-  <simpleType name="i32">
-    <restriction base="int" />
-  </simpleType>
+  <xsd:simpleType name="i32">
+    <xsd:restriction base="xsd:int" />
+  </xsd:simpleType>
 
-  <simpleType name="i64">
-    <restriction base="long" />
-  </simpleType>
+  <xsd:simpleType name="i64">
+    <xsd:restriction base="xsd:long" />
+  </xsd:simpleType>
 
-  <simpleType name="double">
-    <restriction base="double" />
-  </simpleType>
+  <xsd:simpleType name="double">
+    <xsd:restriction base="xsd:double" />
+  </xsd:simpleType>
 
-  <simpleType name="string">
-    <restriction base="string" />
-  </simpleType>
+  <xsd:simpleType name="string">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
 
-  <simpleType name="bool">
-    <restriction base="byte">
-      <enumeration value="0" />
-      <enumeration value="1" />
-    </restriction>
-  </simpleType>
+  <xsd:simpleType name="bool">
+    <xsd:restriction base="xsd:byte">
+      <xsd:enumeration value="0" />
+      <xsd:enumeration value="1" />
+    </xsd:restriction>
+  </xsd:simpleType>
 
-  <simpleType name="IdentifierType">
-    <restriction base="string" />
-  </simpleType>
+  <xsd:simpleType name="IdentifierType">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
 
-  <simpleType name="FieldIdType">
-    <restriction base="short" />
-  </simpleType>
+  <xsd:simpleType name="FieldIdType">
+    <xsd:restriction base="xsd:short" />
+  </xsd:simpleType>
 
-</schema>
+</xsd:schema>
