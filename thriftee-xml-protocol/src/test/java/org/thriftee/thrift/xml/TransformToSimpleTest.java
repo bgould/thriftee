@@ -63,7 +63,7 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
   }
 
   @Test
-  public void testTransformStruct() 
+  public void testTransformStruct()
       throws TException, TransformerException, IOException {
 
     final TestProtocol protocol = createOutProtocol();
@@ -80,11 +80,11 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
     final File transformOutput = new File(testMethodDir, "output.xml");
     try (final FileWriter w = new FileWriter(transformOutput)) {
       Transforms.transformStreamingToSimple(
-        schemaFile, 
-        "everything", 
-        RootType.STRUCT, 
-        "Everything", 
-        new StreamSource(dataOutput), 
+        schemaFile,
+        "everything",
+        RootType.STRUCT,
+        "Everything",
+        new StreamSource(dataOutput),
         new StreamResult(w)
       );
       w.flush();
@@ -95,7 +95,7 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
   }
 
   @Test
-  public void testServiceCall() 
+  public void testServiceCall()
       throws TException, TransformerException, IOException {
 
     final Everything o = everythingStruct();
@@ -112,11 +112,11 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
 
     try (final FileWriter w = new FileWriter(transformOutput)) {
       Transforms.transformStreamingToSimple(
-        schemaFile, 
-        "everything", 
-        RootType.MESSAGE, 
-        "Universe", 
-        new StreamSource(callOutput), 
+        schemaFile,
+        "everything",
+        RootType.MESSAGE,
+        "Universe",
+        new StreamSource(callOutput),
         new StreamResult(w)
       );
     }
@@ -136,11 +136,11 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
 
     try (final FileWriter w = new FileWriter(transformOutput2)) {
       Transforms.transformStreamingToSimple(
-        schemaFile, 
-        "everything", 
-        RootType.MESSAGE, 
-        "Universe", 
-        new StreamSource(replyOutput), 
+        schemaFile,
+        "everything",
+        RootType.MESSAGE,
+        "Universe",
+        new StreamSource(replyOutput),
         new StreamResult(w)
       );
     }
@@ -151,12 +151,12 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
   }
 
   @Test
-  public void testApplicationException () throws 
+  public void testApplicationException () throws
       TException, IOException, TransformerException {
 
     final TestProtocol protocol = createOutProtocol();
     final TApplicationException x = new TApplicationException(
-      TApplicationException.INTERNAL_ERROR, 
+      TApplicationException.INTERNAL_ERROR,
       "An internal error occured."
     );
     protocol.writeMessageBegin(new TMessage("woah", TMessageType.EXCEPTION, 1));
@@ -170,11 +170,11 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
 
     try (final FileWriter w = new FileWriter(transformOutput)) {
       Transforms.transformStreamingToSimple(
-        schemaFile, 
-        "everything", 
-        RootType.MESSAGE, 
-        "Universe", 
-        new StreamSource(replyOutput), 
+        schemaFile,
+        "everything",
+        RootType.MESSAGE,
+        "Universe",
+        new StreamSource(replyOutput),
         new StreamResult(w)
       );
     }
@@ -185,7 +185,7 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
   }
 
   @Test
-  public void testException() 
+  public void testException()
       throws TException, TransformerException, IOException {
 
     final Everything o = everythingStruct();
@@ -202,11 +202,11 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
 
     try (final FileWriter w = new FileWriter(transformOutput)) {
       Transforms.transformStreamingToSimple(
-        schemaFile, 
-        "everything", 
-        RootType.MESSAGE, 
-        "Universe", 
-        new StreamSource(callOutput), 
+        schemaFile,
+        "everything",
+        RootType.MESSAGE,
+        "Universe",
+        new StreamSource(callOutput),
         new StreamResult(w)
       );
     }
@@ -231,11 +231,11 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
 
     try (final FileWriter w = new FileWriter(transformOutput2)) {
       Transforms.transformStreamingToSimple(
-        schemaFile, 
-        "everything", 
-        RootType.MESSAGE, 
-        "Universe", 
-        new StreamSource(replyOutput), 
+        schemaFile,
+        "everything",
+        RootType.MESSAGE,
+        "Universe",
+        new StreamSource(replyOutput),
         new StreamResult(w)
       );
     }
@@ -244,37 +244,5 @@ public class TransformToSimpleTest extends BaseThriftXMLTest {
     Transforms.formatXml(transformOutput2, new StreamResult(System.out));
 
   }
-  
-  /* just shoving this here for convenience ... should be somewhere else
-  public void test10000Transforms() throws Exception {
-    final TestProtocol protocol = createOutProtocol();
-    final Everything everything = TXMLProtocolTest.everythingStruct();
-    everything.write(protocol);
-
-    final String xml = protocol.getStringOutput();
-
-    // get one transformer to be sure it is precompiled
-    Transforms.newStreamingToSimpleTransformer();
-
-    final int count = 10000;
-    long totalNanos = 0;
-    for (int i =0 ; i < count; i++) {
-      final long startNano = System.nanoTime();
-      Transforms.transformStreamingToSimple(
-        schemaFile, 
-        "everything", 
-        RootType.STRUCT, 
-        "Everything", 
-        new StreamSource(new StringReader(xml)), 
-        new StreamResult(new StringWriter())
-      );
-      totalNanos += System.nanoTime() - startNano;
-    }
-
-    System.out.printf("Avg ms per %s transform: %s%n",
-      variant.name(), ((double) totalNanos / (double) count) * (1e-6)
-    );
-  }
-  */
 
 }

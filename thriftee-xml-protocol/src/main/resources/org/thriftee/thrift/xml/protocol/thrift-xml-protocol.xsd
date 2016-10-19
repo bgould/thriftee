@@ -4,15 +4,15 @@
         xmlns:tns="http://thriftee.org/xml/protocol" 
         elementFormDefault="qualified">
 
-  <element name="q" type="tns:MessageType" />
   <element name="r" type="tns:MessageType" />
   <element name="s" type="tns:MessageType" />
   <element name="t" type="tns:MessageType" />
-  <element name="l" type="tns:StructType" />
+  <element name="u" type="tns:MessageType" />
+  <element name="m" type="tns:StructType" />
 
   <complexType name="MessageType">
     <sequence>
-      <element name="l" type="tns:StructType" />
+      <element name="m" type="tns:StructType" />
     </sequence>
     <attribute name="n" type="string" />
     <attribute name="q" type="int" />
@@ -21,7 +21,7 @@
   <complexType name="StructType">
     <sequence>
       <choice minOccurs="1" maxOccurs="unbounded">
-        <element name="b">
+        <element name="c">
           <complexType>
             <simpleContent>
               <extension base="tns:bool">
@@ -30,7 +30,7 @@
             </simpleContent>
           </complexType>
         </element>
-        <element name="c">
+        <element name="d">
           <complexType>
             <simpleContent>
               <extension base="tns:i8">
@@ -39,7 +39,7 @@
             </simpleContent>
           </complexType>
         </element>
-        <element name="d">
+        <element name="e">
           <complexType>
             <simpleContent>
               <extension base="tns:double">
@@ -48,7 +48,7 @@
             </simpleContent>
           </complexType>
         </element>
-        <element name="f">
+        <element name="g">
           <complexType>
             <simpleContent>
               <extension base="tns:i16">
@@ -57,7 +57,7 @@
             </simpleContent>
           </complexType>
         </element>
-        <element name="h">
+        <element name="i">
           <complexType>
             <simpleContent>
               <extension base="tns:i32">
@@ -66,7 +66,7 @@
             </simpleContent>
           </complexType>
         </element>
-        <element name="j">
+        <element name="k">
           <complexType>
             <simpleContent>
               <extension base="tns:i64">
@@ -75,7 +75,7 @@
             </simpleContent>
           </complexType>
         </element>
-        <element name="k">
+        <element name="l">
           <complexType>
             <simpleContent>
               <extension base="tns:string">
@@ -84,7 +84,7 @@
             </simpleContent>
           </complexType>
         </element>
-        <element name="l">
+        <element name="m">
           <complexType>
             <complexContent>
               <extension base="tns:StructType">
@@ -93,7 +93,7 @@
             </complexContent>
           </complexType>
         </element>
-        <element name="m">
+        <element name="n">
           <complexType>
             <complexContent>
               <extension base="tns:MapType">
@@ -102,7 +102,7 @@
             </complexContent>
           </complexType>
         </element>
-        <element name="n">
+        <element name="o">
           <complexType>
             <complexContent>
               <extension base="tns:SetType">
@@ -111,13 +111,18 @@
             </complexContent>
           </complexType>
         </element>
-        <element name="o">
+        <element name="p">
           <complexType>
             <complexContent>
               <extension base="tns:ListType">
                 <attributeGroup ref="tns:FieldAttributes" />
               </extension>
             </complexContent>
+          </complexType>
+        </element>
+        <element name="a">
+          <complexType>
+            <sequence />
           </complexType>
         </element>
       </choice>
@@ -131,17 +136,17 @@
 
   <group name="ThriftValue">
     <choice>
-      <element name="b" type="tns:bool" />
-      <element name="c" type="tns:i8" />
-      <element name="d" type="tns:double" />
-      <element name="f" type="tns:i16" />
-      <element name="h" type="tns:i32" />
-      <element name="j" type="tns:i64" />
-      <element name="k" type="tns:string" />
-      <element name="l" type="tns:StructType" />
-      <element name="m" type="tns:MapType" />
-      <element name="n" type="tns:SetType" />
-      <element name="o" type="tns:ListType" />
+      <element name="c" type="tns:bool" />
+      <element name="d" type="tns:i8" />
+      <element name="e" type="tns:double" />
+      <element name="g" type="tns:i16" />
+      <element name="i" type="tns:i32" />
+      <element name="k" type="tns:i64" />
+      <element name="l" type="tns:string" />
+      <element name="m" type="tns:StructType" />
+      <element name="n" type="tns:MapType" />
+      <element name="o" type="tns:SetType" />
+      <element name="p" type="tns:ListType" />
     </choice>
   </group>
 

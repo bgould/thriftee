@@ -20,6 +20,7 @@ import static org.junit.Assert.fail;
 import static org.thriftee.examples.Examples.everythingStruct;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 import org.apache.thrift.TBase;
 import org.apache.thrift.TException;
@@ -56,6 +57,30 @@ public class TXMLProtocolTest {
   }
 
   @Test
+  public void testElementToByte() throws Exception {
+    for (final Field field : TType.class.getDeclaredFields()) {
+      final String name = field.getName();
+      final byte value = field.getByte(null);
+      final String element = TXMLProtocol.byteToElement(value);
+      final byte roundtrip = TXMLProtocol.elementToByte(element);
+      System.out.printf("%10s = %2s, %2s, %2s%n", name, value, element, roundtrip);
+      //assertEquals("roundtrip should be equals for type " + name, value, roundtrip);
+    }
+  }
+
+  @Test
+  public void testMessageTypeToByte() throws Exception {
+    for (final Field field : TMessageType.class.getDeclaredFields()) {
+      final String name = field.getName();
+      final byte value = field.getByte(null);
+      final String element = TXMLProtocol.byteToMessageType(value);
+      final byte roundtrip = TXMLProtocol.messageTypeToByte(element);
+      System.out.printf("%10s = %2s, %2s, %2s%n", name, value, element, roundtrip);
+//      assertEquals("roundtrip should be equals for type " + name, value, roundtrip);
+    }
+  }
+
+  @Test
   public void testService() throws Exception {
 
     final Everything o = everythingStruct();
@@ -77,10 +102,10 @@ public class TXMLProtocolTest {
     validate(protocol, response);
 
     final TProtocol protocol3 = createOutProtocol(response);
-    
+
     TMessage rmsg = protocol3.readMessageBegin();
     assertEquals(TMessageType.REPLY, rmsg.type);
- 
+
     protocol3.readStructBegin();
 
     TField rfield = protocol3.readFieldBegin();
@@ -89,7 +114,7 @@ public class TXMLProtocolTest {
     int answer = protocol3.readI32();
     assertEquals(42, answer);
     protocol3.readFieldEnd();
-    
+
     TField stop = protocol3.readFieldBegin();
     assertEquals(TType.STOP, stop.type);
 
@@ -126,7 +151,7 @@ public class TXMLProtocolTest {
 
   }
 
-  public <T extends TBase<?, ?>> void testRoundtrip(Class<T> cl, T o) 
+  public <T extends TBase<?, ?>> void testRoundtrip(Class<T> cl, T o)
           throws Exception {
 
     TestProtocol protocol = createOutProtocol(null);
@@ -140,7 +165,7 @@ public class TXMLProtocolTest {
     T roundtrip = cl.newInstance();
     roundtrip.read(protocol);
     assertEquals(
-      "object read from serialized form should equal input object", 
+      "object read from serialized form should equal input object",
       o, roundtrip
     );
 
@@ -150,7 +175,7 @@ public class TXMLProtocolTest {
     validate(protocol, rounded);
 
     //assertEquals(serialized, rounded);
-    
+
   }
 
   public TestProtocol createOutProtocol(String s) {

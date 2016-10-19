@@ -97,7 +97,7 @@ public class BaseThriftXMLTest {
     new TestObject("blotto", "nothing_all_at_once", blotto()),
 
     new TestCall("grok_args",   "everything", "Universe", grokArgs()   ),
-    new TestCall("grok_result", "everything", "Universe", grokResult() ),
+//    new TestCall("grok_result", "everything", "Universe", grokResult() ),
     new TestCall("grok_error",  "everything", "Universe", grokError()  ),
 
   };

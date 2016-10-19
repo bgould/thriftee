@@ -24,6 +24,8 @@ import static org.apache.thrift.protocol.TType.STOP;
 import static org.apache.thrift.protocol.TType.STRUCT;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
@@ -55,8 +57,7 @@ import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.transport.TTransport;
-import org.thriftee.thrift.xml.transport.TTransportInputStream;
-import org.thriftee.thrift.xml.transport.TTransportOutputStream;
+import org.apache.thrift.transport.TTransportException;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -381,6 +382,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
     @Override
     public StructContext writeFieldStop() throws TXMLException {
+      writeEmptyElement(byteToElement(STOP));
       return this;
     }
 
@@ -395,6 +397,10 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
     @Override
     public XMLStructContext readEnd() throws TXMLException {
+      final Context parent = parent();
+      if (!(parent instanceof FieldContext)) {
+        nextEndElement();
+      }
       return this;
     }
 
@@ -463,22 +469,24 @@ public class TXMLProtocol extends AbstractContextProtocol {
       }
       if (eventType == START_ELEMENT) {
         this.type = elementToByte(reader().getLocalName());
-        this.id = readShortAttribute(ATTRIBUTE_ID);
-      } else {
-        this.type = STOP;
-        this.id = 0;
+        this.id = this.type == 0 ? 0 : readShortAttribute(ATTRIBUTE_ID);
       }
+//      else {
+//        this.type = STOP;
+//        this.id = 0;
+//      }
       return this;
     }
 
     @Override
     public XMLFieldContext readEnd() throws TXMLException {
+      if (!charsRead) nextEndElement();
       // stop fields don't exist, so can't read the end element
       // structs should already have had their end element as their stop field
-      if (!charsRead && this.type != STOP && this.type != STRUCT) {
+//      if (!charsRead && this.type != STOP && this.type != STRUCT) {
         // TODO: nextEndElement() below only seems necessary to finish off a
-        nextEndElement();
-      }
+//        nextEndElement();
+//      }
       return this;
     }
 
@@ -715,22 +723,21 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   private XMLStreamReader __reader;
 
-  private final byte elementToByte(String element) throws TXMLException {
-    return ((byte)(element.charAt(0)&15));
+  public static final byte elementToByte(String element) throws TXMLException {
+    final char c = element.charAt(0);
+    return (byte)((c&31)-1);
   }
 
-  private final String byteToElement(byte type) throws TXMLException {
-    // note: this is incorrect for for type == 0, but stop fields are not used
-    // todo: add check for type == 0 if that becomes an issue
-    return String.valueOf((char)((type&15)+96));
+  public static final String byteToElement(byte type) throws TXMLException {
+    return String.valueOf((char)((type&31)+97));
   }
 
-  private final byte messageTypeToByte(String element) throws TXMLException {
-    return ((byte)(element.charAt(0)&7));
+  public static final byte messageTypeToByte(String element) throws TXMLException {
+    return (byte)((element.charAt(0)&7)-1);
   }
 
-  private final String byteToMessageType(byte type) throws TXMLException {
-    return String.valueOf((char)((type&15)+112));
+  public static final String byteToMessageType(byte type) throws TXMLException {
+    return String.valueOf((char)((type&15)+113));
   }
 
   protected final void writeStartElement(String name) throws TXMLException {
@@ -744,6 +751,14 @@ public class TXMLProtocol extends AbstractContextProtocol {
   protected void writeAttribute(String name, String val) throws TXMLException {
     try {
       writer().writeAttribute(name, val);
+    } catch (XMLStreamException e) {
+      throw ex(e);
+    }
+  }
+
+  protected void writeEmptyElement(String name) throws TXMLException {
+    try {
+      writer().writeEmptyElement(name);
     } catch (XMLStreamException e) {
       throw ex(e);
     }
@@ -1010,6 +1025,126 @@ public class TXMLProtocol extends AbstractContextProtocol {
         );
       }
     }
+  }
+
+  private static class TTransportInputStream extends InputStream {
+
+    private final TTransport __transport;
+
+    private final byte[] byteRawBuf = new byte[1];
+
+    public TTransportInputStream(TTransport transport) {
+      this.__transport = transport;
+    }
+
+    protected TTransport transport() {
+      return __transport;
+    }
+
+    @Override
+    public int read() throws IOException {
+      final TTransport trans = transport();
+      if (!transport().isOpen()) {
+        return -1;
+      }
+      byte b;
+      if (trans.getBytesRemainingInBuffer() > 0) {
+        b = trans.getBuffer()[trans.getBufferPosition()];
+        trans.consumeBuffer(1);
+      } else {
+        try {
+          trans.readAll(byteRawBuf, 0, 1);
+        } catch (TTransportException e) {
+          throw wrap(e);
+        }
+        b = byteRawBuf[0];
+      }
+      return b & 0xff;
+    }
+
+    @Override
+    public int read(byte[] b) throws IOException {
+      try {
+        if (!transport().isOpen()) {
+          return -1;
+        }
+        return transport().read(b, 0, b.length);
+      } catch (TTransportException e) {
+        throw wrap(e);
+      }
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+      try {
+        if (!transport().isOpen()) {
+          return -1;
+        }
+        return transport().read(b, off, len);
+      } catch (TTransportException e) {
+        throw wrap(e);
+      }
+    }
+
+    public IOException wrap(TTransportException e) throws IOException {
+      e.printStackTrace();
+      return new IOException(
+        "Error reading from thrift transport " + transport() +
+        ": " + e.getMessage(), e
+      );
+    }
+
+  }
+
+  private static class TTransportOutputStream extends OutputStream {
+
+    private final TTransport __transport;
+
+    public TTransportOutputStream(TTransport transport) {
+      this.__transport = transport;
+    }
+
+    protected TTransport transport() {
+      return __transport;
+    }
+
+    private final byte[] byteRawBuf = new byte[1];
+
+    @Override
+    public void write(int b) throws IOException {
+      byteRawBuf[0] = (byte)(b & 0xff);
+      try {
+        transport().write(byteRawBuf);
+      } catch (TTransportException e) {
+        throw wrap(e);
+      }
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+      try {
+        transport().write(b, off, len);
+      } catch (TTransportException e) {
+        throw wrap(e);
+      }
+    }
+
+    @Override
+    public void write(byte[] b) throws IOException {
+      try {
+        transport().write(b);
+      } catch (TTransportException e) {
+        throw wrap(e);
+      }
+    }
+
+    public IOException wrap(TTransportException e) throws IOException {
+      throw new IOException(
+        "Error reading from thrift transport " + transport() +
+        ": " + e.getMessage(), e
+      );
+    }
+
   }
 
 }

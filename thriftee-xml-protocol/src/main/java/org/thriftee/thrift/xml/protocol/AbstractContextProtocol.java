@@ -483,9 +483,9 @@ public abstract class AbstractContextProtocol extends TProtocol {
       final Context oldhead = this.head;
       this.head = context;
       oldhead.pushed();
-      if (LOG.isTraceEnabled()) {
-        context.debug("push: ");
-      }
+//      if (LOG.isDebugEnabled()) {
+//        context.debug("push: ");
+//      }
       return context;
     }
     @Override
@@ -494,9 +494,9 @@ public abstract class AbstractContextProtocol extends TProtocol {
         throw new IllegalStateException("Cannot pop the base context.");
       }
       final Context oldhead = this.head;
-      if (LOG.isTraceEnabled()) {
-        oldhead.debug(" pop: ");
-      }
+//      if (LOG.isDebugEnabled()) {
+//        oldhead.debug(" pop: ");
+//      }
       this.head = oldhead.parent();
       this.head.popped();
       return oldhead;

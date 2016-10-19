@@ -14,10 +14,7 @@
 
   <xsl:variable name="txp_ns" select="'http://thriftee.org/xml/protocol'" />
   <xsl:variable name="include_names" select="false()" />
-  <xsl:variable name="call"       select="'q'" />
-  <xsl:variable name="reply"      select="'r'" />
-  <xsl:variable name="oneway"     select="'t'" />
-  <xsl:variable name="exception"  select="'s'" />
+
   <xsl:variable name="key_attr"   select="'k'" />
   <xsl:variable name="value_attr" select="'v'" />
   <xsl:variable name="type_attr"  select="'t'" />
@@ -25,18 +22,26 @@
   <xsl:variable name="name_attr"  select="'n'" />
   <xsl:variable name="field_attr" select="'i'" />
   <xsl:variable name="seqid_attr" select="'q'" />
-  <xsl:variable name="bool"       select="'b'" />
-  <xsl:variable name="i8"         select="'c'" />
-  <xsl:variable name="double"     select="'d'" />
-  <xsl:variable name="i16"        select="'f'" />
-  <xsl:variable name="i32"        select="'h'" />
-  <xsl:variable name="i64"        select="'j'" />
-  <xsl:variable name="string"     select="'k'" />
-  <xsl:variable name="struct"     select="'l'" />
-  <xsl:variable name="map"        select="'m'" />
-  <xsl:variable name="set"        select="'n'" />
-  <xsl:variable name="list"       select="'o'" />
-  <xsl:variable name="enum"       select="'p'" />
+
+  <xsl:variable name="call"       select="'r'" />
+  <xsl:variable name="reply"      select="'s'" />
+  <xsl:variable name="exception"  select="'t'" />
+  <xsl:variable name="oneway"     select="'u'" />
+
+  <xsl:variable name="stop"       select="'a'" />
+  <xsl:variable name="void"       select="'b'" />
+  <xsl:variable name="bool"       select="'c'" />
+  <xsl:variable name="i8"         select="'d'" />
+  <xsl:variable name="double"     select="'e'" />
+  <xsl:variable name="i16"        select="'g'" />
+  <xsl:variable name="i32"        select="'i'" />
+  <xsl:variable name="i64"        select="'k'" />
+  <xsl:variable name="string"     select="'l'" />
+  <xsl:variable name="struct"     select="'m'" />
+  <xsl:variable name="map"        select="'n'" />
+  <xsl:variable name="set"        select="'o'" />
+  <xsl:variable name="list"       select="'p'" />
+  <xsl:variable name="enum"       select="'q'" />
 
   <xsl:template match="/">
     <xsl:apply-templates mode="resolve" />
@@ -114,6 +119,7 @@
             <xsl:value-of select="$message/txp:type" />
           </xsl:element>
         </xsl:if>
+        <xsl:element name="{$stop}" namespace="{$txp_ns}" />
       </xsl:element>
     </xsl:element>
   </xsl:template>
@@ -144,6 +150,7 @@
           <xsl:with-param name="typeinfo" select="$typeinfo" />
           <xsl:with-param name="fieldtype" select="'throws'" />
         </xsl:apply-templates>
+        <xsl:element name="{$stop}" namespace="{$txp_ns}" />
       </xsl:element>
     </xsl:element>
   </xsl:template>
@@ -174,6 +181,7 @@
           <xsl:with-param name="typeinfo" select="$typeinfo" />
           <xsl:with-param name="fieldtype" select="'arg'" />
         </xsl:apply-templates>
+        <xsl:element name="{$stop}" namespace="{$txp_ns}" />
       </xsl:element>
     </xsl:element>
   </xsl:template>
@@ -210,6 +218,7 @@
           <xsl:with-param name="field-id" select="0" />
           <xsl:with-param name="field-name" select="'success'" />
         </xsl:apply-templates>
+        <xsl:element name="{$stop}" namespace="{$txp_ns}" />
       </xsl:element>
     </xsl:element>
   </xsl:template>
@@ -246,6 +255,7 @@
     <xsl:apply-templates mode="transform-fields" select="$data/*/*">
       <xsl:with-param name="typeinfo" select="$typeinfo" />
     </xsl:apply-templates>
+    <xsl:element name="{$stop}" namespace="{$txp_ns}" />
   </xsl:template>
 
   <xsl:template match="idl:union" mode="transform-thrift-id-type">
@@ -259,6 +269,7 @@
     <xsl:apply-templates mode="transform-fields" select="$data/*[1]/*">
       <xsl:with-param name="typeinfo" select="$typeinfo" />
     </xsl:apply-templates>
+    <xsl:element name="{$stop}" namespace="{$txp_ns}" />
   </xsl:template>
 
   <xsl:template match="idl:enum" mode="transform-thrift-id-type">

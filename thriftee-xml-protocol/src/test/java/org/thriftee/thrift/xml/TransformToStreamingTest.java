@@ -15,7 +15,7 @@
  */
 package org.thriftee.thrift.xml;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.util.Collection;
@@ -47,7 +47,7 @@ public class TransformToStreamingTest extends BaseThriftXMLTest {
   @Test
   public void structTest() throws Exception {
 
-    // verbose.xml is the message before having any transformations applied
+    // concise.xml is the message before having any transformations applied
     final File streamed = testobj.conciseXml();
     final String frmtd1 = Transforms.formatXml(new StreamSource(streamed));
 
@@ -55,19 +55,22 @@ public class TransformToStreamingTest extends BaseThriftXMLTest {
     final File trnsfrmd = testobj.streamingXml();
     final String frmtd2 = Transforms.formatXml(new StreamSource(trnsfrmd));
 
+    System.out.println(frmtd1);
+    System.out.println(frmtd2);
+
     assertEquals("formatted XML should equal after round trip", frmtd1, frmtd2);
 
     if (testobj instanceof TestCall) {
       //final TestCall test = (TestCall) testobj;
-      // TODO: test 
-      
+      // TODO: test
+
     } else {
       final TestProtocol iprot1 = new TestProtocol(frmtd1);
-      final TBase<?, ?> obj1 = (TBase<?,?>)testobj.obj.getClass().newInstance();
+      final TBase<?, ?> obj1 = testobj.obj.getClass().newInstance();
       obj1.read(iprot1);
 
       final TestProtocol iprot2 = new TestProtocol(frmtd2);
-      final TBase<?, ?> obj2 = (TBase<?,?>)testobj.obj.getClass().newInstance();
+      final TBase<?, ?> obj2 = testobj.obj.getClass().newInstance();
       obj2.read(iprot2);
 
       assertEquals(obj1, obj2);

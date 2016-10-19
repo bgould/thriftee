@@ -15,7 +15,7 @@
  */
 package org.thriftee.thrift.xml.protocol;
 
-import static org.thriftee.examples.Examples.*;
+import static org.thriftee.examples.Examples.everythingStruct;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -38,7 +38,7 @@ import everything.Everything;
 //@RunWith(Parameterized.class)
 public class SpeedTest {
 
-  //@Parameters
+//  @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
       new Object[] { new TCompactProtocol.Factory() },
@@ -47,20 +47,20 @@ public class SpeedTest {
       new Object[] { new TXMLProtocol.Factory() },
     });
   }
-  
+
   private final TProtocolFactory factory;
 
   public SpeedTest(TProtocolFactory factory) {
     this.factory = factory;
   }
 
-  //@Test
+//  @Test
   public void testSpeed() throws TException, IOException {
 
     final int count = 100000;
     System.out.printf(
-      "Starting test for %s (%s rounds)...%n", 
-      factory.getClass().getEnclosingClass().getSimpleName(), 
+      "Starting test for %s (%s rounds)...%n",
+      factory.getClass().getEnclosingClass().getSimpleName(),
       count
     );
 
@@ -81,7 +81,7 @@ public class SpeedTest {
         final TTransport out = new TIOStreamTransport(baos);
         final TProtocol outProtocol = factory.getProtocol(out);
         arr = baos.get();
-        
+
         final long writeStart = System.nanoTime();
         struct.write(outProtocol);
         writeNanos += System.nanoTime() - writeStart;
@@ -95,7 +95,7 @@ public class SpeedTest {
         final ByteArrayInputStream bais = new ByteArrayInputStream(arr);
         final TTransport in = new TIOStreamTransport(bais);
         final TProtocol inProtocol = factory.getProtocol(in);
-        
+
         final long readStart = System.nanoTime();
         struct2.read(inProtocol);
         readNanos += System.nanoTime() - readStart;
@@ -112,10 +112,10 @@ public class SpeedTest {
       ((double) (writeNanos + readNanos) / (double) count) * (1e-6)
     );
     System.out.printf("  Total time:       %s%n",
-      ((double) (writeNanos + readNanos)) * (1e-6)
+      (writeNanos + readNanos) * (1e-6)
     );
     System.out.println();
   }
 
-  
+
 }

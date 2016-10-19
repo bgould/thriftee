@@ -40,7 +40,7 @@ import org.thriftee.thrift.xml.protocol.TestProtocol;
 public class TransformTApplicationExceptionTest extends BaseThriftXMLTest {
 
   @Test
-  public void testApplicationException() throws 
+  public void testApplicationException() throws
       TException, IOException, TransformerException {
 
     final File verbose   = new File(testMethodDir, "verbose.xml");
@@ -62,11 +62,11 @@ public class TransformTApplicationExceptionTest extends BaseThriftXMLTest {
 
     try (FileWriter w = new FileWriter(simple)) {
       Transforms.transformStreamingToSimple(
-        modelFor("everything"), 
-        "everything", 
-        RootType.MESSAGE, 
-        "Universe", 
-        new StreamSource(verbose), 
+        modelFor("everything"),
+        "everything",
+        RootType.MESSAGE,
+        "Universe",
+        new StreamSource(verbose),
         new StreamResult(simple)
       );
     }
@@ -75,9 +75,9 @@ public class TransformTApplicationExceptionTest extends BaseThriftXMLTest {
     System.out.println(readFileAsString(simple));
 
     Transforms.transformSimpleToStreaming(
-      modelFor("everything"), 
-      "everything", 
-      new StreamSource(simple), 
+      modelFor("everything"),
+      "everything",
+      new StreamSource(simple),
       new StreamResult(streaming),
       true
     );
@@ -95,7 +95,7 @@ public class TransformTApplicationExceptionTest extends BaseThriftXMLTest {
     assertEquals(9, msg.seqid);
     final TStruct struct = test.readStructBegin();
     assertNotNull(struct);
-    
+
     final TField messageField = test.readFieldBegin();
     assertNotNull(messageField);
     assertEquals(1, messageField.id);
@@ -111,6 +111,8 @@ public class TransformTApplicationExceptionTest extends BaseThriftXMLTest {
     final int type = test.readI32();
     assertEquals(TApplicationException.INTERNAL_ERROR, type);
     test.readFieldEnd();
+
+    test.readFieldBegin();  // stop field
 
     test.readStructEnd();
     test.readMessageEnd();
