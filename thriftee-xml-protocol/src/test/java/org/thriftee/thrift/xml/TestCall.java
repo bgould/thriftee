@@ -16,20 +16,22 @@
 package org.thriftee.thrift.xml;
 
 import org.apache.thrift.TBase;
+import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
+import org.thriftee.compiler.schema.MethodIdentifier;
 
 public class TestCall extends TestObject {
 
-  final String service;
+  public final String service;
 
-  final String method;
+  public final String method;
 
-  final byte type;
+  public final byte type;
 
   public TestCall(
-        final String name, 
-        final String module, 
-        final String service, 
+        final String name,
+        final String module,
+        final String service,
         final TBase<?, ?> obj
       ) {
     super(name, module, obj);
@@ -43,6 +45,20 @@ public class TestCall extends TestObject {
     } else {
       throw new IllegalArgumentException(struct);
     }
+  }
+
+  public MethodIdentifier getMethodId() {
+    return new MethodIdentifier(module, service, method);
+  }
+
+  public TMessage getTMessage() {
+    return new TMessage(method, type, 1);
+  }
+
+  @Override
+  public String toString() {
+    return "TestCall [name=" + name + ", module=" + module + ", service="
+        + service + ", method=" + method + "]";
   }
 
 }

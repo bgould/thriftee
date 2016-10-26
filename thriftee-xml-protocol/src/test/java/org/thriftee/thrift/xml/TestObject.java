@@ -53,4 +53,10 @@ public class TestObject {
     return new File(BaseThriftXMLTest.structDir(), name + "/simple.xml");
   }
 
+  @Override
+  public String toString() {
+    return "TestObject [name=" + name + ", module=" + module + ", struct="
+        + struct + "]";
+  }
+
 }

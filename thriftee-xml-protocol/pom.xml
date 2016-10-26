@@ -39,6 +39,15 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>javax.json</groupId>
+      <artifactId>javax.json-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.json</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>net.sf.saxon</groupId>
       <artifactId>Saxon-HE</artifactId>
     </dependency>
@@ -60,11 +69,15 @@
     <dependency>
       <groupId>org.thriftee</groupId>
       <artifactId>thriftee-compiler</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.thriftee</groupId>
       <artifactId>thriftee-test-objects</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.json</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

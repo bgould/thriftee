@@ -72,7 +72,7 @@ public class TXMLProtocolTest {
       final String element = TXMLProtocol.byteToElement(value);
       final byte roundtrip = TXMLProtocol.elementToByte(element);
       System.out.printf("%10s = %2s, %2s, %2s%n", name, value, element, roundtrip);
-      //assertEquals("roundtrip should be equals for type " + name, value, roundtrip);
+      assertEquals("roundtrip should be equals for type " + name, value, roundtrip);
     }
   }
 
@@ -84,7 +84,7 @@ public class TXMLProtocolTest {
       final String element = TXMLProtocol.byteToMessageType(value);
       final byte roundtrip = TXMLProtocol.messageTypeToByte(element);
       System.out.printf("%10s = %2s, %2s, %2s%n", name, value, element, roundtrip);
-//      assertEquals("roundtrip should be equals for type " + name, value, roundtrip);
+      assertEquals("roundtrip should be equals for type " + name, value, roundtrip);
     }
   }
 

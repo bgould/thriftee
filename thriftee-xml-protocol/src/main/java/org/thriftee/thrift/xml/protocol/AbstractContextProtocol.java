@@ -15,6 +15,9 @@
  */
 package org.thriftee.thrift.xml.protocol;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import org.apache.thrift.TException;
@@ -23,10 +26,12 @@ import org.apache.thrift.protocol.TList;
 import org.apache.thrift.protocol.TMap;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.protocol.TStruct;
 import org.apache.thrift.protocol.TType;
 import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +43,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
   @Override
   public void writeMessageBegin(TMessage msg) throws TException {
     final MessageContext ctx = writectx.base().newMessage();
-    ctx.read(msg);
+    ctx.set(msg);
     ctx.push();
     ctx.writeStart();
   }
@@ -61,7 +66,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
     } else {
       throw new IllegalStateException();
     }
-    structctx.read(struct);
+    structctx.set(struct);
     structctx.push();
     structctx.writeStart();
   }
@@ -74,7 +79,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
   @Override
   public void writeFieldBegin(TField field) throws TException {
     final FieldContext ctx = writectx.peek(StructContext.class).newField();
-    ctx.read(field);
+    ctx.set(field);
     ctx.push();
     ctx.writeStart();
   }
@@ -92,7 +97,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
   @Override
   public void writeListBegin(TList list) throws TException {
     final ListContext ctx = writectx.peek(ValueHolderContext.class).newList();
-    ctx.read(list);
+    ctx.set(list);
     ctx.push();
     ctx.writeStart();
   }
@@ -105,7 +110,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
   @Override
   public void writeMapBegin(TMap map) throws TException {
     final MapContext ctx = writectx.peek(ValueHolderContext.class).newMap();
-    ctx.read(map);
+    ctx.set(map);
     ctx.push();
     ctx.writeStart();
   }
@@ -118,7 +123,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
   @Override
   public void writeSetBegin(TSet set) throws TException {
     final SetContext ctx = writectx.peek(ValueHolderContext.class).newSet();
-    ctx.read(set);
+    ctx.set(set);
     ctx.push();
     ctx.writeStart();
   }
@@ -206,6 +211,9 @@ public abstract class AbstractContextProtocol extends TProtocol {
   @Override
   public TField readFieldBegin() throws TException {
     final FieldContext ctx = readctx.peek(StructContext.class).newField();
+    if (ctx == null) { // subclasses can return null for stop field
+      return new TField();
+    }
     ctx.readStart().push();
     if (ctx.fieldType() == TType.STOP) {
       ctx.readEnd().pop();
@@ -337,16 +345,11 @@ public abstract class AbstractContextProtocol extends TProtocol {
   }
 
   public interface TypedContext<T> extends Context {
-    T emit();
-    void read(T obj);
+    T emit() throws TException;
+    void set(T obj) throws TException;
   }
 
-  public interface ValueHolderContext extends Context {
-
-    StructContext newStruct() throws TException;
-    ListContext newList() throws TException;
-    SetContext newSet() throws TException;
-    MapContext newMap() throws TException;
+  public interface ValueHolder {
 
     void writeBinary(ByteBuffer buffer) throws TException;
     void writeBool(boolean bool) throws TException;
@@ -365,6 +368,15 @@ public abstract class AbstractContextProtocol extends TProtocol {
     int readI32() throws TException;
     long readI64() throws TException;
     String readString() throws TException;
+
+  }
+
+  public interface ValueHolderContext extends ValueHolder, Context {
+
+    StructContext newStruct() throws TException;
+    ListContext newList() throws TException;
+    SetContext newSet() throws TException;
+    MapContext newMap() throws TException;
 
   }
 
@@ -391,7 +403,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
 
   public interface MapContext extends ContainerContext<TMap> {}
 
-  public abstract class AbstractContext implements Context {
+  public static abstract class AbstractContext implements Context {
     private final Context parent;
     private final BaseContext base;
     AbstractContext(Context parent) {
@@ -413,6 +425,12 @@ public abstract class AbstractContextProtocol extends TProtocol {
     @Override
     public final ContextType type() {
       return base().type;
+    }
+    public final boolean isReading() {
+      return base().type.equals(ContextType.READ);
+    }
+    public final boolean isWriting() {
+      return base().type.equals(ContextType.WRITE);
     }
     @Override
     public Context peek() {
@@ -453,7 +471,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
     }
   }
 
-  public abstract class BaseContext extends AbstractContext {
+  public static abstract class BaseContext extends AbstractContext {
     private Context head = this;
     private final ContextType type;
     BaseContext(ContextType type) {
@@ -483,9 +501,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
       final Context oldhead = this.head;
       this.head = context;
       oldhead.pushed();
-//      if (LOG.isDebugEnabled()) {
-//        context.debug("push: ");
-//      }
+//      context.debug("push: ");
       return context;
     }
     @Override
@@ -494,9 +510,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
         throw new IllegalStateException("Cannot pop the base context.");
       }
       final Context oldhead = this.head;
-//      if (LOG.isDebugEnabled()) {
-//        oldhead.debug(" pop: ");
-//      }
+//      oldhead.debug(" pop: ");
       this.head = oldhead.parent();
       this.head.popped();
       return oldhead;
@@ -505,7 +519,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
     abstract MessageContext newMessage() throws TException;
   }
 
-  public abstract class AbstractStructContext
+  public static abstract class AbstractStructContext
       extends AbstractContext implements StructContext {
 
     String name;
@@ -515,7 +529,7 @@ public abstract class AbstractContextProtocol extends TProtocol {
     }
 
     @Override
-    public void read(TStruct obj) {
+    public void set(TStruct obj) {
       this.name = obj.name;
     }
 
@@ -556,8 +570,149 @@ public abstract class AbstractContextProtocol extends TProtocol {
     this.readctx = createBaseContext(ContextType.READ);
   }
 
-  protected final UnsupportedOperationException up() {
+  protected static final UnsupportedOperationException up() {
     throw new UnsupportedOperationException();
+  }
+
+  protected static TException ex(String msg) {
+    return new TProtocolException(msg);
+  }
+
+  protected static TException ex(Throwable t) {
+    for (Throwable x = t; x != null; x = x.getCause())
+      if (x instanceof TException)
+        return (TException) x;
+    return new TProtocolException(t);
+  }
+
+  protected static TException ex(String msg, Throwable t) {
+//    LOG.error("An error occurred during TXMLProtocol processing: " + msg, t);
+    if (msg == null) {
+      return ex(t);
+    } else if (t == null) {
+      return ex(msg);
+    } else {
+      return new TProtocolException(msg, t);
+    }
+  }
+
+  public static class TTransportInputStream extends InputStream {
+
+    private final TTransport __transport;
+
+    private final byte[] byteRawBuf = new byte[1];
+
+    public TTransportInputStream(TTransport transport) {
+      this.__transport = transport;
+    }
+
+    protected TTransport transport() {
+      return __transport;
+    }
+
+    @Override
+    public int read() throws IOException {
+      final TTransport trans = transport();
+      if (!transport().isOpen() || !trans.peek()) {
+        return -1;
+      }
+      byte b;
+      if (trans.getBytesRemainingInBuffer() > 0) {
+        b = trans.getBuffer()[trans.getBufferPosition()];
+        trans.consumeBuffer(1);
+      } else {
+        try {
+          trans.readAll(byteRawBuf, 0, 1);
+        } catch (TTransportException e) {
+          throw wrap(e);
+        }
+        b = byteRawBuf[0];
+      }
+      return b & 0xff;
+    }
+
+    @Override
+    public int read(byte[] b) throws IOException {
+      try {
+        if (!transport().isOpen() || !transport().peek()) {
+          return -1;
+        }
+        return transport().read(b, 0, b.length);
+      } catch (TTransportException e) {
+        throw wrap(e);
+      }
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+      try {
+        if (!transport().isOpen() || !transport().peek()) {
+          return -1;
+        }
+        return transport().read(b, off, len);
+      } catch (TTransportException e) {
+        throw wrap(e);
+      }
+    }
+
+    public IOException wrap(TTransportException e) throws IOException {
+      return new IOException(
+        "Error reading from thrift transport " + transport() +
+        ": " + e.getMessage(), e
+      );
+    }
+
+  }
+
+  public static class TTransportOutputStream extends OutputStream {
+
+    private final TTransport __transport;
+
+    public TTransportOutputStream(TTransport transport) {
+      this.__transport = transport;
+    }
+
+    protected TTransport transport() {
+      return __transport;
+    }
+
+    private final byte[] byteRawBuf = new byte[1];
+
+    @Override
+    public void write(int b) throws IOException {
+      byteRawBuf[0] = (byte)(b & 0xff);
+      try {
+        transport().write(byteRawBuf);
+      } catch (TTransportException e) {
+        throw wrap(e);
+      }
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+      try {
+        transport().write(b, off, len);
+      } catch (TTransportException e) {
+        throw wrap(e);
+      }
+    }
+
+    @Override
+    public void write(byte[] b) throws IOException {
+      try {
+        transport().write(b);
+      } catch (TTransportException e) {
+        throw wrap(e);
+      }
+    }
+
+    public IOException wrap(TTransportException e) throws IOException {
+      throw new IOException(
+        "Error reading from thrift transport " + transport() +
+        ": " + e.getMessage(), e
+      );
+    }
+
   }
 
 }

@@ -268,6 +268,12 @@
         <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.glassfish</groupId>
+        <artifactId>javax.json</artifactId>
+        <version>1.0.4</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${junit.version}</version>
@@ -285,6 +291,12 @@
         <version>3.0.1</version>
         <scope>provided</scope>
       </dependency>
+      <dependency>
+        <groupId>javax.json</groupId>
+        <artifactId>javax.json-api</artifactId>
+        <version>1.0</version>
+        <scope>provided</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -294,7 +306,7 @@
     <swift.version>0.17.0</swift.version>
     <junit.version>4.11</junit.version>
     <slf4j.version>1.7.5</slf4j.version>
-    <tomee.version>1.7.2</tomee.version>
+    <tomee.version>7.0.1</tomee.version>
     <thrift.version>0.10.0-SNAPSHOT</thrift.version>
     <restlet.version>2.2.2</restlet.version>
     <eclipselink.version>2.6.0</eclipselink.version>

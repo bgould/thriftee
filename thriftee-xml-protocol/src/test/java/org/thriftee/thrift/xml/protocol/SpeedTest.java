@@ -18,9 +18,12 @@ package org.thriftee.thrift.xml.protocol;
 import static org.thriftee.examples.Examples.everythingStruct;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TByteArrayOutputStream;
 import org.apache.thrift.TException;
@@ -32,17 +35,45 @@ import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.TIOStreamTransport;
 import org.apache.thrift.transport.TTransport;
 import org.junit.Assert;
+import org.thriftee.compiler.schema.IdlSchemaBuilder;
+import org.thriftee.compiler.schema.SchemaBuilderException;
+import org.thriftee.compiler.schema.StructSchema;
+import org.thriftee.thrift.compiler.ThriftCompiler;
 
 import everything.Everything;
 
 public class SpeedTest {
 
-  public static Collection<TProtocolFactory> data() {
+  public static StructSchema structSchema() throws IOException {
+//    final File modelDir = new File("target/tests/SpeedTest");
+//    modelDir.mkdirs();
+//    final File modelFile = new File(modelDir, "everything.xml");
+//    if (modelFile.exists() && !modelFile.delete()) {
+//      throw new IOException(
+//        "Could not delete model file: " + modelFile.getAbsolutePath());
+//    }
+//    System.out.println("generating model file...");
+//    ThriftCompiler.newCompiler().execute(
+//      "-gen", "xml:merge", "-out",
+//      modelDir.getAbsolutePath(), "tests/idl/everything.thrift"
+//    );
+    final File modelFile = new File("target/tests/models/everything.xml");
+    final IdlSchemaBuilder bldr = new IdlSchemaBuilder();
+    try {
+      return bldr.buildFromXml(new StreamSource(modelFile)).
+        findModule("everything").getStructs().get("Everything");
+    } catch (SchemaBuilderException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public static Collection<TProtocolFactory> data() throws IOException {
     return Arrays.asList(new TProtocolFactory[] {
       new TCompactProtocol.Factory(),
       new TBinaryProtocol.Factory(),
       new TJSONProtocol.Factory(),
       new TXMLProtocol.Factory(),
+      new SimpleJsonProtocol.Factory(structSchema()),
     });
   }
 

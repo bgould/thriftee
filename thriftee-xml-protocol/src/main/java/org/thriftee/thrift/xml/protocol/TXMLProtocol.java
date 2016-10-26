@@ -15,22 +15,19 @@
  */
 package org.thriftee.thrift.xml.protocol;
 
+import static java.lang.Character.isHighSurrogate;
+import static java.lang.Character.isLowSurrogate;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
+import static javax.xml.bind.DatatypeConverter.parseBase64Binary;
+import static javax.xml.bind.DatatypeConverter.printBase64Binary;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static org.apache.thrift.protocol.TType.MAP;
 import static org.apache.thrift.protocol.TType.STOP;
 import static org.apache.thrift.protocol.TType.STRUCT;
-import static java.lang.Character.isHighSurrogate;
-import static java.lang.Character.isLowSurrogate;
-import static javax.xml.bind.DatatypeConverter.parseBase64Binary;
-import static javax.xml.bind.DatatypeConverter.printBase64Binary;
-
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
@@ -54,12 +51,12 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TList;
 import org.apache.thrift.protocol.TMap;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.transport.TTransport;
@@ -80,7 +77,6 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   }
 
-//  public static final String NAMESPACE = "http://thriftee.org/xml/protocol";
   public static final String ATTRIBUTE_TYPE =       "t";
   public static final String ATTRIBUTE_KEY_TYPE =   "k";
   public static final String ATTRIBUTE_VALUE_TYPE = "v";
@@ -88,7 +84,9 @@ public class TXMLProtocol extends AbstractContextProtocol {
   public static final String ATTRIBUTE_NAME =       "n";
   public static final String ATTRIBUTE_ID =         "i";
   public static final String ATTRIBUTE_SEQID =      "q";
-  public static final String ATTRIBUTE_BASE64 =     "b";
+  public static final String ATTRIBUTE_BINARY =     "b";
+
+  public static final String ATTRVALUE_BASE64 =     "1";
 
   public TXMLProtocol(TTransport trans) {
     super(trans);
@@ -107,7 +105,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     return XML.validate(schemaUrl(), new StreamSource(new StringReader(str)));
   }
 
-  public void flush() throws TXMLException {
+  public void flush() throws TException {
     if (__writer != null) {
       try {
         __writer.flush();
@@ -115,20 +113,6 @@ public class TXMLProtocol extends AbstractContextProtocol {
         throw ex(e);
       }
     }
-  }
-
-  protected TXMLException ex(String msg) {
-    return new TXMLException(msg);
-  }
-
-  protected TXMLException ex(Throwable t) {
-    final String msg = t.getMessage();
-     return ex(msg, t);
-  }
-
-  protected TXMLException ex(String msg, Throwable t) {
-    LOG.error("An error occurred during TXMLProtocol processing: " + msg, t);
-    return ex(msg == null ? "<message was null>" : t.getMessage());
   }
 
   public abstract class XMLValueHolderContext
@@ -140,98 +124,98 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public final void writeBinary(ByteBuffer buffer) throws TXMLException {
+    public final void writeBinary(ByteBuffer buffer) throws TException {
       writeCharacters(printBase64Binary(buffer.array()));
     }
 
     @Override
-    public final void writeBool(boolean bool) throws TXMLException {
+    public final void writeBool(boolean bool) throws TException {
       writeCharacters(bool ? "1" : "0");
     }
 
     @Override
-    public final void writeByte(byte bite) throws TXMLException {
+    public final void writeByte(byte bite) throws TException {
       writeCharacters(DatatypeConverter.printByte(bite));
     }
 
     @Override
-    public final void writeDouble(double dbl) throws TXMLException {
+    public final void writeDouble(double dbl) throws TException {
       writeCharacters(DatatypeConverter.printDouble(dbl));
     }
 
     @Override
-    public final void writeI16(short i16) throws TXMLException {
+    public final void writeI16(short i16) throws TException {
       writeCharacters(DatatypeConverter.printShort(i16));
     }
 
     @Override
-    public final void writeI32(int i32) throws TXMLException {
+    public final void writeI32(int i32) throws TException {
       writeCharacters(DatatypeConverter.printInt(i32));
     }
 
     @Override
-    public final void writeI64(long i64) throws TXMLException {
+    public final void writeI64(long i64) throws TException {
       writeCharacters(DatatypeConverter.printLong(i64));
     }
 
     @Override
-    public final void writeString(String str) throws TXMLException {
+    public final void writeString(String str) throws TException {
       writeCharacters(str, true);
     }
 
     @Override
-    public final String readString() throws TXMLException {
+    public final String readString() throws TException {
       final String result = readCharacters(true);
       return result;
     }
 
     @Override
-    public final byte readByte() throws TXMLException {
+    public final byte readByte() throws TException {
       final byte result = DatatypeConverter.parseByte(readCharacters());
       return result;
     }
 
     @Override
-    public final short readI16() throws TXMLException {
+    public final short readI16() throws TException {
       final short result = DatatypeConverter.parseShort(readCharacters());
       return result;
     }
 
     @Override
-    public final int readI32() throws TXMLException {
+    public final int readI32() throws TException {
       final int result = DatatypeConverter.parseInt(readCharacters());
       return result;
     }
 
     @Override
-    public final long readI64() throws TXMLException {
+    public final long readI64() throws TException {
       final long result = DatatypeConverter.parseLong(readCharacters());
       return result;
     }
 
     @Override
-    public final double readDouble() throws TXMLException {
+    public final double readDouble() throws TException {
       final double result = DatatypeConverter.parseDouble(readCharacters());
       return result;
     }
 
     @Override
-    public final ByteBuffer readBinary() throws TXMLException {
+    public final ByteBuffer readBinary() throws TException {
       final byte[] val = parseBase64Binary(readCharacters());
       return ByteBuffer.wrap(val);
     }
 
     @Override
-    public final boolean readBool() throws TXMLException {
+    public final boolean readBool() throws TException {
       final boolean result = "1".equals(readCharacters());
       return result;
     }
 
     protected void writeCharacters(
-        final String s, final boolean check) throws TXMLException {
+        final String s, final boolean check) throws TException {
       final String charsToWrite;
       if (check && XML.hasInvalidChars(s)) {
-        writeAttribute("b", "1");
+        writeAttribute(ATTRIBUTE_BINARY, ATTRVALUE_BASE64);
         try {
           charsToWrite = printBase64Binary(s.getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {
@@ -247,19 +231,19 @@ public class TXMLProtocol extends AbstractContextProtocol {
       }
     }
 
-    private final void writeCharacters(String s) throws TXMLException {
+    private final void writeCharacters(String s) throws TException {
       writeCharacters(s, false);
     }
 
     protected boolean charsRead = false;
 
-    private final String readCharacters() throws TXMLException {
+    private final String readCharacters() throws TException {
       return readCharacters(false);
     }
 
-    protected String readCharacters(boolean check) throws TXMLException {
+    protected String readCharacters(boolean check) throws TException {
       expectStartElement();
-      boolean base64 = check && readAttribute(ATTRIBUTE_BASE64) != null;
+      boolean base64 = check && readAttribute(ATTRIBUTE_BINARY) != null;
       try {
         final String text = reader().getElementText();
         charsRead = true;
@@ -315,8 +299,26 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public void popped() throws TXMLException {
+    public void popped() throws TException {
       flush();
+      if (__writer != null) {
+        try {
+          __writer.close();
+        } catch (XMLStreamException e) {
+          LOG.warn("Error closing writer", e);
+        } finally {
+          __writer = null;
+        }
+      }
+      if (__reader != null) {
+        try {
+          __reader.close();
+        } catch (XMLStreamException e) {
+          LOG.warn("Error closing reader", e);
+        } finally {
+          __reader = null;
+        }
+      }
     }
 
   }
@@ -334,16 +336,15 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public XMLMessageContext writeStart() throws TXMLException {
+    public XMLMessageContext writeStart() throws TException {
       writeStartElement(byteToMessageType(type));
-//      writeAttribute("xmlns", NAMESPACE);
       writeAttribute(ATTRIBUTE_NAME, name);
       writeAttribute(ATTRIBUTE_SEQID, Integer.toString(seqid));
       return this;
     }
 
     @Override
-    public XMLMessageContext readStart() throws TXMLException {
+    public XMLMessageContext readStart() throws TException, TTransportException {
       final String msgname = nextStartElement();
       this.type = messageTypeToByte(msgname);
       this.name = readAttribute(ATTRIBUTE_NAME);
@@ -357,13 +358,13 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public XMLMessageContext writeEnd() throws TXMLException {
+    public XMLMessageContext writeEnd() throws TException {
       writeEndElement();
       return this;
     }
 
     @Override
-    public XMLMessageContext readEnd() throws TXMLException {
+    public XMLMessageContext readEnd() throws TException {
       expectEndElement();
       return this;
     }
@@ -374,7 +375,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public void read(TMessage msg) {
+    public void set(TMessage msg) {
       this.name = msg.name;
       this.seqid = msg.seqid;
       this.type = msg.type;
@@ -383,6 +384,11 @@ public class TXMLProtocol extends AbstractContextProtocol {
     @Override
     public StructContext newStruct() {
       return new XMLStructContext(this);
+    }
+
+    @Override
+    public String toString() {
+      return "<TMessage name:'" + name + "' type: " + type + " seqid:" + seqid + ">";
     }
 
   }
@@ -396,19 +402,16 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public StructContext writeStart() throws TXMLException {
+    public StructContext writeStart() throws TException {
       final Context parent = parent();
       if (!(parent instanceof FieldContext)) {
         writeStartElement(byteToElement(STRUCT));
-//        if (parent instanceof BaseContext) {
-//          writeAttribute("xmlns", NAMESPACE);
-//        }
       }
       return this;
     }
 
     @Override
-    public StructContext writeEnd() throws TXMLException {
+    public StructContext writeEnd() throws TException {
       final Context parent = parent();
       if (!(parent instanceof FieldContext)) {
         writeEndElement();
@@ -417,13 +420,13 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public StructContext writeFieldStop() throws TXMLException {
+    public StructContext writeFieldStop() throws TException {
       writeEmptyElement(byteToElement(STOP));
       return this;
     }
 
     @Override
-    public XMLStructContext readStart() throws TXMLException {
+    public XMLStructContext readStart() throws TException {
       final Context parent = parent();
       if (!(parent instanceof FieldContext)) {
         nextStartElement();
@@ -432,7 +435,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public XMLStructContext readEnd() throws TXMLException {
+    public XMLStructContext readEnd() throws TException {
       final Context parent = parent();
       if (!(parent instanceof FieldContext)) {
         nextEndElement();
@@ -441,7 +444,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public XMLFieldContext newField() throws TXMLException {
+    public XMLFieldContext newField() throws TException {
       return new XMLFieldContext(this);
     }
 
@@ -468,7 +471,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public void read(TField field) {
+    public void set(TField field) {
       this.name = field.name;
       this.type = field.type;
       this.id = field.id;
@@ -485,20 +488,20 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public XMLFieldContext writeStart() throws TXMLException {
+    public XMLFieldContext writeStart() throws TException {
       writeStartElement(byteToElement(type));
       writeAttribute(ATTRIBUTE_ID, Short.toString(id));
       return this;
     }
 
     @Override
-    public XMLFieldContext writeEnd() throws TXMLException {
+    public XMLFieldContext writeEnd() throws TException {
       writeEndElement();
       return this;
     }
 
     @Override
-    public XMLFieldContext readStart() throws TXMLException {
+    public XMLFieldContext readStart() throws TException {
       int eventType = readerNext();
       if (eventType == CHARACTERS) {
         eventType = readerNext();
@@ -511,7 +514,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public XMLFieldContext readEnd() throws TXMLException {
+    public XMLFieldContext readEnd() throws TException {
       if (!charsRead) {
         nextEndElement();
       }
@@ -552,7 +555,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public ContainerContext<T> writeStart() throws TXMLException {
+    public ContainerContext<T> writeStart() throws TException {
       if (parent() instanceof ContainerContext<?>) {
         writeStartElement(byteToElement(containerType.byteval()));
       }
@@ -562,7 +565,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public ContainerContext<T> writeEnd() throws TXMLException {
+    public ContainerContext<T> writeEnd() throws TException {
       if (parent() instanceof ContainerContext<?>) {
         writeEndElement();
       }
@@ -570,7 +573,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public ContainerContext<T> readStart() throws TXMLException {
+    public ContainerContext<T> readStart() throws TException {
       final String name;
       if (parent() instanceof ContainerContext<?>) {
         name = nextStartElement();
@@ -594,7 +597,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public ContainerContext<T> readEnd() throws TXMLException {
+    public ContainerContext<T> readEnd() throws TException {
       if (parent() instanceof ContainerContext<?>) {
         nextEndElement();
       }
@@ -602,14 +605,14 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    protected void writeCharacters(String chars, boolean check) throws TXMLException {
+    protected void writeCharacters(String chars, boolean check) throws TException {
       writeStartElement(byteToElement(currtype()));
       super.writeCharacters(chars, check);
       writeEndElement();
     }
 
     @Override
-    protected String readCharacters(boolean check) throws TXMLException {
+    protected String readCharacters(boolean check) throws TException {
       nextStartElement(byteToElement(currtype()));
       final String result = super.readCharacters(check);
       expectEndElement();
@@ -631,7 +634,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public void read(TList obj) {
+    public void set(TList obj) {
       this.elemType = obj.elemType;
       this.size = obj.size;
     }
@@ -657,7 +660,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public void read(TSet set) {
+    public void set(TSet set) {
       this.elemType = set.elemType;
       this.size = set.size;
     }
@@ -676,7 +679,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public void read(TMap obj) {
+    public void set(TMap obj) {
       this.elemType = obj.valueType;
       this.keyType = obj.keyType;
       this.size = obj.size;
@@ -693,20 +696,20 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
 
     @Override
-    public MapContext writeStart() throws TXMLException {
+    public MapContext writeStart() throws TException {
       super.writeStart();
       writeAttribute(ATTRIBUTE_KEY_TYPE, byteToElement(keyType));
       return this;
     }
 
     @Override
-    public void writeCharacters(String s, boolean check) throws TXMLException {
+    public void writeCharacters(String s, boolean check) throws TException {
       super.writeCharacters(s, check);
       childCount++;
     }
 
     @Override
-    protected String readCharacters(boolean check) throws TXMLException {
+    protected String readCharacters(boolean check) throws TException {
       final String result = super.readCharacters(check);
       childCount++;
       return result;
@@ -733,7 +736,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     return __writer;
   }
 
-  protected XMLStreamReader reader() throws TXMLException {
+  protected XMLStreamReader reader() throws TException {
     if (__reader == null) {
       try {
         final XMLStreamReader reader = xmlInputFactory().createXMLStreamReader(
@@ -741,7 +744,12 @@ public class TXMLProtocol extends AbstractContextProtocol {
         );
         __reader = reader;
       } catch (XMLStreamException e) {
-        throw ex(e);
+//        if (e.getCause() != null && e.getCause() instanceof TTransportException) {
+//          throw (TTransportException) e.getCause();
+//        } else {
+        final TException te = ex(e);
+        throw te;
+//        }
       }
     }
     return __reader;
@@ -751,24 +759,24 @@ public class TXMLProtocol extends AbstractContextProtocol {
 
   private XMLStreamReader __reader;
 
-  public static final byte elementToByte(String element) throws TXMLException {
+  public static final byte elementToByte(String element) throws TException {
     final char c = element.charAt(0);
     return (byte)((c&31)-1);
   }
 
-  public static final String byteToElement(byte type) throws TXMLException {
+  public static final String byteToElement(byte type) throws TException {
     return String.valueOf((char)((type&31)+97));
   }
 
-  public static final byte messageTypeToByte(String element) throws TXMLException {
+  public static final byte messageTypeToByte(String element) throws TException {
     return (byte)((element.charAt(0)&7)-1);
   }
 
-  public static final String byteToMessageType(byte type) throws TXMLException {
+  public static final String byteToMessageType(byte type) throws TException {
     return String.valueOf((char)((type&15)+113));
   }
 
-  protected final void writeStartElement(String name) throws TXMLException {
+  protected final void writeStartElement(String name) throws TException {
     try {
       writer().writeStartElement(name);
     } catch (XMLStreamException e) {
@@ -776,7 +784,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
   }
 
-  protected void writeAttribute(String name, String val) throws TXMLException {
+  protected void writeAttribute(String name, String val) throws TException {
     try {
       writer().writeAttribute(name, val);
     } catch (XMLStreamException e) {
@@ -784,7 +792,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
   }
 
-  protected void writeEmptyElement(String name) throws TXMLException {
+  protected void writeEmptyElement(String name) throws TException {
     try {
       writer().writeEmptyElement(name);
     } catch (XMLStreamException e) {
@@ -792,7 +800,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
   }
 
-  protected void writeEndElement() throws TXMLException {
+  protected void writeEndElement() throws TException {
     try {
       writer().writeEndElement();
     } catch (XMLStreamException e) {
@@ -827,7 +835,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     return new XMLBaseContext(type);
   }
 
-  protected final String expectStartElement(String tag) throws TXMLException {
+  protected final String expectStartElement(String tag) throws TException {
     final String actualtag = expectStartElement();
     if (!actualtag.equals(tag)) {
       throw new IllegalStateException(
@@ -837,7 +845,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     return actualtag;
   }
 
-  protected final String expectStartElement() throws TXMLException {
+  protected final String expectStartElement() throws TException {
     final int etype = (reader().getEventType() == CHARACTERS)
                     ? (readerNext())
                     : (reader().getEventType());
@@ -850,7 +858,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
   }
 
-  protected final String expectEndElement(String tagname) throws TXMLException {
+  protected final String expectEndElement(String tagname) throws TException {
     final String actualtag = expectEndElement();
     if (!actualtag.equals(tagname)) {
       throw new IllegalStateException(
@@ -860,7 +868,7 @@ public class TXMLProtocol extends AbstractContextProtocol {
     return actualtag;
   }
 
-  protected final String expectEndElement() throws TXMLException {
+  protected final String expectEndElement() throws TException {
     final int etype = (reader().getEventType() == CHARACTERS)
                     ? (readerNext())
                     : (reader().getEventType());
@@ -873,31 +881,31 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
   }
 
-  protected final String nextStartElement(String tagname) throws TXMLException {
+  protected final String nextStartElement(String tagname) throws TException {
     readerNext();
     return expectStartElement(tagname);
   }
 
-  protected final String nextStartElement() throws TXMLException {
+  protected final String nextStartElement() throws TException {
     readerNext();
     return expectStartElement();
   }
 
-  protected final String nextEndElement(String tagname) throws TXMLException {
+  protected final String nextEndElement(String tagname) throws TException {
     readerNext();
     return expectEndElement(tagname);
   }
 
-  protected final String nextEndElement() throws TXMLException {
+  protected final String nextEndElement() throws TException {
     readerNext();
     return expectEndElement();
   }
 
-  protected final int readerEventType() throws TXMLException {
+  protected final int readerEventType() throws TException {
     return reader().getEventType();
   }
 
-  protected final int readerNext() throws TXMLException {
+  protected final int readerNext() throws TException {
     try {
       return reader().next();
     } catch (XMLStreamException e) {
@@ -905,15 +913,15 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
   }
 
-  protected String readAttribute(String localName) throws TXMLException {
+  protected String readAttribute(String localName) throws TException {
     final String result = reader().getAttributeValue(null, localName);
     return result;
   }
 
-  protected byte readByteAttribute(String localName) throws TXMLException {
+  protected byte readByteAttribute(String localName) throws TException {
     try {
       return Byte.valueOf(readAttribute(localName));
-    } catch (TXMLException e) {
+    } catch (TException e) {
       throw e;
     } catch (Exception e) {
       String el = reader().hasName() ? reader().getLocalName() : "<unknown>";
@@ -923,10 +931,10 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
   }
 
-  protected short readShortAttribute(String localName) throws TXMLException {
+  protected short readShortAttribute(String localName) throws TException {
     try {
       return Short.valueOf(readAttribute(localName));
-    } catch (TXMLException e) {
+    } catch (TException e) {
       throw e;
     } catch (Exception e) {
       String el = reader().hasName() ? reader().getLocalName() : "<unknown>";
@@ -936,10 +944,10 @@ public class TXMLProtocol extends AbstractContextProtocol {
     }
   }
 
-  protected int readIntAttribute(String localName) throws TXMLException {
+  protected int readIntAttribute(String localName) throws TException {
     try {
       return Integer.parseInt(readAttribute(localName));
-    } catch (TXMLException e) {
+    } catch (TException e) {
       throw e;
     } catch (Exception e) {
       String el = reader().hasName() ? reader().getLocalName() : "<unknown>";
@@ -947,16 +955,6 @@ public class TXMLProtocol extends AbstractContextProtocol {
         "Error reading int attribute '" + localName + "' of '" + el + "'", e
       );
     }
-  }
-
-  public static class TXMLException extends TProtocolException {
-
-    private static final long serialVersionUID = 5007685985697860252L;
-
-    public TXMLException(String message) {
-      super(message);
-    }
-
   }
 
   public static enum XML {
@@ -1079,126 +1077,6 @@ public class TXMLProtocol extends AbstractContextProtocol {
       }
       return false;
     }
-  }
-
-  private static class TTransportInputStream extends InputStream {
-
-    private final TTransport __transport;
-
-    private final byte[] byteRawBuf = new byte[1];
-
-    public TTransportInputStream(TTransport transport) {
-      this.__transport = transport;
-    }
-
-    protected TTransport transport() {
-      return __transport;
-    }
-
-    @Override
-    public int read() throws IOException {
-      final TTransport trans = transport();
-      if (!transport().isOpen()) {
-        return -1;
-      }
-      byte b;
-      if (trans.getBytesRemainingInBuffer() > 0) {
-        b = trans.getBuffer()[trans.getBufferPosition()];
-        trans.consumeBuffer(1);
-      } else {
-        try {
-          trans.readAll(byteRawBuf, 0, 1);
-        } catch (TTransportException e) {
-          throw wrap(e);
-        }
-        b = byteRawBuf[0];
-      }
-      return b & 0xff;
-    }
-
-    @Override
-    public int read(byte[] b) throws IOException {
-      try {
-        if (!transport().isOpen()) {
-          return -1;
-        }
-        return transport().read(b, 0, b.length);
-      } catch (TTransportException e) {
-        throw wrap(e);
-      }
-    }
-
-    @Override
-    public int read(byte[] b, int off, int len) throws IOException {
-      try {
-        if (!transport().isOpen()) {
-          return -1;
-        }
-        return transport().read(b, off, len);
-      } catch (TTransportException e) {
-        throw wrap(e);
-      }
-    }
-
-    public IOException wrap(TTransportException e) throws IOException {
-      e.printStackTrace();
-      return new IOException(
-        "Error reading from thrift transport " + transport() +
-        ": " + e.getMessage(), e
-      );
-    }
-
-  }
-
-  private static class TTransportOutputStream extends OutputStream {
-
-    private final TTransport __transport;
-
-    public TTransportOutputStream(TTransport transport) {
-      this.__transport = transport;
-    }
-
-    protected TTransport transport() {
-      return __transport;
-    }
-
-    private final byte[] byteRawBuf = new byte[1];
-
-    @Override
-    public void write(int b) throws IOException {
-      byteRawBuf[0] = (byte)(b & 0xff);
-      try {
-        transport().write(byteRawBuf);
-      } catch (TTransportException e) {
-        throw wrap(e);
-      }
-    }
-
-    @Override
-    public void write(byte[] b, int off, int len) throws IOException {
-      try {
-        transport().write(b, off, len);
-      } catch (TTransportException e) {
-        throw wrap(e);
-      }
-    }
-
-    @Override
-    public void write(byte[] b) throws IOException {
-      try {
-        transport().write(b);
-      } catch (TTransportException e) {
-        throw wrap(e);
-      }
-    }
-
-    public IOException wrap(TTransportException e) throws IOException {
-      throw new IOException(
-        "Error reading from thrift transport " + transport() +
-        ": " + e.getMessage(), e
-      );
-    }
-
   }
 
 }
