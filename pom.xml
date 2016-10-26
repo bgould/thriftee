@@ -309,7 +309,7 @@
     <tomee.version>7.0.1</tomee.version>
     <thrift.version>0.10.0-SNAPSHOT</thrift.version>
     <restlet.version>2.2.2</restlet.version>
-    <eclipselink.version>2.6.0</eclipselink.version>
+    <eclipselink.version>2.5.2</eclipselink.version>
     <scannotation.version>1.0.2</scannotation.version>
     <javassist.version>3.20.0-GA</javassist.version>
     <commons.lang.version>2.6</commons.lang.version>

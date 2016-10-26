@@ -99,14 +99,14 @@
       </plugin>
        -->
       <plugin>
-        <groupId>org.apache.openejb.maven</groupId>
+        <groupId>org.apache.tomee.maven</groupId>
         <artifactId>tomee-maven-plugin</artifactId>
         <version>${tomee.version}</version>
         <configuration>
           <context>ex</context>
           <tomeeVersion>${tomee.version}</tomeeVersion>
           <removeTomeeWebapp>true</removeTomeeWebapp>
-          <tomeeClassifier>plume</tomeeClassifier>
+          <tomeeClassifier>webprofile</tomeeClassifier>
           <simpleLog>true</simpleLog>
           <synchronization>
             <updateInterval>5</updateInterval>
@@ -119,6 +119,8 @@
           </synchronization>
           <libs>
             <lib>org.apache.derby:derby:10.11.1.1</lib>
+            <lib>org.eclipse.persistence:eclipselink:${eclipselink.version}</lib>
+            <lib>remove:openjpa</lib>
           </libs>
         </configuration>
       </plugin>

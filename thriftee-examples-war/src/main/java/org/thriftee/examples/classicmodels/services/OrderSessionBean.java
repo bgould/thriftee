@@ -15,7 +15,7 @@
  */
 package org.thriftee.examples.classicmodels.services;
 
-import javax.ejb.Remote;
+import javax.ejb.Local;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.thriftee.examples.classicmodels.Order;
 
 @Stateless
-@Remote(OrderService.class)
+@Local(OrderService.class)
 public class OrderSessionBean implements OrderService {
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
@@ -41,14 +41,14 @@ public class OrderSessionBean implements OrderService {
       return null;
     }
     if (order.getCustomer() != null) {
-      LOG.debug("also retrieved customer number: {}", 
+      LOG.debug("also retrieved customer number: {}",
         order.getCustomer().getCustomerNumber());
     } else {
       LOG.debug("customer was null");
     }
     if (order.getOrderDetails() != null) {
       LOG.debug(
-        "also retrieved order details: {}", 
+        "also retrieved order details: {}",
         order.getOrderDetails().size()
       );
     } else {
