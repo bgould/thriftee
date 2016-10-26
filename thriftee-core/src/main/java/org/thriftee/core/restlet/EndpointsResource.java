@@ -15,25 +15,21 @@
  */
 package org.thriftee.core.restlet;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.thrift.TProcessor;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocolFactory;
-import org.restlet.data.MediaType;
-import org.restlet.data.Status;
 import org.restlet.representation.Representation;
-import org.restlet.representation.StringRepresentation;
 import org.restlet.resource.Get;
-import org.restlet.resource.Post;
-import org.thriftee.compiler.schema.ModuleSchema;
-import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.core.ProtocolTypeAlias;
-import org.thriftee.core.util.Strings;
 
 public class EndpointsResource extends FrameworkResource {
-
+  @Get
+  public Representation represent() {
+    final DirectoryListingModel directory = createDefaultModel();
+    directory.getFiles().put("multiplex/", "multiplex/");
+    directory.getFiles().put("processor/", "processor/");
+    directory.getFiles().put("rest/", "rest/");
+    directory.getFiles().put("soap/", "soap/");
+    return listing(directory);
+  }
+}
+/*
   private ModuleSchema module;
 
   private ServiceSchema service;
@@ -41,8 +37,8 @@ public class EndpointsResource extends FrameworkResource {
   private ProtocolTypeAlias protocol;
 
   private boolean multiplex;
- 
-  private final static Pattern multiplexPattern = 
+
+  private final static Pattern multiplexPattern =
       Pattern.compile("/multiplex/([a-zA-Z0-9_]+)?$");
 
   boolean resolve() {
@@ -81,7 +77,7 @@ public class EndpointsResource extends FrameworkResource {
         return true;   // no service specified
       }
       return false;   // invalid module specified
-    } 
+    }
     return true;     // no module specified
   }
 
@@ -103,9 +99,9 @@ public class EndpointsResource extends FrameworkResource {
       return null;
     }
     final Representation result = new ThriftProcessorRepresentation(
-      entity, 
-      getInFactory(), 
-      getOutFactory(), 
+      entity,
+      getInFactory(),
+      getOutFactory(),
       getProcessor()
     );
     LOG.trace("exiting process()");
@@ -119,7 +115,7 @@ public class EndpointsResource extends FrameworkResource {
     }
     if (getProtocolType() != null) {
       return showProtocol();
-    } 
+    }
     if (isMultiplex()) {
       return listProtocols();
     }
@@ -176,7 +172,7 @@ public class EndpointsResource extends FrameworkResource {
     }
     json.put("protocol", getProtocolType().getName());
     final String jsonStr = json.toString();
-    */
+    *//*
     final String jsonStr = "{}";
     return new StringRepresentation(jsonStr, MediaType.APPLICATION_JSON);
   }
@@ -191,7 +187,7 @@ public class EndpointsResource extends FrameworkResource {
       json.put("protocol", "binary");
     }
     final String jsonStr = json.toString();
-    */
+    *//*
     final String jsonStr = "{}";
     return new StringRepresentation(jsonStr, MediaType.APPLICATION_JSON);
   }
@@ -201,7 +197,7 @@ public class EndpointsResource extends FrameworkResource {
   }
 
   private ModuleSchema getModule() {
-    return this.module; 
+    return this.module;
   }
 
   private ServiceSchema getService() {
@@ -232,7 +228,7 @@ public class EndpointsResource extends FrameworkResource {
     if (isMultiplex()) {
       return thrift().multiplexedProcessor();
     } else if (getService() != null) {
-      return thrift().processorFor(getService());  
+      return thrift().processorFor(getService());
     } else {
       throw new IllegalStateException();
     }
@@ -243,3 +239,4 @@ public class EndpointsResource extends FrameworkResource {
   }
 
 }
+*/

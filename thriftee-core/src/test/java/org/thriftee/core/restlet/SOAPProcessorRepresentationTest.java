@@ -23,13 +23,12 @@ import org.restlet.representation.ByteArrayRepresentation;
 import org.restlet.representation.Representation;
 import org.thriftee.compiler.schema.ModuleSchema;
 import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.core.restlet.SOAPProcessorRepresentation;
 import org.thriftee.core.tests.AbstractThriftEETest;
 
 public class SOAPProcessorRepresentationTest extends AbstractThriftEETest {
 
-  private static final String SOAP_REQUEST_1 = 
-    "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " + 
+  private static final String SOAP_REQUEST_1 =
+    "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
     " xmlns:gro=\"http://thrift.apache.org/xml/ns/org_thriftee_examples_usergroup_service/GroupService\">" +
     "<soapenv:Header/>" +
     "<soapenv:Body>" +
@@ -50,12 +49,12 @@ public class SOAPProcessorRepresentationTest extends AbstractThriftEETest {
     final byte[] serviceCall = SOAP_REQUEST_1.getBytes();
 
     final Representation in = new ByteArrayRepresentation(serviceCall);
-    final SOAPProcessorRepresentation r = new SOAPProcessorRepresentation(
-      in, 
-      thrift().globalXmlFile(), 
-      modName, 
-      service.getName(), 
-      thrift().xmlTransforms(), 
+    final SoapResource.Processor r = new SoapResource.Processor(
+      in,
+      thrift().xmlTransforms(),
+      thrift().globalXmlFile(),
+      modName,
+      service.getName(),
       thrift().processorFor(service)
     );
     final ByteArrayOutputStream out = new ByteArrayOutputStream();

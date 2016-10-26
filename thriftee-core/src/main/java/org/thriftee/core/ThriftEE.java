@@ -249,7 +249,7 @@ public final class ThriftEE implements SchemaBuilderConfig {
       this.protocolTypeAliases = config.protocolTypeAliases();
     }
 
-    this.thriftLibDir = unzipLibraries();
+    this.thriftLibDir = new File(unzipSource(), "lib");
     LOG.info("Thrift library dir: {}", thriftLibDir);
 
     //------------------------------------------------------------------//
@@ -467,17 +467,17 @@ public final class ThriftEE implements SchemaBuilderConfig {
     }
   }
 
-  private File unzipLibraries() throws ThriftStartupException {
-    final File libdir = new File(tempDir(), "lib");
+  private File unzipSource() throws ThriftStartupException {
+    final File srcdir = new File(tempDir(), "thrift-src");
     try {
-      if (libdir.exists()) {
-        FileUtil.deleteRecursively(libdir);
+      if (srcdir.exists()) {
+        FileUtil.deleteRecursively(srcdir);
       }
-      ThriftCompiler.unzipLibs(tempDir());
+      ThriftCompiler.unzipSource(tempDir());
     } catch (IOException e) {
       throw new ThriftStartupException(e, STARTUP_015, e.getMessage());
     }
-    return libdir;
+    return srcdir;
   }
 
 }

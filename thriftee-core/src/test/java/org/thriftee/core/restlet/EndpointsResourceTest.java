@@ -22,12 +22,17 @@ import org.junit.Test;
 public class EndpointsResourceTest extends ResourceTestBase {
 
   public static final String MODULE = "org_thriftee_examples_usergroup_service";
-  
+
   public static final String SERVICE = "UserService";
 
   @Test public void testGet() {
     this.handleGet("/endpoints/");
     assertEquals(200, rsp().getStatus().getCode());
+  }
+
+  @Test public void testInvalidEndpointType() {
+    this.handleGet("/endpoints/zorp/");
+    assertEquals(404, rsp().getStatus().getCode());
   }
 
   @Test public void testGetMultiplex() {
@@ -46,32 +51,32 @@ public class EndpointsResourceTest extends ResourceTestBase {
   }
 
   @Test public void testInvalidModule() {
-    this.handleGet("/endpoints/blah/");
+    this.handleGet("/endpoints/processor/blah/");
     assertEquals(404, rsp().getStatus().getCode());
   }
-  
+
   @Test public void testValidModule() {
-    this.handleGet("/endpoints/" + MODULE + "/");
+    this.handleGet("/endpoints/processor/" + MODULE + "/");
     assertEquals(200, rsp().getStatus().getCode());
   }
 
   @Test public void testInvalidService() {
-    this.handleGet("/endpoints/" + MODULE + "/blah/");
+    this.handleGet("/endpoints/processor/" + MODULE + "/blah/");
     assertEquals(404, rsp().getStatus().getCode());
   }
-  
+
   @Test public void testValidService() {
-    this.handleGet("/endpoints/" + MODULE + "/" + SERVICE + "/");
+    this.handleGet("/endpoints/processor/" + MODULE + "/" + SERVICE + "/");
     assertEquals(200, rsp().getStatus().getCode());
   }
 
   @Test public void testInvalidProtocol() {
-    this.handleGet("/endpoints/" + MODULE + "/" + SERVICE + "/blah");
+    this.handleGet("/endpoints/processor/" + MODULE + "/" + SERVICE + "/blah");
     assertEquals(404, rsp().getStatus().getCode());
   }
-  
+
   @Test public void testValidProtocol() {
-    this.handleGet("/endpoints/" + MODULE + "/" + SERVICE + "/json");
+    this.handleGet("/endpoints/processor/" + MODULE + "/" + SERVICE + "/json");
     assertEquals(200, rsp().getStatus().getCode());
   }
 }

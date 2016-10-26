@@ -15,118 +15,73 @@
  */
 package org.thriftee.core.restlet;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+
+import org.apache.thrift.TByteArrayOutputStream;
 import org.apache.thrift.TProcessor;
 import org.restlet.data.MediaType;
-import org.restlet.data.Status;
 import org.restlet.representation.FileRepresentation;
 import org.restlet.representation.Representation;
-import org.restlet.resource.Get;
-import org.restlet.resource.Post;
-import org.thriftee.compiler.schema.ModuleSchema;
-import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.core.util.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.thriftee.thrift.xml.Transformation.RootType;
+import org.thriftee.core.ThriftEE;
+import org.thriftee.thrift.xml.Transforms;
+import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 
-// TODO: reorganize to de-dup with EndpointsResource
-public class SOAPResource extends FrameworkResource {
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XsltTransformer;
+
+public class SoapResource extends AbstractProcessorResource {
 
   private SortedSet<String> _schemaFilenames;
 
   private String filename;
 
-  private ModuleSchema module;
-
-  private ServiceSchema service;
-
-  boolean resolve() {
-    this.module = null;
-    this.service = null;
-    final String moduleAttr = strAttr("module");
-    if (moduleAttr != null) {
-      this.module = thrift().schema().getModules().get(moduleAttr);
-      if (this.module != null) {
-        final String serviceAttr = strAttr("service");
-        if (serviceAttr != null) {
-          this.service = this.module.getServices().get(serviceAttr);
-          if (this.service != null) {
-            this.filename = strAttr("filename");
-            if (this.filename != null) {
-              return this.filename.equals("service.wsdl") || 
-                     getSchemaFilenames().contains(this.filename);
-            }
-            return true; // no filename specified
-          }
-          return false; // invalid service specified
-        }
-        return true;   // no service specified
-      }
-      return false;   // invalid module specified
-    } 
-    return true;     // no module specified
+  @Override
+  boolean resolveRemaining() {
+    this.filename = strAttr("filename");
+    if (this.filename != null) {
+      return this.filename.equals("service.wsdl") ||
+             getSchemaFilenames().contains(this.filename);
+    }
+    return true; // no filename specified
   }
 
-  @Get
-  public Representation represent() {
-    if (!resolve()) {
-      return notFound();
-    }
+  @Override
+  public Representation getRepresentation() {
     if (getFilename() != null) {
       return showFile();
     }
     if (getService() != null) {
       return listFiles();
     }
-    if (getModule() != null) {
-      return listServices();
-    }
-    else {
-      return listModules();
-    }
+    return null;
   }
 
-  @Post
-  public Representation process(Representation entity) {
-    LOG.trace("entering process()");
-    if (!resolve()) {
-      return notFound();
-    }
-    if (getService() == null) {
-      getResponse().setStatus(Status.CLIENT_ERROR_METHOD_NOT_ALLOWED);
-      return null;
-    }
-    final Representation result = new SOAPProcessorRepresentation(
-      entity, 
+  @Override
+  public AbstractProcessorRepresentation processorFor(Representation entity) {
+    return new Processor(
+      entity,
+      thrift().xmlTransforms(),
       thrift().globalXmlFile(),
       getModule().getName(),
       getService().getName(),
-      thrift().xmlTransforms(),
       getProcessor()
     );
-    LOG.trace("exiting process()");
-    return result;
-  }
-
-  protected Representation listModules() {
-    final DirectoryListingModel directory = createDefaultModel();
-    for (ModuleSchema module : thrift().schema().getModules().values()) {
-      if (module.getServices().size() > 0) {
-        final String moduleName = module.getName() + "/";
-        directory.getFiles().put(moduleName, moduleName);
-      }
-    }
-    return listing(directory);
-  }
-
-  protected Representation listServices() {
-    final DirectoryListingModel directory = createDefaultModel();
-    for (ServiceSchema svc : getModule().getServices().values()) {
-      final String name = svc.getName() + "/";
-      directory.getFiles().put(name, name);
-    }
-    return listing(directory);
   }
 
   protected Representation listFiles() {
@@ -145,7 +100,7 @@ public class SOAPResource extends FrameworkResource {
     final String filename;
     if ("service.wsdl".equals(getFilename())) {
       return new WsdlRepresentation(
-        thrift(), fileFor(getWsdlFilename()), 
+        thrift(), fileFor(getWsdlFilename()),
         resourceRef().toString().replaceAll("service\\.wsdl$", "")
       );
     } else {
@@ -167,7 +122,7 @@ public class SOAPResource extends FrameworkResource {
       if (getModule() == null) {
         throw new IllegalStateException("getModule() should not be null");
       }
-      final TreeSet<String> result = new TreeSet<String>();
+      final TreeSet<String> result = new TreeSet<>();
       result.add(getModule().getName() + ".xsd");
       for (String include : getModule().getIncludes()) {
         if (include.endsWith(".thrift")) {
@@ -184,24 +139,124 @@ public class SOAPResource extends FrameworkResource {
     return this.filename;
   }
 
-  private ModuleSchema getModule() {
-    return this.module; 
-  }
+  public static class Processor extends AbstractProcessorRepresentation {
 
-  private ServiceSchema getService() {
-    return this.service;
-  }
+    private static final TXMLProtocol.Factory fctry = new TXMLProtocol.Factory();
 
-  private TProcessor getProcessor() {
-    if (getService() != null) {
-      return thrift().processorFor(getService());  
-    } else {
-      throw new IllegalStateException();
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    private final Representation inputEntity;
+
+    private final Transforms transforms;
+
+    private final File modelFile;
+
+    private final String moduleName;
+
+    private final String serviceName;
+
+    public Processor(
+        final Representation inputEntity,
+        final Transforms transforms,
+        final File modelFile,
+        final String moduleName,
+        final String serviceName,
+        final TProcessor processor
+      ) {
+      super(MediaType.TEXT_XML, fctry, fctry, processor);
+      this.inputEntity = inputEntity;
+      this.transforms = transforms;
+      this.modelFile = modelFile;
+      this.moduleName = moduleName;
+      this.serviceName = serviceName;
     }
+
+    @Override
+    public void write(final OutputStream out) throws IOException {
+      // transform XML input to TXMLProtocol
+      final TByteArrayOutputStream inBytes = new TByteArrayOutputStream(2048);
+      final StreamSource inSource = new StreamSource(inputEntity.getStream());
+      final StreamResult inResult = new StreamResult(inBytes);
+      try {
+        transforms.transformSimpleToStreaming(
+          modelFile,
+          moduleName,
+          inSource,
+          inResult,
+          false
+        );
+      } catch (IOException e) {
+        throw new IOException("error transforming to streaming protocol", e);
+      }
+
+      // run TProcessor
+      final TByteArrayOutputStream baos = new TByteArrayOutputStream(2048);
+      final int len;
+      process(new ByteArrayInputStream(inBytes.get()), baos);
+      len = baos.len();
+
+      // transform TXMLProtocol to XML response
+      final InputStream outStream = new ByteArrayInputStream(baos.get(), 0, len);
+      final StreamSource outSource = new StreamSource(outStream);
+      final StreamResult outResult = new StreamResult(out);
+      try {
+        transforms.transformStreamingToSimple(
+          modelFile,
+          moduleName,
+          RootType.MESSAGE,
+          serviceName,
+          outSource,
+          outResult
+        );
+      } catch (IOException e) {
+        throw new IOException("error transforming to streaming protocol", e);
+      }
+    }
+
   }
 
-  private String strAttr(String attr) {
-    return Strings.trimToNull(getRequest().getAttributes().get(attr));
+  public static class WsdlRepresentation extends TransformerRepresentation {
+
+    private final File wsdlFile;
+
+    private final String soapAddress;
+
+    public WsdlRepresentation(
+        final ThriftEE thriftee, final File wsdlFile, final String soapAddress
+      ) {
+      super(MediaType.TEXT_XML, thriftee, templateUrl());
+      this.wsdlFile = wsdlFile;
+      this.soapAddress = soapAddress;
+    }
+
+    private static final URL templateUrl() {
+      return DirectoryListingRepresentation.class.getClassLoader().getResource(
+        FrameworkResource.XSLT_PREFIX + "wsdl_location.xsl"
+      );
+    }
+
+    @Override
+    protected final void configure(XsltTransformer transformer) {
+      final QName param = new QName("wsdl_location");
+      transformer.setParameter(param, new XdmAtomicValue(soapAddress));
+    }
+
+    @Override
+    protected final Source source() throws IOException {
+      return new StreamSource(getWsdlFile());
+    }
+
+    protected final File getWsdlFile() throws IOException {
+      final File file = wsdlFile;
+      if (!file.exists()) {
+        throw new FileNotFoundException(file.getAbsolutePath());
+      }
+      if (!file.isFile()) {
+        throw new IOException("not a file: " + file.getAbsolutePath());
+      }
+      return file;
+    }
+
   }
 
 }

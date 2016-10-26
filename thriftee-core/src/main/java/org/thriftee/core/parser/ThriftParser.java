@@ -91,6 +91,7 @@ public final class ThriftParser {
     listener.onMessageEnd();
   }
 
+  // TODO: should have special handling for unions
   public void readStruct(AbstractStructSchema<?, ?, ?, ?> struct, TProtocol in)
       throws TException {
     {
@@ -156,7 +157,7 @@ public final class ThriftParser {
   }
 
   private void readValue(
-      final SchemaType type, 
+      final SchemaType type,
       final TProtocol in) throws TException {
     switch (type.getProtocolType()) {
     case BOOL: {

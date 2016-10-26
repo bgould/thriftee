@@ -62,19 +62,28 @@ public class ThriftApplication extends Application {
   public synchronized Restlet createInboundRoot() {
     final Router router = new Router(getContext());
     attach(router, IndexResource.class, "/");
-    attach(router, EndpointsResource.class,
-      "/endpoints/",
-      "/endpoints/multiplex/",
-      "/endpoints/multiplex/{protocol}",
-      "/endpoints/{module}/",
-      "/endpoints/{module}/{service}/",
-      "/endpoints/{module}/{service}/{protocol}"
+    attach(router, EndpointsResource.class, "/endpoints/");
+    attach(router, ThriftProcessorResource.class,
+      "/endpoints/processor/",
+      "/endpoints/processor/{module}/",
+      "/endpoints/processor/{module}/{service}/",
+      "/endpoints/processor/{module}/{service}/{protocol}"
     );
-    attach(router, SOAPResource.class,
-      "/soap/",
-      "/soap/{module}/",
-      "/soap/{module}/{service}/",
-      "/soap/{module}/{service}/{filename}"
+    attach(router, ThriftMultiplexResource.class,
+      "/endpoints/multiplex/",
+      "/endpoints/multiplex/{protocol}"
+    );
+    attach(router, RestResource.class,
+      "/endpoints/rest/",
+      "/endpoints/rest/{module}/",
+      "/endpoints/rest/{module}/{service}/",
+      "/endpoints/rest/{module}/{service}/{filename}"
+    );
+    attach(router, SoapResource.class,
+      "/endpoints/soap/",
+      "/endpoints/soap/{module}/",
+      "/endpoints/soap/{module}/{service}/",
+      "/endpoints/soap/{module}/{service}/{filename}"
     );
     router.attach("/clients/", createClientsDirectory());
     router.attach("/idl/", createIdlDirectory());
@@ -132,11 +141,11 @@ public class ThriftApplication extends Application {
         resourceRemainingPart = resourceRef.getRemainingPart();
       }
       System.err.printf(
-        "%nrootRef: %s%n" + 
-        "hostRef: %s%n" + 
-        "resourceRef: %s%n" + 
+        "%nrootRef: %s%n" +
+        "hostRef: %s%n" +
+        "resourceRef: %s%n" +
         "resourceRef.baseRef: %s%n" +
-        "resourceRef.remainingPart: %s%n", 
+        "resourceRef.remainingPart: %s%n",
         request.getRootRef(),
         request.getHostRef(),
         resourceRef,

@@ -97,7 +97,7 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
 
     final Representation in = new ByteArrayRepresentation(serviceCall);
     final ThriftProcessorRepresentation r = new ThriftProcessorRepresentation(
-      in, factory, factory, thrift().processorFor(service)
+      in.getMediaType(), in.getStream(), factory, factory, thrift().processorFor(service)
     );
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     r.write(out);
@@ -144,7 +144,7 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
   public static byte[] createServiceCall(
       //ThriftCodecManager mgr,
       TProtocolFactory factory,
-      MethodSchema method, 
+      MethodSchema method,
       TBase<?, ?> args
     ) throws TException {
 
@@ -166,7 +166,7 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
         }
         if (argSchema == null) {
           throw new IllegalArgumentException(
-            "no schema for arg: " + key + " : " + 
+            "no schema for arg: " + key + " : " +
             method.getArguments().keySet()
           );
         }
@@ -181,8 +181,8 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
             "codec and schema types do not match for arg: " + key);
         }
         final TField field = new TField(
-          argSchema.getName(), 
-          argSchema.getType().getProtocolType().getType(), 
+          argSchema.getName(),
+          argSchema.getType().getProtocolType().getType(),
           argSchema.getIdentifier().shortValue()
         );
         protocol.writeFieldBegin(field);
