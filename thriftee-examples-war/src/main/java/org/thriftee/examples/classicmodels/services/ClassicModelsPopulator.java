@@ -64,7 +64,7 @@ public class ClassicModelsPopulator {
           rs.close();
           for (int i = 0; i < lines.length; i++) {
             line = lines[i];
-            LOG.debug("executing SQL: {}", line);
+            LOG.trace("executing SQL: {}", line);
             stmt.execute(line);
           }
         } catch (SQLException e) {

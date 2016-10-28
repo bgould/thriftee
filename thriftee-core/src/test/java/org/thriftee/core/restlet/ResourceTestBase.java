@@ -27,8 +27,7 @@ import org.restlet.data.MediaType;
 import org.restlet.data.Method;
 import org.restlet.data.Preference;
 import org.restlet.data.Reference;
-import org.thriftee.core.restlet.FrameworkResource;
-import org.thriftee.core.restlet.ThriftApplication;
+import org.restlet.representation.Representation;
 import org.thriftee.core.tests.AbstractThriftEETest;
 import org.thriftee.core.util.New;
 
@@ -44,17 +43,17 @@ public class ResourceTestBase extends AbstractThriftEETest {
 
   @Before
   public synchronized void setup() throws Exception {
- 
+
     this.component = new Component();
     FrameworkResource.initComponent(this.component);
- 
+
     this.app = new ThriftApplication();
     //this.component.getDefaultHost().attach(this.app);
     this.component.getDefaultHost().attach("/thriftee/tests", this.app);
     FrameworkResource.initApplication(this.app, thrift());
 
     component.start();
-  
+
   }
 
   public synchronized ThriftApplication app() {
@@ -77,7 +76,7 @@ public class ResourceTestBase extends AbstractThriftEETest {
   }
 
   private static final String ROOT_REF = "tests://localhost/thriftee/tests";
-  
+
   protected void assertHasLink(String link) {
     final String text = rsp().getEntityAsText();
     final String href = req().getResourceRef() + link;
@@ -89,13 +88,38 @@ public class ResourceTestBase extends AbstractThriftEETest {
     LOG.debug("running handleGet() for URI: {}", uri);
 
     final List<Preference<MediaType>> accepted = New.arrayList();
-    accepted.add(new Preference<MediaType>(MediaType.TEXT_HTML, 0.9f));
+    accepted.add(new Preference<>(MediaType.TEXT_HTML, 0.9f));
 
     this.request = new Request(Method.GET, ROOT_REF + uri);
     this.request.setRootRef(new Reference(ROOT_REF));
     this.request.getResourceRef().setBaseRef(ROOT_REF);
     this.request.getClientInfo().setAcceptedMediaTypes(accepted);
-    
+
+    this.response = new Response(this.request);
+
+    app().handle(request, response);
+    LOG.debug(
+      "response entity as text:\n------------------\n{}\n------------------\n",
+      response.getEntityAsText()
+    );
+
+    LOG.debug("exiting handleGet()");
+  }
+
+  public synchronized void handlePost(
+      final String uri,
+      final Representation representation) {
+    LOG.debug("running handlePost() for URI: {}", uri);
+
+    final List<Preference<MediaType>> accepted = New.arrayList();
+    accepted.add(new Preference<>(representation.getMediaType(), 0.9f));
+
+    this.request = new Request(Method.POST, ROOT_REF + uri);
+    this.request.setRootRef(new Reference(ROOT_REF));
+    this.request.getResourceRef().setBaseRef(ROOT_REF);
+    this.request.getClientInfo().setAcceptedMediaTypes(accepted);
+    this.request.setEntity(representation);
+
     this.response = new Response(this.request);
 
     app().handle(request, response);

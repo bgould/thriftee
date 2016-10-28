@@ -97,7 +97,7 @@ public class ThriftProcessorRepresentationTest extends AbstractThriftEETest {
 
     final Representation in = new ByteArrayRepresentation(serviceCall);
     final ThriftProcessorRepresentation r = new ThriftProcessorRepresentation(
-      in.getMediaType(), in.getStream(), factory, factory, thrift().processorFor(service)
+      in, factory, factory, thrift().processorFor(service)
     );
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     r.write(out);

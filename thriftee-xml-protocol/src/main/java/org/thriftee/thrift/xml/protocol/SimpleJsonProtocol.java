@@ -20,6 +20,7 @@ import static java.util.Objects.requireNonNull;
 import static javax.xml.bind.DatatypeConverter.parseBase64Binary;
 import static javax.xml.bind.DatatypeConverter.printBase64Binary;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
@@ -1009,7 +1010,18 @@ public class SimpleJsonProtocol extends AbstractSimpleProtocol {
   protected JsonObject parse() throws TException {
     JsonReader reader = null;
     try {
-      reader = Json.createReader(new TTransportInputStream(getTransport()));
+//      final TTransport transport = getTransport();
+//      if (transport.getBuffer() == null) {
+//        throw ex("A buffered transport is required for " +
+//                  SimpleJsonProtocol.class.getSimpleName());
+//      }
+//      final ByteArrayInputStream in = new ByteArrayInputStream(
+//        transport.getBuffer(),
+//        transport.getBufferPosition(),
+//        transport.getBytesRemainingInBuffer()
+//      );
+      InputStream in = new TTransportInputStream(getTransport());
+      reader = Json.createReader(in);
       return reader.readObject();
     } catch (Exception e) {
       throw ex(e);

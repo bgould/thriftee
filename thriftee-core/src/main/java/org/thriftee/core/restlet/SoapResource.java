@@ -30,14 +30,19 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TByteArrayOutputStream;
+import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TMemoryBuffer;
+import org.apache.thrift.transport.TMemoryInputTransport;
+import org.apache.thrift.transport.TTransport;
 import org.restlet.data.MediaType;
 import org.restlet.representation.FileRepresentation;
 import org.restlet.representation.Representation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.thrift.xml.Transformation.RootType;
 import org.thriftee.core.ThriftEE;
+import org.thriftee.thrift.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.Transforms;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 
@@ -155,6 +160,8 @@ public class SoapResource extends AbstractProcessorResource {
 
     private final String serviceName;
 
+    private TMemoryBuffer outputBuffer;
+
     public Processor(
         final Representation inputEntity,
         final Transforms transforms,
@@ -163,7 +170,7 @@ public class SoapResource extends AbstractProcessorResource {
         final String serviceName,
         final TProcessor processor
       ) {
-      super(MediaType.TEXT_XML, fctry, fctry, processor);
+      super(MediaType.TEXT_XML, processor);
       this.inputEntity = inputEntity;
       this.transforms = transforms;
       this.modelFile = modelFile;
@@ -173,30 +180,15 @@ public class SoapResource extends AbstractProcessorResource {
 
     @Override
     public void write(final OutputStream out) throws IOException {
-      // transform XML input to TXMLProtocol
-      final TByteArrayOutputStream inBytes = new TByteArrayOutputStream(2048);
-      final StreamSource inSource = new StreamSource(inputEntity.getStream());
-      final StreamResult inResult = new StreamResult(inBytes);
       try {
-        transforms.transformSimpleToStreaming(
-          modelFile,
-          moduleName,
-          inSource,
-          inResult,
-          false
-        );
-      } catch (IOException e) {
-        throw new IOException("error transforming to streaming protocol", e);
+        process();
+      } catch (TException e) {
+        throw new IOException(e);
       }
-
-      // run TProcessor
-      final TByteArrayOutputStream baos = new TByteArrayOutputStream(2048);
-      final int len;
-      process(new ByteArrayInputStream(inBytes.get()), baos);
-      len = baos.len();
-
       // transform TXMLProtocol to XML response
-      final InputStream outStream = new ByteArrayInputStream(baos.get(), 0, len);
+      final byte[] arr = outputBuffer.getArray();
+      final int len = outputBuffer.length();
+      final InputStream outStream = new ByteArrayInputStream(arr, 0, len);
       final StreamSource outSource = new StreamSource(outStream);
       final StreamResult outResult = new StreamResult(out);
       try {
@@ -211,6 +203,27 @@ public class SoapResource extends AbstractProcessorResource {
       } catch (IOException e) {
         throw new IOException("error transforming to streaming protocol", e);
       }
+    }
+
+    @Override
+    protected TProtocol getInProtocol() throws IOException {
+      // transform XML input to TXMLProtocol
+      final TByteArrayOutputStream inBytes = new TByteArrayOutputStream(2048);
+      final StreamSource inSource = new StreamSource(inputEntity.getStream());
+      final StreamResult inResult = new StreamResult(inBytes);
+      transforms.transformSimpleToStreaming(
+        modelFile, moduleName, inSource, inResult, false
+      );
+      final TTransport transport = new TMemoryInputTransport(
+        inBytes.get(), 0, inBytes.len()
+      );
+      return fctry.getProtocol(transport);
+    }
+
+    @Override
+    protected TProtocol getOutProtocol() throws IOException {
+      this.outputBuffer = new TMemoryBuffer(4096);
+      return fctry.getProtocol(this.outputBuffer);
     }
 
   }

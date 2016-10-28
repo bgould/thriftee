@@ -38,25 +38,13 @@ import org.junit.Assert;
 import org.thriftee.compiler.schema.IdlSchemaBuilder;
 import org.thriftee.compiler.schema.SchemaBuilderException;
 import org.thriftee.compiler.schema.StructSchema;
-import org.thriftee.thrift.compiler.ThriftCompiler;
+import org.thriftee.thrift.xml.BaseThriftProtocolTest;
 
 import everything.Everything;
 
-public class SpeedTest {
+public class SpeedTest extends BaseThriftProtocolTest {
 
   public static StructSchema structSchema() throws IOException {
-//    final File modelDir = new File("target/tests/SpeedTest");
-//    modelDir.mkdirs();
-//    final File modelFile = new File(modelDir, "everything.xml");
-//    if (modelFile.exists() && !modelFile.delete()) {
-//      throw new IOException(
-//        "Could not delete model file: " + modelFile.getAbsolutePath());
-//    }
-//    System.out.println("generating model file...");
-//    ThriftCompiler.newCompiler().execute(
-//      "-gen", "xml:merge", "-out",
-//      modelDir.getAbsolutePath(), "tests/idl/everything.thrift"
-//    );
     final File modelFile = new File("target/tests/models/everything.xml");
     final IdlSchemaBuilder bldr = new IdlSchemaBuilder();
     try {
@@ -78,6 +66,9 @@ public class SpeedTest {
   }
 
   public static void main(String[] args) throws Exception {
+    System.out.printf("exporting models, etc...");
+    beforeClass();
+    System.out.printf("done%n%n");
     for (TProtocolFactory fctry : data()) {
       final SpeedTest test = new SpeedTest(fctry);
       test.testSpeed();
@@ -92,23 +83,44 @@ public class SpeedTest {
 
   public void testSpeed() throws TException, IOException {
 
+    final int warmup = 2000;
     final int count = 100000;
-    System.out.printf(
-      "Starting test for %s (%s rounds)...%n",
-      factory.getClass().getEnclosingClass().getSimpleName(),
-      count
-    );
+    final String name = factory.getClass().getEnclosingClass().getSimpleName();
 
     long readNanos = 0;
     long writeNanos = 0;
     //long totalNanos = 0;
     final Everything struct = everythingStruct();
 
+    System.out.printf("Warming up %s%n", name);
+    for (int i =0 ; i < warmup; i++) {
+      final byte[] arr;
+      {
+        final TByteArrayOutputStream baos = new TByteArrayOutputStream(4096);
+        final TTransport out = new TIOStreamTransport(baos);
+        final TProtocol outProtocol = factory.getProtocol(out);
+        arr = baos.get();
+        struct.write(outProtocol);
+      }
+      if (i == 0 && arr.length == 0) {
+        Assert.fail("array was zero length");
+      }
+      //System.out.println(new String(arr)); if (true) return;
+      {
+        final Everything struct2 = new Everything();
+        final ByteArrayInputStream bais = new ByteArrayInputStream(arr);
+        final TTransport in = new TIOStreamTransport(bais);
+        final TProtocol inProtocol = factory.getProtocol(in);
+        struct2.read(inProtocol);
+      }
+    }
+
     System.gc();
     try {
       Thread.sleep(1000);
     } catch (InterruptedException e) {}
 
+    System.out.printf("Starting test for %s (%s rounds)...%n", name, count);
     for (int i =0 ; i < count; i++) {
       final byte[] arr;
       {

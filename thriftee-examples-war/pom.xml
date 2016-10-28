@@ -40,15 +40,13 @@
       <artifactId>commons-lang</artifactId>
       <version>${commons.lang.version}</version>
     </dependency>
-    <!--
-    <dependency>
-      <groupId>org.apache.thrift</groupId>
-      <artifactId>libthrift</artifactId>
-      </dependency>
-    -->
     <dependency>
       <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
+      <artifactId>jul-to-slf4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
     </dependency>
     <dependency>
       <groupId>com.fasterxml</groupId>
@@ -82,28 +80,35 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
- 
+
+  <profiles>
+    <profile>
+      <id>tomee-with-debug-and-hot-deploy</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.tomee.maven</groupId>
+            <artifactId>tomee-maven-plugin</artifactId>
+            <configuration>
+              <debug>true</debug>
+              <args>-XXaltjvm=dcevm</args>
+              <javaagents>
+                <javaagent>${hotswap-agent.jar}</javaagent>
+              </javaagents>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
-      <!-- 
-      <plugin>
-        <groupId>org.wildfly.swarm</groupId>
-        <artifactId>wildfly-swarm-plugin</artifactId>
-        <version>1.0.0.Alpha8</version>
-        <executions>
-          <execution>
-            <goals><goal>package</goal></goals>
-            <phase>package</phase>
-          </execution>
-        </executions>
-      </plugin>
-       -->
       <plugin>
         <groupId>org.apache.tomee.maven</groupId>
         <artifactId>tomee-maven-plugin</artifactId>
         <version>${tomee.version}</version>
         <configuration>
-          <context>ex</context>
           <tomeeVersion>${tomee.version}</tomeeVersion>
           <removeTomeeWebapp>true</removeTomeeWebapp>
           <tomeeClassifier>webprofile</tomeeClassifier>
@@ -115,6 +120,7 @@
               <extension>js</extension>
               <extension>css</extension>
               <extension>jsp</extension> 
+              <extension>logback.xml</extension>
             </extensions>
           </synchronization>
           <libs>

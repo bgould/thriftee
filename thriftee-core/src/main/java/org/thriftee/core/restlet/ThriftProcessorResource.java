@@ -49,8 +49,7 @@ public class ThriftProcessorResource extends AbstractProcessorResource {
       return null;
     }
     return new ThriftProcessorRepresentation(
-      entity.getMediaType(),
-      entity.getStream(),
+      entity,
       getProtocolType().getInFactory(),
       getProtocolType().getOutFactory(),
       thrift().processorFor(getService())

@@ -80,8 +80,7 @@ public class ThriftMultiplexResource extends FrameworkResource {
       return null;
     }
     return new ThriftProcessorRepresentation(
-      entity.getMediaType(),
-      entity.getStream(),
+      entity,
       getProtocolType().getInFactory(),
       getProtocolType().getOutFactory(),
       thrift().multiplexedProcessor()

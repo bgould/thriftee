@@ -15,20 +15,31 @@
  */
 package org.thriftee.core.restlet;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Set;
+import java.util.TreeSet;
 
+import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocolFactory;
+import org.apache.thrift.protocol.TMessage;
+import org.apache.thrift.protocol.TMessageType;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TIOStreamTransport;
+import org.apache.thrift.transport.TTransport;
 import org.restlet.data.MediaType;
+import org.restlet.data.Status;
 import org.restlet.representation.OutputRepresentation;
 import org.restlet.representation.Representation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.compiler.schema.MethodSchema;
 import org.thriftee.compiler.schema.ModuleSchema;
+import org.thriftee.compiler.schema.SchemaException;
 import org.thriftee.compiler.schema.ServiceSchema;
+import org.thriftee.thrift.xml.protocol.SimpleJsonProtocol;
 
 public class RestResource extends AbstractProcessorResource {
 
@@ -38,9 +49,8 @@ public class RestResource extends AbstractProcessorResource {
   boolean resolveRemaining() {
     this.filename = strAttr("filename");
     if (this.filename != null) {
-      return this.filename.equals("swagger.json")
-//          || getSchemaFilenames().contains(this.filename)
-             ;
+      return this.filename.equals("swagger.json") ||
+              getService().getMethods().containsKey(filename);
     }
     return true; // no filename specified
   }
@@ -57,8 +67,14 @@ public class RestResource extends AbstractProcessorResource {
   }
 
   @Override
-  public AbstractProcessorRepresentation processorFor(Representation entity) {
-    return new RestProcessor(entity, getMethodSchema(), getProcessor());
+  public AbstractProcessorRepresentation processorFor(Representation entity)
+      throws IOException {
+    try {
+      return new RestProcessor(entity, getMethodSchema(), getProcessor());
+    } catch (SchemaException e) {
+      getResponse().setStatus(Status.CLIENT_ERROR_METHOD_NOT_ALLOWED);
+      return null;
+    }
   }
 
   protected Representation listModules() {
@@ -84,21 +100,24 @@ public class RestResource extends AbstractProcessorResource {
   protected Representation listFiles() {
     final DirectoryListingModel directory = createDefaultModel();
     directory.getFiles().put("swagger.json", "swagger.json");
-//    for (final String xsdfile : getSchemaFilenames()) {
-//      directory.getFiles().put(xsdfile, xsdfile);
-//    }
+    final Set<String> set = new TreeSet<>(getService().getMethods().keySet());
+    for (final String methodname : set) {
+      directory.getFiles().put(methodname, methodname);
+    }
     return listing(directory);
   }
 
   protected Representation showFile() {
     if (getFilename() == null) {
+      System.err.println("getFilename() should not be null");
       throw new IllegalStateException("getFilename() should not be null");
     }
 //    final String filename;
     if ("swagger.json".equals(getFilename())) {
       return new SwaggerRepresentation();
     } else {
-      throw new IllegalStateException();
+      final DirectoryListingModel directory = createDefaultModel(false);
+      return listing(directory);
     }
 //    else {
 //      filename = getFilename();
@@ -136,13 +155,11 @@ public class RestResource extends AbstractProcessorResource {
     return this.filename;
   }
 
-  private MethodSchema getMethodSchema() {
-    throw new UnsupportedOperationException();
+  private MethodSchema getMethodSchema() throws SchemaException {
+    return getService().findMethod(getFilename());
   }
 
   public static class RestProcessor extends AbstractProcessorRepresentation {
-
-    private static final TProtocolFactory fctry = new TBinaryProtocol.Factory();
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -150,42 +167,78 @@ public class RestResource extends AbstractProcessorResource {
 
     private final MethodSchema methodSchema;
 
+    private OutputStream outputStream;
+
     public RestProcessor(
           final Representation inputEntity,
           final MethodSchema methodSchema,
-          final TProcessor processor
-        ) {
-      super(MediaType.APPLICATION_JSON, fctry, fctry, processor);
+          final TProcessor processor) throws IOException {
+      super(MediaType.APPLICATION_JSON, processor);
       this.entity = inputEntity;
       this.methodSchema = methodSchema;
     }
 
     @Override
-    public void write(final OutputStream out) throws IOException {
+    protected TProtocol getInProtocol() throws IOException {
+      final TTransport transport = new TIOStreamTransport(entity.getStream());
+      return new RestSimpleJsonProtocol(transport);
+    }
 
-      throw new UnsupportedOperationException();
-      // transform XML input to TBinaryProtocol
-//      final TMemoryBuffer buf = new TMemoryBuffer(4096);
-//      try {
-//        final TProtocol inProtocol = fctry.getProtocol(buf);
-//        transforms.fromJson(methodSchema, jsonIn, inProtocol);
-//      } catch (TException|IOException e) {
-//        throw new IOException("error transforming to streaming protocol", e);
-//      }
+    @Override
+    protected TProtocol getOutProtocol() {
+      final OutputStream out = requireNonNull(this.outputStream);
+      final TTransport transport = new TIOStreamTransport(out);
+      return new RestSimpleJsonProtocol(transport);
+    }
 
-      // run TProcessor
-//      final TByteArrayOutputStream baos = new TByteArrayOutputStream(2048);
-//      process(new ByteArrayInputStream(buf.getArray(), 0, buf.length()), baos);
-//
-      // transform TXMLProtocol to XML response
-//      final TTransport t = new TMemoryInputTransport(baos.get(), 0, baos.len());
-//      final TProtocol protocol = fctry.getProtocol(t);
-//      try {
-//        transforms.toJson(methodSchema, protocol, jsonOut, false);
-//      } catch (TException|IOException e) {
-//        throw new IOException("error transforming to streaming protocol", e);
-//      }
+    class RestSimpleJsonProtocol extends SimpleJsonProtocol {
 
+      protected RestSimpleJsonProtocol(TTransport trans) {
+        super(trans, null, null);
+      }
+
+      @Override
+      public void writeMessageBegin(TMessage msg) throws TException {
+        switch (msg.type) {
+        case TMessageType.CALL:
+          throw ex("CALL messages not supported.");
+        case TMessageType.REPLY:
+          setBaseStruct(methodSchema.getResultStruct());
+          break;
+        case TMessageType.EXCEPTION:
+          setBaseStruct(methodSchema.getRoot().applicationExceptionSchema());
+          break;
+        case TMessageType.ONEWAY:
+          throw ex("ONEWAY messages not supported");
+        default:
+          throw ex("invalid message type: " + msg.type);
+        }
+      }
+
+      @Override
+      public void writeMessageEnd() throws TException {}
+
+      @Override
+      public TMessage readMessageBegin() throws TException {
+        setBaseStruct(methodSchema.getArgumentStruct());
+        return new TMessage(methodSchema.getName(), TMessageType.CALL, 1);
+      }
+
+      @Override
+      public void readMessageEnd() throws TException {}
+
+    }
+
+    @Override
+    public void write(OutputStream outputStream) throws IOException {
+      this.outputStream = outputStream;
+      try {
+        process();
+      } catch (TException e) {
+        throw new IOException(e);
+      } finally {
+        this.outputStream = null;
+      }
     }
 
   }

@@ -16,36 +16,65 @@
 package org.thriftee.core.restlet;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
+import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
-import org.restlet.data.MediaType;
+import org.apache.thrift.transport.TIOStreamTransport;
+import org.apache.thrift.transport.TTransport;
+import org.restlet.representation.Representation;
 
 public class ThriftProcessorRepresentation
                 extends AbstractProcessorRepresentation {
 
-  private final InputStream inputStream;
+  private final TProtocolFactory inProtocolFactory;
+
+  private final TProtocolFactory outProtocolFactory;
+
+  private final Representation input;
+
+  private OutputStream outputStream;
 
   public ThriftProcessorRepresentation(
-      final MediaType mediaType,
-      final InputStream inputStream,
+      final Representation input,
       final TProtocolFactory inProtocolFactory,
       final TProtocolFactory outProtocolFactory,
       final TProcessor processor
     ) {
-    super(mediaType, inProtocolFactory, outProtocolFactory, processor);
-    this.inputStream = inputStream;
+    super(input.getMediaType(), processor);
+    this.inProtocolFactory = inProtocolFactory;
+    this.outProtocolFactory = outProtocolFactory;
+    this.input = input;
   }
 
-  protected InputStream getInputStream() {
-    return this.inputStream;
+  @Override
+  protected TProtocol getInProtocol() throws IOException {
+    final TTransport transport = new TIOStreamTransport(input.getStream());
+    return inProtocolFactory.getProtocol(transport);
+  }
+
+  @Override
+  protected TProtocol getOutProtocol() throws IOException {
+    final TTransport transport = new TIOStreamTransport(getOutputStream());
+    return outProtocolFactory.getProtocol(transport);
+  }
+
+  protected OutputStream getOutputStream() {
+    return this.outputStream;
   }
 
   @Override
   public void write(final OutputStream out) throws IOException {
-    process(getInputStream(), out);
+    this.outputStream = out;
+    try {
+      process();
+    } catch (TException e) {
+      throw new IOException(e);
+    } finally {
+      this.outputStream = null;
+    }
   }
 
 }

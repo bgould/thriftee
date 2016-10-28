@@ -15,16 +15,19 @@
  */
 package org.thriftee.examples;
 
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.ServletException;
-
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.thriftee.servlet.ThriftEEServlet;
 
+import ch.qos.logback.classic.LoggerContext;
+
 @WebServlet(
-  urlPatterns = { "/services/*" }, 
-  loadOnStartup = 1, 
+  urlPatterns = { "/services/*" },
+  loadOnStartup = 1,
   name = "Example Service Endpoints"
 )
 public class ExamplesEndpointServlet extends ThriftEEServlet {
@@ -35,8 +38,27 @@ public class ExamplesEndpointServlet extends ThriftEEServlet {
 
   @Override
   public void init() throws ServletException {
+    getServletContext().log("Initializing ThriftEE examples servlet");
     super.init();
-    LOG.info("==== init'd ExamplesEndpointServlet ====");
+    SLF4JBridgeHandler.install();
+    LOG.info("Successfully initialized " + getClass().getSimpleName());
+  }
+
+  @Override
+  public void destroy() {
+    try {
+      getServletContext().log("uninstalling SLF4JBridgeHandler");
+      SLF4JBridgeHandler.uninstall();
+    } catch (Throwable e) {
+      getServletContext().log("error uninstalling SLF4JBridgeHandler", e);
+    }
+    try {
+      getServletContext().log("Stopping logback context.");
+      ((LoggerContext)LoggerFactory.getILoggerFactory()).stop();
+    } catch (Throwable e) {
+      getServletContext().log("Error stopping logback context.", e);
+    }
+    super.destroy();
   }
 
 }

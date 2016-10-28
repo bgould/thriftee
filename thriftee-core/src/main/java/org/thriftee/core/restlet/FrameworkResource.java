@@ -34,7 +34,7 @@ public abstract class FrameworkResource extends ServerResource {
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
   public static final String APP_CTX_ATTR = "org.thriftee.app.attr";
-  
+
   public static final String BASEREF_CTX_ATTR = "org.thriftee.baseRef.attr";
 
   public static void initComponent(Component component) {
@@ -75,7 +75,7 @@ public abstract class FrameworkResource extends ServerResource {
   public static Reference resourceBaseRef() {
     final Reference baseRef = resourceRef().getBaseRef();
     if (baseRef != null) {
-      return baseRef; 
+      return baseRef;
     }
     throw new IllegalStateException("baseRef on resourceRef is not set");
   }
@@ -105,8 +105,8 @@ public abstract class FrameworkResource extends ServerResource {
   }
 
   public static TemplateRepresentation getTemplate(
-      final String tpl, 
-      final Object data, 
+      final String tpl,
+      final Object data,
       final MediaType mediaType) {
     return new TemplateRepresentation(tpl + ".ftl", cfg, data, mediaType);
   }
@@ -114,21 +114,31 @@ public abstract class FrameworkResource extends ServerResource {
 */
 
   public static DirectoryListingModel createDefaultModel(Class<?> forClass) {
+    return createDefaultModel(forClass, true);
+  }
+
+  public static DirectoryListingModel createDefaultModel(
+      final Class<?> forClass,
+      final boolean requireSlash) {
     final DirectoryListingModel model = new DirectoryListingModel();
     final String listingPath = resourceBaseRef().getPath();
-    if (!listingPath.endsWith("/")) {
+    if (requireSlash && !listingPath.endsWith("/")) {
       throw new IllegalStateException("listingPath should end with a slash");
     }
     model.setTitle("Index of '" + listingPath  + "'");
     model.setBaseRef(resourceRef().toString());
     if (!(forClass.equals(IndexResource.class))) {
-      model.getFiles().put("../", "../");
+      model.getFiles().put((listingPath.endsWith("/")?"":"/") + "../", "../");
     }
     return model;
   }
 
   protected DirectoryListingModel createDefaultModel() {
     return createDefaultModel(getClass());
+  }
+
+  protected DirectoryListingModel createDefaultModel(boolean requireSlash) {
+    return createDefaultModel(getClass(), requireSlash);
   }
 
   protected Representation listing(DirectoryListingModel dirModel) {
@@ -141,7 +151,7 @@ public abstract class FrameworkResource extends ServerResource {
   }
 /*
   protected Representation getDebugTemplate(
-      final Object data, 
+      final Object data,
       final MediaType mediaType) {
     final Map<String, Object> model = new HashMap<>();
     model.put("data", data);
@@ -150,12 +160,12 @@ public abstract class FrameworkResource extends ServerResource {
     model.put("context", getContext());
     model.put("request", getRequest());
     model.put("response", getResponse());
-    return getTemplate("debug", model, mediaType); 
+    return getTemplate("debug", model, mediaType);
   }
 */
   protected void debug(String fmt, Object... args) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format(fmt, (Object[]) args));
+      LOG.debug(String.format(fmt, args));
     }
   }
 

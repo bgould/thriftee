@@ -624,6 +624,9 @@ public abstract class AbstractContextProtocol extends TProtocol {
         try {
           trans.readAll(byteRawBuf, 0, 1);
         } catch (TTransportException e) {
+          if (e.getType() == TTransportException.END_OF_FILE) {
+            return -1;
+          }
           throw wrap(e);
         }
         b = byteRawBuf[0];
@@ -632,26 +635,29 @@ public abstract class AbstractContextProtocol extends TProtocol {
     }
 
     @Override
-    public int read(byte[] b) throws IOException {
-      try {
-        if (!transport().isOpen() || !transport().peek()) {
-          return -1;
-        }
-        return transport().read(b, 0, b.length);
-      } catch (TTransportException e) {
-        throw wrap(e);
-      }
-    }
-
-    @Override
     public int read(byte[] b, int off, int len) throws IOException {
-      try {
-        if (!transport().isOpen() || !transport().peek()) {
-          return -1;
+      final TTransport trans = transport();
+      if (!transport().isOpen() || !trans.peek()) {
+        return -1;
+      }
+      final int buffered = trans.getBytesRemainingInBuffer();
+      if (buffered == 0) {
+        return -1;
+      } else if (buffered > 0) {
+        final int pos = trans.getBufferPosition();
+        final int amt = Math.min(buffered, len);
+        System.arraycopy(trans.getBuffer(), pos, b, off, amt);
+        trans.consumeBuffer(amt);
+        return amt;
+      } else {
+        try {
+          return transport().read(b, off, len);
+        } catch (TTransportException e) {
+          if (e.getType() == TTransportException.END_OF_FILE) {
+            return -1;
+          }
+          throw wrap(e);
         }
-        return transport().read(b, off, len);
-      } catch (TTransportException e) {
-        throw wrap(e);
       }
     }
 
@@ -707,8 +713,13 @@ public abstract class AbstractContextProtocol extends TProtocol {
     }
 
     public IOException wrap(TTransportException e) throws IOException {
+      for (Throwable t = e.getCause(); t != null; t = t.getCause()) {
+        if (t instanceof IOException) {
+          throw (IOException) t;
+        }
+      }
       throw new IOException(
-        "Error reading from thrift transport " + transport() +
+        "Error writing to thrift transport " + transport() +
         ": " + e.getMessage(), e
       );
     }

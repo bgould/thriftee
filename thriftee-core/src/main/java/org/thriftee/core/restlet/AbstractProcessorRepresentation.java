@@ -18,82 +18,47 @@ package org.thriftee.core.restlet;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TProtocolFactory;
-import org.apache.thrift.transport.TIOStreamTransport;
-import org.apache.thrift.transport.TTransport;
 import org.restlet.data.MediaType;
 import org.restlet.representation.OutputRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.core.exceptions.ThriftMessage;
-import org.thriftee.core.exceptions.ThriftRuntimeException;
 
 public abstract class AbstractProcessorRepresentation
         extends OutputRepresentation {
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-  private final TProtocolFactory inProtocolFactory;
-
-  private final TProtocolFactory outProtocolFactory;
 
   private final TProcessor processor;
 
   public AbstractProcessorRepresentation(
       final MediaType mediaType,
-      final TProtocolFactory inProtocolFactory,
-      final TProtocolFactory outProtocolFactory,
       final TProcessor processor
     ) {
     super(null);
-    this.inProtocolFactory = inProtocolFactory;
-    this.outProtocolFactory = outProtocolFactory;
     this.processor = processor;
   }
 
-  protected TProtocolFactory getInFactory() {
-    return inProtocolFactory;
-  }
+  protected abstract TProtocol getInProtocol() throws IOException;
 
-  protected TProtocolFactory getOutFactory() {
-    return outProtocolFactory;
-  }
+  protected abstract TProtocol getOutProtocol() throws IOException;
 
   protected TProcessor getProcessor() {
     return processor;
   }
 
-  final void process(
-        final InputStream in,
-        final OutputStream out
-      ) throws IOException {
-    if (out == null) {
-      throw new IllegalArgumentException("output stream cannot be null.");
-    }
-    final TTransport transport = new TIOStreamTransport(
-      requireNonNull(in, "input stream cannot be null"),
-      requireNonNull(out, "output stream cannot be null")
-    );
-    try {
-      final TProtocol inProtocol = getInFactory().getProtocol(transport);
-      final TProtocol outProtocol = getOutFactory().getProtocol(transport);
-      if (getProcessor().process(inProtocol, outProtocol)) {
-        transport.flush();
-        out.flush();
-      } else {
-        throw new IOException("TProcessor.process() returned false");
-      }
-    } catch (TException|RuntimeException e) {
-      LOG.error(Messages.PROCESSOR_001.getMessage(), e);
-      throw new ThriftRuntimeException(e, Messages.PROCESSOR_001);
-    } finally {
-      transport.close();
+  final void process() throws IOException, TException {
+    final TProtocol inProtocol = requireNonNull(getInProtocol());
+    final TProtocol outProtocol = requireNonNull(getOutProtocol());
+    if (getProcessor().process(inProtocol, outProtocol)) {
+      outProtocol.getTransport().flush();
+    } else {
+      throw new IOException("TProcessor.process() returned false");
     }
   }
 

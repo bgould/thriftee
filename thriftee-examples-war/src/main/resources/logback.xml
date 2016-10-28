@@ -1,0 +1,30 @@
+<configuration scan="true">
+
+  <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+    <resetJUL>true</resetJUL>
+  </contextListener>
+
+  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%highlight(%d %-5level [%thread] %logger{0}: %msg%n)</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="restlet_access_log" class="ch.qos.logback.core.FileAppender"> 
+    <file>logs/restlet_access.log</file>
+    <encoder>
+      <pattern>%msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="info">
+    <appender-ref ref="console" />
+  </root>
+
+  <logger name="org.thriftee" level="debug" />
+
+  <logger name="org.restlet.Component.LogService" level="warn" additivity="false">
+    <appender-ref ref="restlet_access_log" />
+  </logger>
+
+</configuration>
