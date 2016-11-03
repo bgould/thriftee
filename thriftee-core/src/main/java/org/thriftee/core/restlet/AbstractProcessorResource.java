@@ -22,9 +22,9 @@ import org.restlet.data.Status;
 import org.restlet.representation.Representation;
 import org.restlet.resource.Get;
 import org.restlet.resource.Post;
-import org.thriftee.compiler.schema.ModuleSchema;
-import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.core.util.Strings;
+import org.thriftee.thrift.schema.ModuleSchema;
+import org.thriftee.thrift.schema.ServiceSchema;
 
 public abstract class AbstractProcessorResource extends FrameworkResource {
 

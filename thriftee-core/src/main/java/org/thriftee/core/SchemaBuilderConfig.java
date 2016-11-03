@@ -17,7 +17,7 @@ package org.thriftee.core;
 
 import java.io.File;
 
-import org.thriftee.thrift.compiler.ThriftCompiler;
+import org.apache.thrift.compiler.ThriftCompiler;
 
 public interface SchemaBuilderConfig {
 

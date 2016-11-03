@@ -32,17 +32,17 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolUtil;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.protocol.TStruct;
-import org.thriftee.compiler.schema.AbstractFieldSchema;
-import org.thriftee.compiler.schema.AbstractStructSchema;
-import org.thriftee.compiler.schema.EnumSchema;
-import org.thriftee.compiler.schema.ListSchemaType;
-import org.thriftee.compiler.schema.MapSchemaType;
-import org.thriftee.compiler.schema.MethodSchema;
-import org.thriftee.compiler.schema.SchemaException;
-import org.thriftee.compiler.schema.SchemaType;
-import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.compiler.schema.SetSchemaType;
-import org.thriftee.compiler.schema.ThriftSchema;
+import org.thriftee.thrift.schema.AbstractFieldSchema;
+import org.thriftee.thrift.schema.AbstractStructSchema;
+import org.thriftee.thrift.schema.EnumSchema;
+import org.thriftee.thrift.schema.ListSchemaType;
+import org.thriftee.thrift.schema.MapSchemaType;
+import org.thriftee.thrift.schema.MethodSchema;
+import org.thriftee.thrift.schema.SchemaException;
+import org.thriftee.thrift.schema.SchemaType;
+import org.thriftee.thrift.schema.ServiceSchema;
+import org.thriftee.thrift.schema.SetSchemaType;
+import org.thriftee.thrift.schema.ThriftSchema;
 
 public final class ThriftParser {
 

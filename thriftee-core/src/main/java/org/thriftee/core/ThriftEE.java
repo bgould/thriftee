@@ -40,11 +40,10 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
+import org.apache.thrift.compiler.ExecutionResult;
+import org.apache.thrift.compiler.ThriftCompiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.compiler.schema.SchemaBuilderException;
-import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.compiler.schema.ThriftSchema;
 import org.thriftee.core.ThriftStartupException.ThriftStartupMessage;
 import org.thriftee.core.client.ClientTypeAlias;
 import org.thriftee.core.compiler.ProcessIDL;
@@ -55,8 +54,9 @@ import org.thriftee.core.compiler.ThriftCommandRunner;
 import org.thriftee.core.service.ThriftSchemaServiceImpl;
 import org.thriftee.core.util.FileUtil;
 import org.thriftee.meta.idl.ThriftSchemaService;
-import org.thriftee.thrift.compiler.ExecutionResult;
-import org.thriftee.thrift.compiler.ThriftCompiler;
+import org.thriftee.thrift.schema.SchemaBuilderException;
+import org.thriftee.thrift.schema.ServiceSchema;
+import org.thriftee.thrift.schema.ThriftSchema;
 import org.thriftee.thrift.xml.Transforms;
 import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 
@@ -68,7 +68,7 @@ public final class ThriftEE implements SchemaBuilderConfig {
 
   public static final String MODULE_NAME_META_IDL = "org.thriftee.meta.idl";
 
-  public static final String MODULE_NAME_COMPILER_IDL = "org.thriftee.compiler.idl";
+  public static final String MODULE_NAME_COMPILER_IDL = "org.thriftee.thrift.schema.idl";
 
   public ServiceLocator serviceLocator() {
     return serviceLocator;

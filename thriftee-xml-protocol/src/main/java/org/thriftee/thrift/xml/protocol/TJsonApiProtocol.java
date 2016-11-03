@@ -42,23 +42,23 @@ import org.apache.thrift.protocol.TMap;
 import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.transport.TTransport;
-import org.thriftee.compiler.schema.AbstractFieldSchema;
-import org.thriftee.compiler.schema.AbstractStructSchema;
-import org.thriftee.compiler.schema.ContainerSchemaType;
-import org.thriftee.compiler.schema.ListSchemaType;
-import org.thriftee.compiler.schema.MapSchemaType;
-import org.thriftee.compiler.schema.SchemaType;
-import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.compiler.schema.SetSchemaType;
-import org.thriftee.compiler.schema.StructSchema;
+import org.thriftee.thrift.schema.AbstractFieldSchema;
+import org.thriftee.thrift.schema.AbstractStructSchema;
+import org.thriftee.thrift.schema.ContainerSchemaType;
+import org.thriftee.thrift.schema.ListSchemaType;
+import org.thriftee.thrift.schema.MapSchemaType;
+import org.thriftee.thrift.schema.SchemaType;
+import org.thriftee.thrift.schema.ServiceSchema;
+import org.thriftee.thrift.schema.SetSchemaType;
+import org.thriftee.thrift.schema.StructSchema;
 
 
-public class SimpleJsonProtocol extends AbstractSimpleProtocol {
+public class TJsonApiProtocol extends AbstractSimpleProtocol {
 
   /**
    * Factory
    */
-  public static class Factory extends AbstractFactory<SimpleJsonProtocol> {
+  public static class Factory extends AbstractFactory<TJsonApiProtocol> {
 
     private static final long serialVersionUID = -2988163176565419085L;
 
@@ -79,11 +79,11 @@ public class SimpleJsonProtocol extends AbstractSimpleProtocol {
     }
 
     @Override
-    protected SimpleJsonProtocol getProtocol(
+    protected TJsonApiProtocol getProtocol(
         final TTransport trans,
         final ServiceSchema baseService,
         final AbstractStructSchema<?,?,?,?> baseStruct) {
-      return new SimpleJsonProtocol(trans, baseService, baseStruct);
+      return new TJsonApiProtocol(trans, baseService, baseStruct);
     }
 
   }
@@ -136,12 +136,12 @@ public class SimpleJsonProtocol extends AbstractSimpleProtocol {
 
     @Override
     protected ServiceSchema getBaseService() {
-      return SimpleJsonProtocol.this.getBaseService();
+      return TJsonApiProtocol.this.getBaseService();
     }
 
     @Override
     protected AbstractStructSchema<?, ?, ?, ?> getBaseStruct() {
-      return SimpleJsonProtocol.this.getBaseStruct();
+      return TJsonApiProtocol.this.getBaseStruct();
     }
 
   }
@@ -178,7 +178,7 @@ public class SimpleJsonProtocol extends AbstractSimpleProtocol {
 
     @Override
     public JsonMessageContext writeEnd() throws TException {
-      SimpleJsonProtocol.this.writeEnd(); // end message object
+      TJsonApiProtocol.this.writeEnd(); // end message object
       return this;
     }
 
@@ -246,7 +246,7 @@ public class SimpleJsonProtocol extends AbstractSimpleProtocol {
 
     @Override
     public StructContext writeEnd() throws TException {
-      SimpleJsonProtocol.this.writeEnd();
+      TJsonApiProtocol.this.writeEnd();
       return this;
     }
 
@@ -937,7 +937,7 @@ public class SimpleJsonProtocol extends AbstractSimpleProtocol {
     }
     @Override
     protected void writeEnd() throws TException {
-      SimpleJsonProtocol.this.writeEnd();
+      TJsonApiProtocol.this.writeEnd();
     }
   }
 
@@ -989,7 +989,7 @@ public class SimpleJsonProtocol extends AbstractSimpleProtocol {
     return new JsonBaseContext(type, getBaseService(), getBaseStruct());
   }
 
-  protected SimpleJsonProtocol(
+  protected TJsonApiProtocol(
       final TTransport trans,
       final ServiceSchema baseService,
       final AbstractStructSchema<?,?,?,?> baseStruct) {

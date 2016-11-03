@@ -35,11 +35,11 @@ import org.restlet.representation.OutputRepresentation;
 import org.restlet.representation.Representation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.compiler.schema.MethodSchema;
-import org.thriftee.compiler.schema.ModuleSchema;
-import org.thriftee.compiler.schema.SchemaException;
-import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.thrift.xml.protocol.SimpleJsonProtocol;
+import org.thriftee.thrift.schema.MethodSchema;
+import org.thriftee.thrift.schema.ModuleSchema;
+import org.thriftee.thrift.schema.SchemaException;
+import org.thriftee.thrift.schema.ServiceSchema;
+import org.thriftee.thrift.xml.protocol.TJsonApiProtocol;
 
 public class RestResource extends AbstractProcessorResource {
 
@@ -159,7 +159,7 @@ public class RestResource extends AbstractProcessorResource {
     return getService().findMethod(getFilename());
   }
 
-  public static class RestProcessor extends AbstractProcessorRepresentation {
+  protected class RestProcessor extends AbstractProcessorRepresentation {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -169,7 +169,7 @@ public class RestResource extends AbstractProcessorResource {
 
     private OutputStream outputStream;
 
-    public RestProcessor(
+    protected RestProcessor(
           final Representation inputEntity,
           final MethodSchema methodSchema,
           final TProcessor processor) throws IOException {
@@ -191,7 +191,7 @@ public class RestResource extends AbstractProcessorResource {
       return new RestSimpleJsonProtocol(transport);
     }
 
-    class RestSimpleJsonProtocol extends SimpleJsonProtocol {
+    protected class RestSimpleJsonProtocol extends TJsonApiProtocol {
 
       protected RestSimpleJsonProtocol(TTransport trans) {
         super(trans, null, null);
@@ -206,6 +206,7 @@ public class RestResource extends AbstractProcessorResource {
           setBaseStruct(methodSchema.getResultStruct());
           break;
         case TMessageType.EXCEPTION:
+          getResponse().setStatus(Status.SERVER_ERROR_INTERNAL);
           setBaseStruct(methodSchema.getRoot().applicationExceptionSchema());
           break;
         case TMessageType.ONEWAY:

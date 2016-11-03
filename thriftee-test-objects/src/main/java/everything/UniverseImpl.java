@@ -41,7 +41,7 @@ public class UniverseImpl implements Universe.Iface {
       result.sparticle = "hammelgaff";
     return result;
     } else {
-      throw new IllegalArgumentException();
+      throw new TException("invalid fortyTwo!");
     }
   }
 

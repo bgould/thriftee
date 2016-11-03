@@ -18,7 +18,7 @@ package org.thriftee.thrift.xml;
 import org.apache.thrift.TBase;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
-import org.thriftee.compiler.schema.MethodIdentifier;
+import org.thriftee.thrift.schema.MethodIdentifier;
 
 public class TestCall extends TestObject {
 

@@ -21,9 +21,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.restlet.representation.ByteArrayRepresentation;
 import org.restlet.representation.Representation;
-import org.thriftee.compiler.schema.ModuleSchema;
-import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.core.tests.AbstractThriftEETest;
+import org.thriftee.thrift.schema.ModuleSchema;
+import org.thriftee.thrift.schema.ServiceSchema;
 
 public class SOAPProcessorRepresentationTest extends AbstractThriftEETest {
 

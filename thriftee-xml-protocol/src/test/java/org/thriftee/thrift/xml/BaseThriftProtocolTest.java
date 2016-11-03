@@ -35,14 +35,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.thrift.TBase;
+import org.apache.thrift.compiler.ExecutionResult;
+import org.apache.thrift.compiler.ThriftCompiler;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thriftee.thrift.compiler.ExecutionResult;
-import org.thriftee.thrift.compiler.ThriftCompiler;
 
 import another.Blotto;
 

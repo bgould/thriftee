@@ -29,19 +29,19 @@ import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.transport.TTransport;
-import org.thriftee.compiler.schema.AbstractFieldSchema;
-import org.thriftee.compiler.schema.AbstractStructSchema;
-import org.thriftee.compiler.schema.ContainerSchemaType;
-import org.thriftee.compiler.schema.ListSchemaType;
-import org.thriftee.compiler.schema.MapSchemaType;
-import org.thriftee.compiler.schema.MethodSchema;
-import org.thriftee.compiler.schema.SchemaException;
-import org.thriftee.compiler.schema.SchemaType;
-import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.compiler.schema.SetSchemaType;
-import org.thriftee.compiler.schema.StructSchema;
-import org.thriftee.compiler.schema.UnionSchema;
-import org.thriftee.thrift.xml.protocol.SimpleJsonProtocol.JsonFieldContext;
+import org.thriftee.thrift.schema.AbstractFieldSchema;
+import org.thriftee.thrift.schema.AbstractStructSchema;
+import org.thriftee.thrift.schema.ContainerSchemaType;
+import org.thriftee.thrift.schema.ListSchemaType;
+import org.thriftee.thrift.schema.MapSchemaType;
+import org.thriftee.thrift.schema.MethodSchema;
+import org.thriftee.thrift.schema.SchemaException;
+import org.thriftee.thrift.schema.SchemaType;
+import org.thriftee.thrift.schema.ServiceSchema;
+import org.thriftee.thrift.schema.SetSchemaType;
+import org.thriftee.thrift.schema.StructSchema;
+import org.thriftee.thrift.schema.UnionSchema;
+import org.thriftee.thrift.xml.protocol.TJsonApiProtocol.JsonFieldContext;
 
 public abstract class AbstractSimpleProtocol extends AbstractContextProtocol {
 

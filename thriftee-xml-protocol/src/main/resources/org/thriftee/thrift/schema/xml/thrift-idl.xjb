@@ -1,0 +1,16 @@
+<bindings xmlns="http://java.sun.com/xml/ns/jaxb"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+          version="2.0">
+  <bindings schemaLocation="maven:org.thriftee:thriftee-compiler:jar::!/org/apache/thrift/compiler/thrift-idl.xsd">
+    <schemaBindings>
+      <package name="org.thriftee.thrift.schema.xml" />
+      <nameXmlTransform>
+        <typeName prefix="XmlThrift"/>
+        <anonymousTypeName prefix="XmlThrift"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='ThriftType']">
+      <class name="XmlThriftType" />
+    </bindings>
+  </bindings>
+</bindings>

@@ -17,9 +17,9 @@ package org.thriftee.core;
 
 import javax.xml.transform.stream.StreamSource;
 
-import org.thriftee.compiler.schema.IdlSchemaBuilder;
-import org.thriftee.compiler.schema.SchemaBuilderException;
-import org.thriftee.compiler.schema.ThriftSchema;
+import org.thriftee.thrift.schema.IdlSchemaBuilder;
+import org.thriftee.thrift.schema.SchemaBuilderException;
+import org.thriftee.thrift.schema.ThriftSchema;
 
 public interface SchemaBuilder {
 

@@ -15,13 +15,15 @@
  */
 package org.thriftee.core.compiler;
 
-import static org.thriftee.core.compiler.ThriftCommandException.ThriftCommandMessage.*;
+import static org.thriftee.core.compiler.ThriftCommandException.ThriftCommandMessage.COMMAND_301;
+import static org.thriftee.core.compiler.ThriftCommandException.ThriftCommandMessage.COMMAND_302;
+import static org.thriftee.core.compiler.ThriftCommandException.ThriftCommandMessage.COMMAND_303;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.thriftee.thrift.compiler.ExecutionResult;
-import org.thriftee.thrift.compiler.ThriftCompiler;
+import org.apache.thrift.compiler.ExecutionResult;
+import org.apache.thrift.compiler.ThriftCompiler;
 
 public class ThriftCommandRunner {
 

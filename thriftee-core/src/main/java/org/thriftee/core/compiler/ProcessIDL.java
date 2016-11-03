@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.thrift.compiler.ExecutionResult;
+import org.apache.thrift.compiler.ThriftCompiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.core.util.FileUtil;
-import org.thriftee.thrift.compiler.ExecutionResult;
-import org.thriftee.thrift.compiler.ThriftCompiler;
 
 public class ProcessIDL {
 
@@ -44,8 +44,8 @@ public class ProcessIDL {
   }
 
   public ProcessIDL(
-      final ThriftCompiler compiler, 
-      final File thriftLibDir, 
+      final ThriftCompiler compiler,
+      final File thriftLibDir,
       final PostProcessor postProcessor) {
     this(compiler);
     this.thriftLibDir = thriftLibDir;
@@ -53,10 +53,10 @@ public class ProcessIDL {
   }
 
   public File process(
-      File[] idlFiles, 
-      File workDir, 
-      String zipName, 
-      ThriftCommand cmd, 
+      File[] idlFiles,
+      File workDir,
+      String zipName,
+      ThriftCommand cmd,
       File... extraZipDirectories
   ) throws IOException {
     File outputDir = getOutputDir(workDir, zipName);

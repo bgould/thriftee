@@ -31,12 +31,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.thriftee.compiler.schema.IdlSchemaBuilder;
-import org.thriftee.compiler.schema.ModuleSchema;
-import org.thriftee.compiler.schema.SchemaBuilderException;
-import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.compiler.schema.StructSchema;
-import org.thriftee.compiler.schema.ThriftSchema;
+import org.thriftee.thrift.schema.IdlSchemaBuilder;
+import org.thriftee.thrift.schema.ModuleSchema;
+import org.thriftee.thrift.schema.SchemaBuilderException;
+import org.thriftee.thrift.schema.ServiceSchema;
+import org.thriftee.thrift.schema.StructSchema;
+import org.thriftee.thrift.schema.ThriftSchema;
 import org.thriftee.thrift.xml.BaseThriftProtocolTest;
 import org.thriftee.thrift.xml.TestCall;
 import org.thriftee.thrift.xml.TestObject;
@@ -63,7 +63,7 @@ public class SimpleJsonProtocolTest extends BaseThriftProtocolTest {
       throws TException, UnsupportedEncodingException,
               IllegalAccessException, InstantiationException {
 
-    final SimpleJsonProtocol.Factory fctry = new SimpleJsonProtocol.Factory();
+    final TJsonApiProtocol.Factory fctry = new TJsonApiProtocol.Factory();
     final ThriftSchema schema = schema(testobj.module);
     final ModuleSchema module = schema.findModule(testobj.module);
     final TMemoryBuffer writeBuffer = new TMemoryBuffer(4096);
@@ -71,14 +71,14 @@ public class SimpleJsonProtocolTest extends BaseThriftProtocolTest {
     if (testobj instanceof TestCall) {
       final TestCall call = (TestCall) testobj;
       final ServiceSchema svc = schema.findService(call.module, call.service);
-      final SimpleJsonProtocol proto = fctry.getProtocol(writeBuffer);
+      final TJsonApiProtocol proto = fctry.getProtocol(writeBuffer);
       proto.setBaseService(svc);
       proto.writeMessageBegin(call.getTMessage());
       call.obj.write(proto);
       proto.writeMessageEnd();
     } else {
       final StructSchema struct = module.getStructs().get(testobj.struct);
-      final SimpleJsonProtocol proto = fctry.getProtocol(writeBuffer);
+      final TJsonApiProtocol proto = fctry.getProtocol(writeBuffer);
       proto.setBaseStruct(struct);
       testobj.obj.write(proto);
     }
@@ -93,7 +93,7 @@ public class SimpleJsonProtocolTest extends BaseThriftProtocolTest {
     if (testobj instanceof TestCall) {
       final TestCall call = (TestCall) testobj;
       final ServiceSchema svc = schema.findService(call.module, call.service);
-      final SimpleJsonProtocol proto = fctry.getProtocol(readBuffer);
+      final TJsonApiProtocol proto = fctry.getProtocol(readBuffer);
       proto.setBaseService(svc);
       final TMessage msg = proto.readMessageBegin();
       assertEquals(call.type, msg.type);
@@ -102,7 +102,7 @@ public class SimpleJsonProtocolTest extends BaseThriftProtocolTest {
       proto.readMessageEnd();
     } else {
       final StructSchema struct = module.getStructs().get(testobj.struct);
-      final SimpleJsonProtocol proto = fctry.getProtocol(writeBuffer);
+      final TJsonApiProtocol proto = fctry.getProtocol(writeBuffer);
       proto.setBaseStruct(struct);
       newobj.read(proto);
     }

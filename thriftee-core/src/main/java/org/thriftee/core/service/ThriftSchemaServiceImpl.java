@@ -19,11 +19,11 @@ package org.thriftee.core.service;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TException;
-import org.thriftee.compiler.schema.IdlXmlUtils;
-import org.thriftee.compiler.schema.SchemaBuilderException;
-import org.thriftee.compiler.idl.IdlSchema;
 import org.thriftee.core.ThriftEE;
 import org.thriftee.meta.idl.ThriftSchemaService;
+import org.thriftee.thrift.schema.IdlXmlUtils;
+import org.thriftee.thrift.schema.SchemaBuilderException;
+import org.thriftee.thrift.schema.idl.IdlSchema;
 
 public class ThriftSchemaServiceImpl implements ThriftSchemaService.Iface {
 

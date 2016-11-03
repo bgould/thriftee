@@ -48,7 +48,7 @@ def outputdir = new File(project.basedir, "target/generated-sources/thrift")
 def inpath = inputdir.absolutePath
 def outpath = outputdir.absolutePath
 def filenames = new FileNameFinder().getFileNames(inpath, "*.thrift")
-def compiler = org.thriftee.thrift.compiler.ThriftCompiler.newCompiler()
+def compiler = org.apache.thrift.compiler.ThriftCompiler.newCompiler()
 outputdir.mkdirs()
 filenames.each { filename ->
   log.info "processing thrift file: " + filename

@@ -64,6 +64,7 @@
     <dependency>
       <groupId>org.thriftee</groupId>
       <artifactId>thriftee-compiler</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.thriftee</groupId>
@@ -82,6 +83,97 @@
       <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.gmaven</groupId>
+        <artifactId>gmaven-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <classpathScope>test</classpathScope>
+              <source><![CDATA[
+def inputdir = new File(project.basedir, "src/main/thrift")
+def outputdir = new File(project.basedir, "target/generated-sources/thrift")
+def inpath = inputdir.absolutePath
+def outpath = outputdir.absolutePath
+def filenames = new FileNameFinder().getFileNames(inpath, "*.thrift")
+def compiler = org.apache.thrift.compiler.ThriftCompiler.newCompiler()
+outputdir.mkdirs()
+filenames.each { filename ->
+  log.info "processing thrift file: " + filename
+  def execResult = compiler.execute("-gen", "java:beans", "-out", outpath, filename)
+  if (execResult.errString != null && !"".equals(execResult.errString)) {
+    log.warn execResult.errString
+  }
+  if (execResult.outString != null && !"".equals(execResult.outString)) {
+    log.info execResult.outString
+  }
+  if (execResult.exitCode != 0) {
+    log.error "execution result: " + execResult.exitCode
+    fail()
+  }
+}
+def resources = new org.apache.maven.model.Resource()
+resources.directory = inpath
+resources.addInclude("*.thrift")
+project.addResource(resources)
+project.addCompileSourceRoot(outpath)
+              ]]></source>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <id>test</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${basedir}/target/generated-sources/thrift</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jvnet.jaxb2.maven2</groupId>
+        <artifactId>maven-jaxb2-plugin</artifactId>
+        <version>0.12.3</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <schemas>
+                <schema>
+                  <dependencyResource>
+                    <groupId>org.thriftee</groupId>
+                    <artifactId>thriftee-compiler</artifactId>
+                    <scope>test</scope>
+                    <resource>org/apache/thrift/compiler/thrift-idl.xsd</resource>
+                  </dependencyResource>
+                </schema>
+              </schemas>
+              <bindingDirectory>src/main/resources</bindingDirectory>
+              <bindingIncludes>
+                <bindingInclude>**/*.xjb</bindingInclude>
+              </bindingIncludes>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

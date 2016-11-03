@@ -1,11 +1,11 @@
 /** this is just a test IDL file for trying out things with the XML protocol */
 
 namespace java everything
-namespace xml evrything // (targetNamespace = "http://example.com/ns", test = "any")
+namespace xml evrything (targetNamespace = "http://example.com/ns", test = "any")
 
 include "nothing_all_at_once.thrift"
 
-const byte     I8_CONST  = 42
+const byte   I8_CONST  = 42
 const i64    I64_CONST = 42000000000
 const i32    INT_CONST = 42
 const string STR_CONST = "test constant string"
@@ -16,7 +16,7 @@ const set<string> SET_CONST  = [ 'test1', 'test2', 'test3' ]
 
 /** an enum doc */
 enum Spinkle {
-  HRRR, /** this is the second member */ PPOL /*(order = "second")*/, REWT
+  HRRR, /** this is the second member */ PPOL  = 2 (order = "second"), REWT
 }
 
 /** this is a list const */
@@ -36,7 +36,7 @@ typedef Spirfle plorp
  * this goes with a typedef.
  * also it has line breaks.
  */
-typedef nothing_all_at_once.Blotto hammlegaff //(it.also = 'has.annotations')
+typedef nothing_all_at_once.Blotto hammlegaff (it.also = 'has.annotations')
 typedef set<string> setdef
 typedef list<string> listdef
 typedef map<string, Spirfle> mapdef
@@ -45,7 +45,7 @@ typedef list<map<int32, string>> biglist
 /** some union doc & "stuff" */
 union Sprat {
   1: string woobie;
-  2: i32 wowzer;
+  2: /** some wowzer doc */ i32 wowzer;
   3: Spinkle wheee;
 }
 
@@ -59,7 +59,7 @@ struct Spirfle {
 }
 
 /**
-  This struct has a bunch of different fields
+  This struct has a bunch of fields
  */
 struct Everything {
   1:  required string str = "default" (field.annot = 'true');
@@ -99,7 +99,7 @@ struct Everything {
 /** trying out an exception */
 exception EndOfTheUniverseException {
   1: string msg;
-}
+} (ex.annot = 'true', ex.annot2 = 'yay')
 
 exception SomeOtherException {
   1: string msg;
@@ -111,7 +111,11 @@ exception AThirdException {
 
 /** this service has some documentation */
 service Universe extends nothing_all_at_once.Metaverse {
-  i32 grok(1: Everything everything) throws (1: EndOfTheUniverseException endOfIt, 2: SomeOtherException another, 3: AThirdException craziness),
+  i32 grok(1: Everything everything) throws (
+    1: EndOfTheUniverseException endOfIt,
+    2: SomeOtherException another,
+    3: AThirdException craziness
+  ),
   /** this is oneway so should have a void result */
   oneway void sendIt(),
   Everything bang(1: i32 fortyTwo);

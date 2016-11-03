@@ -22,22 +22,24 @@ import java.io.StringWriter;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonGeneratorFactory;
 
+import org.apache.thrift.TApplicationException;
 import org.apache.thrift.transport.TMemoryBuffer;
 import org.junit.Test;
 import org.restlet.data.MediaType;
 import org.restlet.representation.StringRepresentation;
 import org.thriftee.examples.Examples;
-import org.thriftee.thrift.xml.protocol.SimpleJsonProtocol;
+import org.thriftee.thrift.xml.protocol.TJsonApiProtocol;
 
 import everything.Universe.grok_args;
 
 public class RestResourceTest extends ResourceTestBase {
 
-  static final SimpleJsonProtocol.Factory fctry = new SimpleJsonProtocol.Factory();
+  static final TJsonApiProtocol.Factory fctry = new TJsonApiProtocol.Factory();
 
   static final JsonReaderFactory readerFactory = Json.createReaderFactory(null);
 
@@ -46,7 +48,7 @@ public class RestResourceTest extends ResourceTestBase {
   @Test
   public void testCall() throws Exception {
     final TMemoryBuffer buffer = new TMemoryBuffer(0);
-    final SimpleJsonProtocol proto = fctry.getProtocol(buffer);
+    final TJsonApiProtocol proto = fctry.getProtocol(buffer);
     proto.setBaseStruct(
       thrift().schema().
       findService("everything", "Universe").
@@ -54,14 +56,10 @@ public class RestResourceTest extends ResourceTestBase {
     );
     final grok_args args = new grok_args(Examples.everythingStruct());
     args.write(proto);
-    final StringRepresentation rep = new StringRepresentation(
-      buffer.toString("UTF-8"), MediaType.APPLICATION_JSON
-    );
+    final StringRepresentation rep = new StringRepresentation(buffer.toString("UTF-8"), MediaType.APPLICATION_JSON);
     handlePost("/endpoints/rest/everything/Universe/grok", rep);
     final String response = this.rsp().getEntityAsText();
-    final JsonObject obj = readerFactory.createReader(
-      new StringReader(response)
-    ).readObject();
+    final JsonObject obj = readerFactory.createReader(new StringReader(response)).readObject();
     assertEquals(42, obj.getInt("success"));
   }
 
@@ -71,13 +69,27 @@ public class RestResourceTest extends ResourceTestBase {
     final JsonGenerator gen = genFactory.createGenerator(sw);
     gen.writeStartObject().write("fortyTwo", 42).writeEnd();
     gen.flush();
-    LOG.debug("posting call: " + sw.toString());
-    final StringRepresentation rep =
-        new StringRepresentation(sw.toString(), MediaType.APPLICATION_JSON);
+    LOG.debug("posting call2: " + sw.toString());
+    final StringRepresentation rep = new StringRepresentation(sw.toString(), MediaType.APPLICATION_JSON);
     handlePost("/endpoints/rest/everything/Universe/bang", rep);
     final String response = this.rsp().getEntityAsText();
-    final JsonObject obj =
-        readerFactory.createReader(new StringReader(response)).readObject();
+    final JsonObject obj = readerFactory.createReader(new StringReader(response)).readObject();
     assertEquals("default", obj.getJsonObject("success").getString("str"));
+  }
+
+  @Test
+  public void testTApplicationException() throws Exception {
+    final StringWriter sw = new StringWriter();
+    final JsonGenerator gen = genFactory.createGenerator(sw);
+    gen.writeStartObject().write("fortyTwo", 41).writeEnd();
+    gen.flush();
+    LOG.debug("posting call, expecting TApplicationException: " + sw.toString());
+    final StringRepresentation rep = new StringRepresentation(sw.toString(), MediaType.APPLICATION_JSON);
+    handlePost("/endpoints/rest/everything/Universe/woah", rep);
+    final String rsp = this.rsp().getEntityAsText();
+    final JsonReader reader = readerFactory.createReader(new StringReader(rsp));
+    final JsonObject obj = reader.readObject();
+    assertEquals(500, rsp().getStatus().getCode());
+    assertEquals(TApplicationException.INTERNAL_ERROR, obj.getInt("type"));
   }
 }

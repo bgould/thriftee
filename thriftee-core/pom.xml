@@ -107,11 +107,11 @@ def inpath = inputdir.absolutePath
 def outpath = outputdir.absolutePath
 def inclpath = incldir.absolutePath
 def filenames = new FileNameFinder().getFileNames(inpath, "*.thrift")
-def compiler = org.thriftee.thrift.compiler.ThriftCompiler.newCompiler()
+def compiler = org.apache.thrift.compiler.ThriftCompiler.newCompiler()
 incldir.mkdirs()
 outputdir.mkdirs()
 
-def inclname = 'org.thriftee.compiler.idl.thrift'
+def inclname = 'org.thriftee.thrift.schema.idl.thrift'
 def inclfile = new File(incldir, inclname)
 inclfile.text = compiler.class.classLoader.getResource(inclname).openStream().text
 

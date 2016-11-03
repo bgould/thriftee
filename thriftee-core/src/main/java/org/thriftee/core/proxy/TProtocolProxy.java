@@ -25,11 +25,11 @@ import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.protocol.TStruct;
-import org.thriftee.compiler.schema.AbstractFieldSchema;
-import org.thriftee.compiler.schema.AbstractStructSchema;
-import org.thriftee.compiler.schema.EnumSchema;
-import org.thriftee.compiler.schema.MethodSchema;
 import org.thriftee.core.parser.ThriftParserHandler;
+import org.thriftee.thrift.schema.AbstractFieldSchema;
+import org.thriftee.thrift.schema.AbstractStructSchema;
+import org.thriftee.thrift.schema.EnumSchema;
+import org.thriftee.thrift.schema.MethodSchema;
 
 public class TProtocolProxy implements ThriftParserHandler {
 

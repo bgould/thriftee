@@ -35,9 +35,9 @@ import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.TIOStreamTransport;
 import org.apache.thrift.transport.TTransport;
 import org.junit.Assert;
-import org.thriftee.compiler.schema.IdlSchemaBuilder;
-import org.thriftee.compiler.schema.SchemaBuilderException;
-import org.thriftee.compiler.schema.StructSchema;
+import org.thriftee.thrift.schema.IdlSchemaBuilder;
+import org.thriftee.thrift.schema.SchemaBuilderException;
+import org.thriftee.thrift.schema.StructSchema;
 import org.thriftee.thrift.xml.BaseThriftProtocolTest;
 
 import everything.Everything;
@@ -61,7 +61,7 @@ public class SpeedTest extends BaseThriftProtocolTest {
       new TBinaryProtocol.Factory(),
       new TJSONProtocol.Factory(),
       new TXMLProtocol.Factory(),
-      new SimpleJsonProtocol.Factory(structSchema()),
+      new TJsonApiProtocol.Factory(structSchema()),
     });
   }
 

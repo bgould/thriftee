@@ -34,12 +34,12 @@ import org.apache.thrift.transport.TMemoryInputTransport;
 import org.apache.thrift.transport.TTransport;
 import org.junit.Assert;
 import org.junit.Test;
-import org.thriftee.compiler.schema.ModuleSchema;
-import org.thriftee.compiler.schema.ServiceSchema;
-import org.thriftee.compiler.idl.IdlSchema;
 import org.thriftee.core.tests.AbstractThriftEETest;
 import org.thriftee.examples.usergroup.domain.User;
 import org.thriftee.examples.usergroup.service.UserService;
+import org.thriftee.thrift.schema.ModuleSchema;
+import org.thriftee.thrift.schema.ServiceSchema;
+import org.thriftee.thrift.schema.idl.IdlSchema;
 
 public class ThriftEETest extends AbstractThriftEETest {
 

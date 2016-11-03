@@ -120,7 +120,7 @@ public class Transforms {
 
   public URL schemaUrl() {
     final ClassLoader cl = getClass().getClassLoader();
-    final String rsrc = "org/thriftee/thrift/compiler/thrift-idl.xsd";
+    final String rsrc = "org/apache/thrift/compiler/thrift-idl.xsd";
     final URL url = cl.getResource(rsrc);
     if (url == null) {
       throw new IllegalArgumentException("resource not found: " + rsrc);
@@ -154,9 +154,9 @@ public class Transforms {
   }
 
   public void transformSimpleToStreaming(
-        final File modelFile, 
-        final String module, 
-        final Source source, 
+        final File modelFile,
+        final String module,
+        final Source source,
         final StreamResult result,
         boolean indent
       ) throws IOException {
@@ -168,7 +168,7 @@ public class Transforms {
   }
 
   public StreamingToSimpleTransformation newStreamingToSimple(
-        final File modelFile, final String module, 
+        final File modelFile, final String module,
         final RootType rootType, final String rootName) {
     final StreamingToSimpleTransformation trns = newStreamingToSimple();
     trns.setModelFile(modelFile);
@@ -178,8 +178,8 @@ public class Transforms {
   }
 
   public void transformStreamingToSimple(
-        final File model, final String module, 
-        final RootType type, final String name, 
+        final File model, final String module,
+        final RootType type, final String name,
         final Source source, final StreamResult result
       ) throws IOException {
     newStreamingToSimple(model, module, type, name).transform(source, result);
@@ -239,7 +239,7 @@ public class Transforms {
   }
 
   public Serializer serializer(
-        final StreamResult result, 
+        final StreamResult result,
         final boolean formatting
       ) throws IOException {
     if (result == null) {
@@ -365,7 +365,7 @@ public class Transforms {
       final XPath xpath = xpathFactory.newXPath();
       final XPathExpression expression = xpath.compile(expr);
       try (FileInputStream in = new FileInputStream(modelFile)) {
-        final Set<String> results = new LinkedHashSet<String>();
+        final Set<String> results = new LinkedHashSet<>();
         final NodeList services = (NodeList) expression.evaluate(
           new InputSource(in), XPathConstants.NODESET
         );
@@ -385,15 +385,15 @@ public class Transforms {
     try {
       final XPathFactory xpathFactory = XPathFactory.newInstance();
       final String expr = String.format(
-        "/*[local-name()='idl']" + 
-        "/*[local-name()='document' and @name='%s']" + 
-        "/*[local-name()='service']/@name", 
+        "/*[local-name()='idl']" +
+        "/*[local-name()='document' and @name='%s']" +
+        "/*[local-name()='service']/@name",
         module
       );
       final XPath xpath = xpathFactory.newXPath();
       final XPathExpression expression = xpath.compile(expr);
       try (FileInputStream in = new FileInputStream(modelFile)) {
-        final Set<String> results = new LinkedHashSet<String>();
+        final Set<String> results = new LinkedHashSet<>();
         final NodeList services = (NodeList) expression.evaluate(
           new InputSource(in), XPathConstants.NODESET
         );
@@ -426,6 +426,7 @@ public class Transforms {
       this.delegate = delegate;
     }
 
+    @Override
     public Source resolve(String href, String b) throws TransformerException {
       try {
         final URL url;
@@ -436,7 +437,7 @@ public class Transforms {
         } else {
           final Matcher m = resolverPattern.matcher(href);
           if (m.matches()) {
-            
+
             final String rsrc = XSL_BASE + "/" + href;
             url = cl.getResource(rsrc);
           } else {

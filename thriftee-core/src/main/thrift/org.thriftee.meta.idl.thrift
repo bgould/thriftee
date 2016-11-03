@@ -1,9 +1,9 @@
 namespace * org.thriftee.meta.idl
 
-include "org.thriftee.compiler.idl.thrift"
+include "org.thriftee.thrift.schema.idl.thrift"
 
 service ThriftSchemaService {
 
-  org.thriftee.compiler.idl.IdlSchema getSchema();
+  org.thriftee.thrift.schema.idl.IdlSchema getSchema();
 
 }
