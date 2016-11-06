@@ -35,11 +35,11 @@ import org.restlet.representation.OutputRepresentation;
 import org.restlet.representation.Representation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thriftee.thrift.protocol.TJsonApiProtocol;
 import org.thriftee.thrift.schema.MethodSchema;
 import org.thriftee.thrift.schema.ModuleSchema;
 import org.thriftee.thrift.schema.SchemaException;
 import org.thriftee.thrift.schema.ServiceSchema;
-import org.thriftee.thrift.xml.protocol.TJsonApiProtocol;
 
 public class RestResource extends AbstractProcessorResource {
 

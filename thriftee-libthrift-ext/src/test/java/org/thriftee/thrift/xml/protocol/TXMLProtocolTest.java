@@ -31,6 +31,7 @@ import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TType;
 import org.junit.Test;
+import org.thriftee.thrift.protocol.TXMLProtocol;
 import org.xml.sax.SAXException;
 
 import everything.EndOfTheUniverseException;

@@ -33,6 +33,7 @@ import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.thriftee.examples.Examples;
+import org.thriftee.thrift.protocol.TXMLProtocol;
 
 import another.Blotto;
 import everything.AThirdException;

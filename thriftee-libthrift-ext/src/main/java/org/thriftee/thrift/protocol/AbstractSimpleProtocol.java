@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml.protocol;
+package org.thriftee.thrift.protocol;
 
 import static java.util.Objects.requireNonNull;
 
@@ -29,6 +29,7 @@ import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.transport.TTransport;
+import org.thriftee.thrift.protocol.TJsonApiProtocol.JsonFieldContext;
 import org.thriftee.thrift.schema.AbstractFieldSchema;
 import org.thriftee.thrift.schema.AbstractStructSchema;
 import org.thriftee.thrift.schema.ContainerSchemaType;
@@ -41,7 +42,6 @@ import org.thriftee.thrift.schema.ServiceSchema;
 import org.thriftee.thrift.schema.SetSchemaType;
 import org.thriftee.thrift.schema.StructSchema;
 import org.thriftee.thrift.schema.UnionSchema;
-import org.thriftee.thrift.xml.protocol.TJsonApiProtocol.JsonFieldContext;
 
 public abstract class AbstractSimpleProtocol extends AbstractContextProtocol {
 

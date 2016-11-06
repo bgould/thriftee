@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.thriftee.thrift.protocol.TJsonApiProtocol;
 import org.thriftee.thrift.schema.IdlSchemaBuilder;
 import org.thriftee.thrift.schema.ModuleSchema;
 import org.thriftee.thrift.schema.SchemaBuilderException;

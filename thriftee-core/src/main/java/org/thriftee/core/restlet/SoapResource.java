@@ -42,9 +42,9 @@ import org.restlet.representation.Representation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.core.ThriftEE;
-import org.thriftee.thrift.xml.Transformation.RootType;
-import org.thriftee.thrift.xml.Transforms;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol;
+import org.thriftee.thrift.protocol.TXMLProtocol;
+import org.thriftee.thrift.protocol.xml.Transforms;
+import org.thriftee.thrift.protocol.xml.Transformation.RootType;
 
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.XdmAtomicValue;

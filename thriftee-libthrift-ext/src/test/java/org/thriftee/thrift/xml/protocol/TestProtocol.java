@@ -26,6 +26,7 @@ import java.io.StringReader;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.transport.TIOStreamTransport;
+import org.thriftee.thrift.protocol.TXMLProtocol;
 
 public class TestProtocol extends TXMLProtocol {
 

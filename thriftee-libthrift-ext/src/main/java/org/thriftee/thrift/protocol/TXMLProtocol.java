@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml.protocol;
+package org.thriftee.thrift.protocol;
 
 import static java.lang.Character.isHighSurrogate;
 import static java.lang.Character.isLowSurrogate;
@@ -61,6 +61,8 @@ import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
+import org.thriftee.thrift.transport.TTransportInputStream;
+import org.thriftee.thrift.transport.TTransportOutputStream;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 

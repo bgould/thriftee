@@ -35,6 +35,8 @@ import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.TIOStreamTransport;
 import org.apache.thrift.transport.TTransport;
 import org.junit.Assert;
+import org.thriftee.thrift.protocol.TJsonApiProtocol;
+import org.thriftee.thrift.protocol.TXMLProtocol;
 import org.thriftee.thrift.schema.IdlSchemaBuilder;
 import org.thriftee.thrift.schema.SchemaBuilderException;
 import org.thriftee.thrift.schema.StructSchema;

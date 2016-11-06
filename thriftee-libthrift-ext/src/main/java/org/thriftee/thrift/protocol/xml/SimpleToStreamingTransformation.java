@@ -1,4 +1,3 @@
-package org.thriftee.thrift.xml.protocol;
 /*
  * Copyright (C) 2013-2016 Benjamin Gould, and others
  *
@@ -14,23 +13,24 @@ package org.thriftee.thrift.xml.protocol;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
-package org.thriftee.thrift.xml.protocol;
+package org.thriftee.thrift.protocol.xml;
 
-import java.nio.ByteBuffer;
+import java.io.IOException;
 
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TField;
-import org.apache.thrift.protocol.TList;
-import org.apache.thrift.protocol.TMap;
-import org.apache.thrift.protocol.TMessage;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TSet;
-import org.apache.thrift.protocol.TStruct;
+import net.sf.saxon.s9api.XsltTransformer;
 
-public class TSoapProtocol extends TXMLProtocol {
+public class SimpleToStreamingTransformation extends Transformation {
 
+  SimpleToStreamingTransformation(Transforms transforms) {
+    super(transforms);
+  }
 
+  @Override
+  protected XsltTransformer newTransformer() throws IOException {
+    final XsltTransformer result = transforms.newSimpleToStreamingTransformer();
+    result.setParameter(q("schema"), urlval(getModelFile()));
+    result.setParameter(q("root_module"), strval(getModule()));
+    return result;
+  }
 
 }
-*/

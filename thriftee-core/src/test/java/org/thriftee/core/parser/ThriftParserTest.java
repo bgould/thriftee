@@ -50,13 +50,13 @@ import org.thriftee.core.parser.ThriftParserHandlerChain;
 import org.thriftee.core.proxy.TProtocolProxy;
 import org.thriftee.core.tests.AbstractThriftEETest;
 import org.thriftee.examples.Examples;
+import org.thriftee.thrift.protocol.TXMLProtocol;
 import org.thriftee.thrift.schema.AbstractFieldSchema;
 import org.thriftee.thrift.schema.AbstractStructSchema;
 import org.thriftee.thrift.schema.EnumSchema;
 import org.thriftee.thrift.schema.MethodSchema;
 import org.thriftee.thrift.schema.ServiceSchema;
 import org.thriftee.thrift.schema.StructSchema;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 
 import everything.Everything;
 import everything.Universe;

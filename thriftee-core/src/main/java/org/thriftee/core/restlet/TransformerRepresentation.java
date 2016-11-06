@@ -28,7 +28,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.restlet.data.MediaType;
 import org.restlet.representation.OutputRepresentation;
 import org.thriftee.core.ThriftEE;
-import org.thriftee.thrift.xml.Transforms;
+import org.thriftee.thrift.protocol.xml.Transforms;
 import org.w3c.dom.Document;
 
 import net.sf.saxon.s9api.SaxonApiException;

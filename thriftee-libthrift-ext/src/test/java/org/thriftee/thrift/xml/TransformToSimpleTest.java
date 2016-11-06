@@ -33,7 +33,7 @@ import org.apache.thrift.protocol.TMessageType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thriftee.thrift.xml.Transformation.RootType;
+import org.thriftee.thrift.protocol.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
 
 import everything.EndOfTheUniverseException;

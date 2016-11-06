@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml;
+package org.thriftee.thrift.protocol.xml;
 
 import static net.sf.saxon.s9api.Serializer.Property.*;
 
@@ -48,7 +48,7 @@ import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
-import org.thriftee.thrift.xml.Transformation.RootType;
+import org.thriftee.thrift.protocol.xml.Transformation.RootType;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 

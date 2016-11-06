@@ -31,7 +31,9 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TMessage;
 import org.junit.BeforeClass;
-import org.thriftee.thrift.xml.Transformation.RootType;
+import org.thriftee.thrift.protocol.xml.Transformation;
+import org.thriftee.thrift.protocol.xml.Transforms;
+import org.thriftee.thrift.protocol.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
 
 public class BaseThriftXMLTest extends BaseThriftProtocolTest {

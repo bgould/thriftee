@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.restlet.data.MediaType;
 import org.restlet.representation.StringRepresentation;
 import org.thriftee.examples.Examples;
-import org.thriftee.thrift.xml.protocol.TJsonApiProtocol;
+import org.thriftee.thrift.protocol.TJsonApiProtocol;
 
 import everything.Universe.grok_args;
 

@@ -25,9 +25,8 @@
     <version>0.6.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>thriftee-xml-protocol</artifactId>
-  <name>thriftee-xml-protocol</name>
-  <description>An XML protocol for Apache Thrift</description>
+  <artifactId>thriftee-libthrift-ext</artifactId>
+  <name>thriftee-libthrift-ext</name>
 
   <dependencies>
     <dependency>
@@ -178,4 +177,5 @@ project.addCompileSourceRoot(outpath)
     </plugins>
   </build>
 
+  <description>ThriftEE extensions for libthrift</description>
 </project>

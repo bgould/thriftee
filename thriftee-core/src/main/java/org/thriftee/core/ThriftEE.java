@@ -54,11 +54,11 @@ import org.thriftee.core.compiler.ThriftCommandRunner;
 import org.thriftee.core.service.ThriftSchemaServiceImpl;
 import org.thriftee.core.util.FileUtil;
 import org.thriftee.meta.idl.ThriftSchemaService;
+import org.thriftee.thrift.protocol.TXMLProtocol;
+import org.thriftee.thrift.protocol.xml.Transforms;
 import org.thriftee.thrift.schema.SchemaBuilderException;
 import org.thriftee.thrift.schema.ServiceSchema;
 import org.thriftee.thrift.schema.ThriftSchema;
-import org.thriftee.thrift.xml.Transforms;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol;
 
 public final class ThriftEE implements SchemaBuilderConfig {
 

@@ -34,7 +34,7 @@ import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TStruct;
 import org.apache.thrift.protocol.TType;
 import org.junit.Test;
-import org.thriftee.thrift.xml.Transformation.RootType;
+import org.thriftee.thrift.protocol.xml.Transformation.RootType;
 import org.thriftee.thrift.xml.protocol.TestProtocol;
 
 public class TransformTApplicationExceptionTest extends BaseThriftXMLTest {

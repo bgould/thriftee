@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml.protocol;
+package org.thriftee.thrift.protocol;
 
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Objects.requireNonNull;
@@ -51,6 +51,8 @@ import org.thriftee.thrift.schema.SchemaType;
 import org.thriftee.thrift.schema.ServiceSchema;
 import org.thriftee.thrift.schema.SetSchemaType;
 import org.thriftee.thrift.schema.StructSchema;
+import org.thriftee.thrift.transport.TTransportInputStream;
+import org.thriftee.thrift.transport.TTransportOutputStream;
 
 
 public class TJsonApiProtocol extends AbstractSimpleProtocol {

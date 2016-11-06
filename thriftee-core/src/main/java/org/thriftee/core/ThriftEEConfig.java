@@ -32,7 +32,7 @@ import org.thriftee.core.client.ClientTypeAlias;
 import org.thriftee.core.compiler.ThriftCommand.Generate;
 import org.thriftee.core.compiler.ThriftCommand.Generate.Flag;
 import org.thriftee.core.util.New;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol;
+import org.thriftee.thrift.protocol.TXMLProtocol;
 
 public class ThriftEEConfig {
 

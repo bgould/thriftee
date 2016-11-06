@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.thriftee.thrift.xml.protocol.TXMLProtocol.XML;
+import org.thriftee.thrift.protocol.TXMLProtocol.XML;
 
 @RunWith(Parameterized.class)
 public class TransformToXsdTest extends BaseThriftXMLTest {
