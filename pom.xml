@@ -392,7 +392,7 @@
           <artifactId>license-maven-plugin</artifactId>
           <version>2.11</version>
           <configuration>
-            <header>../src/main/license/APACHE-2.txt</header>
+            <header>../license-header.txt</header>
             <excludes>
               <exclude>**/README</exclude>
               <exclude>src/test/resources/**</exclude>

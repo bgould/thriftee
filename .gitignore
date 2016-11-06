@@ -17,6 +17,5 @@ var
 .settings/
 .apt_generated/
 target/
-server/
 
 *.iml
