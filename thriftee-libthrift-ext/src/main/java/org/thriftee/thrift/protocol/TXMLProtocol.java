@@ -1063,7 +1063,8 @@ public class TXMLProtocol extends AbstractContextProtocol {
       int codePoint = 0;
       for (int i = 0; i < len; i++) {
         current = text.charAt(i);
-        if (isHighSurrogate(current) && i + 1 < len && isLowSurrogate(text.charAt(i + 1))) {
+        if (isHighSurrogate(current) && i + 1 < len &&
+            isLowSurrogate(text.charAt(i + 1))      ) {
           codePoint = text.codePointAt(i++);
         } else {
           codePoint = current;
