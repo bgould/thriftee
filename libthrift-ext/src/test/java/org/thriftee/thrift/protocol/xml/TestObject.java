@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml;
+package org.thriftee.thrift.protocol.xml;
 
 import java.io.File;
 

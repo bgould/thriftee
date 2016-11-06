@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml;
+package org.thriftee.thrift.protocol.xml;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.thriftee.thrift.xml.protocol.TestProtocol;
+import org.thriftee.thrift.protocol.TestProtocol;
 
 @RunWith(Parameterized.class)
 public class TransformToStreamingTest extends BaseThriftXMLTest {

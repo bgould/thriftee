@@ -19,7 +19,7 @@ import java.io.File;
 
 import org.apache.thrift.compiler.ExecutionResult;
 import org.apache.thrift.compiler.ThriftCompiler;
-import org.thriftee.thrift.xml.BaseThriftProtocolTest;
+import org.thriftee.thrift.protocol.xml.BaseThriftProtocolTest;
 
 public class BaseSchemaTest extends BaseThriftProtocolTest {
 

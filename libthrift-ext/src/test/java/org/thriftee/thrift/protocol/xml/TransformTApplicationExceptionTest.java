@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml;
+package org.thriftee.thrift.protocol.xml;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,8 +34,8 @@ import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TStruct;
 import org.apache.thrift.protocol.TType;
 import org.junit.Test;
+import org.thriftee.thrift.protocol.TestProtocol;
 import org.thriftee.thrift.protocol.xml.Transformation.RootType;
-import org.thriftee.thrift.xml.protocol.TestProtocol;
 
 public class TransformTApplicationExceptionTest extends BaseThriftXMLTest {
 

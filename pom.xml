@@ -33,13 +33,13 @@
   </scm>
 
   <modules>
-    <module>thriftee-test-objects</module>
-    <module>thriftee-libthrift-ext</module>
-    <module>thriftee-core</module>
-    <module>thriftee-provider-swift</module>
-    <module>thriftee-examples-war</module>
-    <module>thriftee-servlet</module>
-    <module>thriftee-cli</module>
+    <module>test-objects</module>
+    <module>libthrift-ext</module>
+    <module>core</module>
+    <module>provider-swift</module>
+    <module>examples</module>
+    <module>servlet</module>
+    <module>cli</module>
   </modules>
 
   <repositories>

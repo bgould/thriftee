@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml.protocol;
+package org.thriftee.thrift.protocol;
 
 import static org.thriftee.examples.Examples.everythingStruct;
 
@@ -37,10 +37,10 @@ import org.apache.thrift.transport.TTransport;
 import org.junit.Assert;
 import org.thriftee.thrift.protocol.TJsonApiProtocol;
 import org.thriftee.thrift.protocol.TXMLProtocol;
+import org.thriftee.thrift.protocol.xml.BaseThriftProtocolTest;
 import org.thriftee.thrift.schema.IdlSchemaBuilder;
 import org.thriftee.thrift.schema.SchemaBuilderException;
 import org.thriftee.thrift.schema.StructSchema;
-import org.thriftee.thrift.xml.BaseThriftProtocolTest;
 
 import everything.Everything;
 

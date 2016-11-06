@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml;
+package org.thriftee.thrift.protocol.xml;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -31,10 +31,10 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TMessage;
 import org.junit.BeforeClass;
+import org.thriftee.thrift.protocol.TestProtocol;
 import org.thriftee.thrift.protocol.xml.Transformation;
 import org.thriftee.thrift.protocol.xml.Transforms;
 import org.thriftee.thrift.protocol.xml.Transformation.RootType;
-import org.thriftee.thrift.xml.protocol.TestProtocol;
 
 public class BaseThriftXMLTest extends BaseThriftProtocolTest {
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thriftee.thrift.xml;
+package org.thriftee.thrift.protocol.xml;
 
 import static org.thriftee.examples.Examples.everythingStruct;
 
@@ -33,8 +33,8 @@ import org.apache.thrift.protocol.TMessageType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.thriftee.thrift.protocol.TestProtocol;
 import org.thriftee.thrift.protocol.xml.Transformation.RootType;
-import org.thriftee.thrift.xml.protocol.TestProtocol;
 
 import everything.EndOfTheUniverseException;
 import everything.Everything;
