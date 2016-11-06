@@ -23,7 +23,7 @@ public class TTransportInputStream extends InputStream {
   @Override
   public int read() throws IOException {
     final TTransport trans = transport();
-    if (!transport().isOpen() || !trans.peek()) {
+    if (!trans.isOpen() || !trans.peek()) {
       return -1;
     }
     byte b;
@@ -47,7 +47,7 @@ public class TTransportInputStream extends InputStream {
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     final TTransport trans = transport();
-    if (!transport().isOpen() || !trans.peek()) {
+    if (!trans.isOpen() || !trans.peek()) {
       return -1;
     }
     final int buffered = trans.getBytesRemainingInBuffer();
@@ -61,7 +61,7 @@ public class TTransportInputStream extends InputStream {
       return amt;
     } else {
       try {
-        return transport().read(b, off, len);
+        return trans.read(b, off, len);
       } catch (TTransportException e) {
         if (e.getType() == TTransportException.END_OF_FILE) {
           return -1;
