@@ -38,7 +38,7 @@
     </dependency>
     <dependency>
       <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-xml-protocol</artifactId>
+      <artifactId>thriftee-libthrift-ext</artifactId>
     </dependency>
     <dependency>
       <groupId>org.thriftee</groupId>

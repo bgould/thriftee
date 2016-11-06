@@ -34,7 +34,7 @@
 
   <modules>
     <module>thriftee-test-objects</module>
-    <module>thriftee-xml-protocol</module>
+    <module>thriftee-libthrift-ext</module>
     <module>thriftee-core</module>
     <module>thriftee-provider-swift</module>
     <module>thriftee-examples-war</module>
@@ -129,7 +129,7 @@
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
-        <artifactId>thriftee-xml-protocol</artifactId>
+        <artifactId>thriftee-libthrift-ext</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
