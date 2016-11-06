@@ -18,8 +18,8 @@ package org.thriftee.provider.swift.tests;
 import java.net.URL;
 
 import org.scannotation.ClasspathUrlFinder;
-import org.thriftee.compiler.schema.ThriftSchema;
 import org.thriftee.core.Classpath;
+import org.thriftee.thrift.schema.ThriftSchema;
 
 public class SwiftTestClasspath implements Classpath {
 

@@ -28,13 +28,13 @@ import org.apache.thrift.transport.TIOStreamTransport;
 import org.apache.thrift.transport.TTransport;
 import org.junit.Assert;
 import org.junit.Test;
-import org.thriftee.compiler.schema.ModuleSchema;
-import org.thriftee.compiler.schema.ServiceSchema;
 import org.thriftee.core.ThriftStartupException;
 import org.thriftee.provider.swift.tests.AbstractSwiftTest;
 import org.thriftee.provider.swift.tests.CalculatorService;
 import org.thriftee.provider.swift.tests.Op;
 import org.thriftee.provider.swift.tests.Work;
+import org.thriftee.thrift.schema.ModuleSchema;
+import org.thriftee.thrift.schema.ServiceSchema;
 
 import com.facebook.swift.codec.ThriftCodec;
 
