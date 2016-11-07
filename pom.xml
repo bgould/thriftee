@@ -100,7 +100,7 @@
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
-        <artifactId>thriftee-libthrift</artifactId>
+        <artifactId>libthrift</artifactId>
         <version>${thrift.version}</version>
         <exclusions>
           <exclusion>
@@ -134,7 +134,7 @@
       </dependency>
       <dependency>
         <groupId>org.thriftee</groupId>
-        <artifactId>thriftee-compiler</artifactId>
+        <artifactId>thrift-compiler</artifactId>
         <version>${thrift.version}</version>
       </dependency>
       <dependency>
@@ -412,6 +412,7 @@
             </execution>
           </executions>
         </plugin>
+                <!-- 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
@@ -427,7 +428,6 @@
           <configuration>
             <artifactSet>
               <excludes>
-                <!-- 
                 <exclude>io.airlift:configuration</exclude>
                 <exclude>io.airlift:units</exclude>
                 <exclude>io.airlift:stats</exclude>
@@ -438,7 +438,6 @@
                 <exclude>javax.inject:javax.inject</exclude>
                 <exclude>com.facebook.nifty:nifty-client</exclude>
                 <exclude>*:annotations</exclude>
-                 -->
                 <exclude>net.sf.saxon:*</exclude>
               </excludes>
             </artifactSet>
@@ -476,12 +475,12 @@
                 <pattern>org.apache.http</pattern>
                 <shadedPattern>org.thriftee.shaded.org.apache.http</shadedPattern>
               </relocation>
-              <!-- 
+              <!- 
               <relocation>
                 <pattern>org.apache.thrift</pattern>
                 <shadedPattern>org.thriftee.thrift</shadedPattern>
               </relocation>
-               -->
+               ->
               <relocation>
                 <pattern>org.antlr</pattern>
                 <shadedPattern>org.thriftee.shaded.org.antlr</shadedPattern>
@@ -543,10 +542,9 @@
             </relocations>
           </configuration>
         </plugin>
+                 -->
       </plugins>
     </pluginManagement>
-    <plugins>
-    </plugins>
   </build>
 
   <profiles>
@@ -600,6 +598,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
             <executions>
               <execution>
                 <phase>package</phase>

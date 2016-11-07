@@ -42,7 +42,7 @@
     </dependency>
     <dependency>
       <groupId>org.thriftee</groupId>
-      <artifactId>thriftee-compiler</artifactId>
+      <artifactId>thrift-compiler</artifactId>
     </dependency>
     <dependency>
       <groupId>org.restlet.jee</groupId>
@@ -58,6 +58,10 @@
     <dependency>
       <groupId>com.yahoo.platform.yui</groupId>
       <artifactId>yuicompressor</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.json</groupId>
+      <artifactId>javax.json-api</artifactId>
     </dependency>
     <!-- test scoped dependencies -->
     <dependency>

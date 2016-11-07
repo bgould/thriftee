@@ -1,0 +1,136 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <artifactId>thriftee-root</artifactId>
+    <groupId>org.thriftee</groupId>
+    <version>0.6.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <groupId>org.thriftee</groupId>
+  <artifactId>thrift-parent</artifactId>
+  <version>0.10.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>thrift-parent</name>
+  <description>Parent POM for repackaged Thrift components</description>
+
+  <modules>
+    <module>compiler</module>
+    <module>libthrift</module>
+  </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>thrift-compiler</artifactId>
+        <version>0.10.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>libthrift</artifactId>
+        <version>0.10.0</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>2.4.3</version>
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <goals>
+                <goal>shade</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <artifactSet>
+              <includes>
+                <include>org.apache.thrift:${project.artifactId}</include>
+              </includes>
+            </artifactSet>
+            <createSourcesJar>true</createSourcesJar>
+            <shadeSourcesContent>true</shadeSourcesContent>
+            <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.8</version>
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <goals>
+                <goal>run</goal>
+              </goals>
+              <configuration>
+                <target>
+                  <echo message="project packaging: ${project.packaging}" />
+                  <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+                  <if>
+                    <not><equals arg1="${project.packaging}" arg2="pom" /></not>
+                    <then>
+                      <property name="target.dir" value="${basedir}/target" />
+                      <property name="shaded.dir" value="${target.dir}/shaded-sources" />
+                      <mkdir dir="${shaded.dir}" />
+                      <echo message="extracting shaded sources to ${shaded.dir}" />
+                      <unzip src="${basedir}/target/${project.artifactId}-${project.version}-sources.jar" dest="${shaded.dir}" />
+                    </then>
+                  </if>
+                </target>
+              </configuration>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>ant-contrib</groupId>
+              <artifactId>ant-contrib</artifactId>
+              <version>20020829</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>thriftee-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+                <configuration>
+                  <additionalparam>-Xdoclint:none</additionalparam>
+                  <excludePackageNames>*.internal.*</excludePackageNames>
+                  <sourcepath>${basedir}/target/shaded-sources</sourcepath>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

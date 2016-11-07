@@ -34,7 +34,7 @@ public class ClientTypeAlias implements PostProcessor {
   private final Generate language;
 
   private final SortedSet<Flag> flags;
-  
+
   private final String libDir;
 
   public ClientTypeAlias(String _name, Generate _lang, Iterable<Flag> _flags) {
@@ -100,8 +100,8 @@ public class ClientTypeAlias implements PostProcessor {
 
   /**
    * Subclasses may override this to post-process generated files.
-   * @param dir Location where the generated file are located
    */
+  @Override
   public void postProcess(PostProcessorEvent event) throws IOException {}
 
   public static enum Defaults {
