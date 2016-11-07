@@ -412,7 +412,21 @@
             </execution>
           </executions>
         </plugin>
-                <!-- 
+        <plugin>
+          <groupId>org.thriftee</groupId>
+          <artifactId>thrift-maven-plugin</artifactId>
+          <version>${thrift.version}</version>
+          <executions>
+            <execution>
+              <id>thrift-sources</id>
+              <phase>generate-sources</phase>
+              <goals>
+                <goal>compile</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+<!-- 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
@@ -542,7 +556,7 @@
             </relocations>
           </configuration>
         </plugin>
-                 -->
+-->
       </plugins>
     </pluginManagement>
   </build>

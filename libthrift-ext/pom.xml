@@ -85,6 +85,11 @@
         <artifactId>license-maven-plugin</artifactId>
       </plugin>
       <plugin>
+        <groupId>org.thriftee</groupId>
+        <artifactId>thrift-maven-plugin</artifactId>
+      </plugin>
+<!--
+      <plugin>
         <groupId>org.codehaus.gmaven</groupId>
         <artifactId>gmaven-plugin</artifactId>
         <version>1.5</version>
@@ -128,6 +133,7 @@ project.addCompileSourceRoot(outpath)
           </execution>
         </executions>
       </plugin>
+-->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>

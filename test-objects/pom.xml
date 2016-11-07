@@ -31,6 +31,11 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.thriftee</groupId>
+        <artifactId>thrift-maven-plugin</artifactId>
+      </plugin>
+<!-- 
+      <plugin>
         <groupId>org.codehaus.gmaven</groupId>
         <artifactId>gmaven-plugin</artifactId>
         <version>1.5</version>
@@ -73,7 +78,7 @@ project.addCompileSourceRoot(outpath)
             </configuration>
           </execution>
         </executions>
-      </plugin><!-- 
+      </plugin>--><!-- 
       <plugin>
         <groupId>org.apache.thrift.tools</groupId>
         <artifactId>maven-thrift-plugin</artifactId>
