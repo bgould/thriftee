@@ -23,6 +23,16 @@
       <groupId>org.apache.thrift</groupId>
       <artifactId>${project.artifactId}</artifactId>
       <version>0.10.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.thrift</groupId>
+          <artifactId>thrift-compiler</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.thriftee</groupId>
+      <artifactId>thrift-compiler</artifactId>
     </dependency>
   </dependencies>
 

@@ -14,11 +14,13 @@
       <groupId>org.thriftee</groupId>
       <artifactId>libthrift</artifactId>
     </dependency>
+    <!--
     <dependency>
       <groupId>org.thriftee</groupId>
       <artifactId>thrift-compiler</artifactId>
       <scope>test</scope>
-    </dependency>
+      </dependency>
+    -->
   </dependencies>
   <build>
     <plugins>
