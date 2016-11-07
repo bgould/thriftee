@@ -27,6 +27,7 @@
 
   <artifactId>thriftee-libthrift-ext</artifactId>
   <name>thriftee-libthrift-ext</name>
+  <description>ThriftEE extensions for libthrift</description>
 
   <dependencies>
     <dependency>
@@ -177,5 +178,4 @@ project.addCompileSourceRoot(outpath)
     </plugins>
   </build>
 
-  <description>ThriftEE extensions for libthrift</description>
 </project>
