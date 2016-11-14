@@ -84,6 +84,8 @@ public final class IdlSchemaBuilder {
     final ModuleSchema.Builder val = parentBuilder.addModule(doc.getName());
     val.doc(doc.getDoc());
     final Set<String> includes = new LinkedHashSet<>();
+    String xmlTargetNamespace = null;
+    String starXmlTargetNamespace = null;
     for (final IdlHeaderDefinition def : doc.getHeader()) {
       final Object obj = def.getFieldValue();
       if (obj instanceof IdlInclude) {
@@ -91,9 +93,30 @@ public final class IdlSchemaBuilder {
         includes.add(include.getName());
       } else if (obj instanceof IdlNamespace) {
         // TODO: add support for namespaces
+        final IdlNamespace namespace = (IdlNamespace) obj;
+        if ("*".equals(namespace.getName())) {
+          for (IdlAnnotation annot : namespace.annotations) {
+            if ("xml.targetNamespace".equals(annot.getKey())) {
+              starXmlTargetNamespace = trimToNull(annot.getValue());
+              break;
+            }
+          }
+        } else if ("xml".equals(namespace.getName())) {
+          for (IdlAnnotation annot : namespace.annotations) {
+            if ("targetNamespace".equals(annot.getKey())) {
+              xmlTargetNamespace = trimToNull(annot.getValue());
+              break;
+            }
+          }
+        }
       } else {
         throw new SchemaBuilderException("Unhandled header type: " + obj);
       }
+    }
+    if (xmlTargetNamespace != null) {
+      val.xmlTargetNamespace(xmlTargetNamespace);
+    } else if (starXmlTargetNamespace != null) {
+      val.xmlTargetNamespace(starXmlTargetNamespace);
     }
     val.addIncludes(includes);
     for (final IdlBodyDefinition bodyDefinition : doc.getDefinitions()) {
@@ -380,4 +403,9 @@ public final class IdlSchemaBuilder {
     }
   }
 
+  public static final String trimToNull(String s) {
+    if (s == null) return null;
+    final String trimmed = s.trim();
+    return trimmed.length() == 0 ? null : trimmed;
+  }
 }

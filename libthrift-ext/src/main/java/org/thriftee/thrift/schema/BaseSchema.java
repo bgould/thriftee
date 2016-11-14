@@ -80,6 +80,16 @@ abstract class BaseSchema<P extends BaseSchema<?, ?>,
     }
   }
 
+  public final ModuleSchema getModule() {
+    if (this instanceof ModuleSchema) {
+      return (ModuleSchema) this;
+    } else if (this instanceof ThriftSchema) {
+      throw new IllegalStateException("ThriftSchema is not part of a module.");
+    } else {
+      return getParent().getModule();
+    }
+  }
+
   SchemaContext getSchemaContext() {
     if (getParent() != null) {
       return getParent().getSchemaContext();

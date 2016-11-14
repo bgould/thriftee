@@ -29,7 +29,6 @@ import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.transport.TTransport;
-import org.thriftee.thrift.protocol.TJsonApiProtocol.JsonFieldContext;
 import org.thriftee.thrift.schema.AbstractFieldSchema;
 import org.thriftee.thrift.schema.AbstractStructSchema;
 import org.thriftee.thrift.schema.ContainerSchemaType;
@@ -258,7 +257,7 @@ public abstract class AbstractSimpleProtocol extends AbstractContextProtocol {
 
   }
 
-  public static abstract class AbstractSimpleStructContext<F extends JsonFieldContext>
+  public static abstract class AbstractSimpleStructContext<F extends AbstractSimpleFieldContext>
           extends AbstractStructContext implements StructContext {
 
     private AbstractStructSchema

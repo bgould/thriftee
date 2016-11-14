@@ -17,7 +17,6 @@ package org.thriftee.thrift.protocol;
 
 import static org.thriftee.examples.Examples.everythingStruct;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,19 +24,15 @@ import java.util.Collection;
 
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.thrift.TByteArrayOutputStream;
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.protocol.TJSONProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
-import org.apache.thrift.transport.TIOStreamTransport;
+import org.apache.thrift.transport.TMemoryBuffer;
+import org.apache.thrift.transport.TMemoryInputTransport;
 import org.apache.thrift.transport.TTransport;
 import org.junit.Assert;
-import org.thriftee.thrift.protocol.TJsonApiProtocol;
-import org.thriftee.thrift.protocol.TXMLProtocol;
 import org.thriftee.thrift.protocol.xml.BaseThriftProtocolTest;
+import org.thriftee.thrift.protocol.xml.Transforms;
 import org.thriftee.thrift.schema.IdlSchemaBuilder;
 import org.thriftee.thrift.schema.SchemaBuilderException;
 import org.thriftee.thrift.schema.StructSchema;
@@ -57,19 +52,35 @@ public class SpeedTest extends BaseThriftProtocolTest {
     }
   }
 
+  public static final TSoapXmlProtocol.Factory soapFactory; static {
+    final Transforms transforms = new Transforms();
+    soapFactory = new TSoapXmlProtocol.Factory();
+    soapFactory.setTransforms(transforms);
+    soapFactory.setModuleName("everything");
+    soapFactory.setStructName("Everything");
+    soapFactory.setServiceName("Universe");
+  }
+
   public static Collection<TProtocolFactory> data() throws IOException {
     return Arrays.asList(new TProtocolFactory[] {
-      new TCompactProtocol.Factory(),
-      new TBinaryProtocol.Factory(),
-      new TJSONProtocol.Factory(),
-      new TXMLProtocol.Factory(),
-      new TJsonApiProtocol.Factory(structSchema()),
+//      new TCompactProtocol.Factory(),
+//      new TBinaryProtocol.Factory(),
+//      new TJSONProtocol.Factory(),
+//      new TXMLProtocol.Factory(),
+//      new TJsonApiProtocol.Factory(structSchema()),
+      soapFactory
     });
   }
 
   public static void main(String[] args) throws Exception {
     System.out.printf("exporting models, etc...");
     beforeClass();
+    soapFactory.setModelFile(modelFor("everything"));
+    try {
+      soapFactory.getTransforms().preload(soapFactory.getModelFile());
+    } catch (IOException e) {
+      throw new RuntimeException();
+    }
     System.out.printf("done%n%n");
     for (TProtocolFactory fctry : data()) {
       final SpeedTest test = new SpeedTest(fctry);
@@ -85,8 +96,8 @@ public class SpeedTest extends BaseThriftProtocolTest {
 
   public void testSpeed() throws TException, IOException {
 
-    final int warmup = 2000;
-    final int count = 100000;
+    final int warmup = 0;
+    final int count = 1000;
     final String name = factory.getClass().getEnclosingClass().getSimpleName();
 
     long readNanos = 0;
@@ -96,22 +107,20 @@ public class SpeedTest extends BaseThriftProtocolTest {
 
     System.out.printf("Warming up %s%n", name);
     for (int i =0 ; i < warmup; i++) {
-      final byte[] arr;
+      final TMemoryBuffer out = new TMemoryBuffer(4096);
       {
-        final TByteArrayOutputStream baos = new TByteArrayOutputStream(4096);
-        final TTransport out = new TIOStreamTransport(baos);
         final TProtocol outProtocol = factory.getProtocol(out);
-        arr = baos.get();
         struct.write(outProtocol);
       }
-      if (i == 0 && arr.length == 0) {
+      if (i == 0 && out.length() == 0) {
         Assert.fail("array was zero length");
       }
-      //System.out.println(new String(arr)); if (true) return;
+//      System.out.println(new String(arr)); if (true) return;
       {
         final Everything struct2 = new Everything();
-        final ByteArrayInputStream bais = new ByteArrayInputStream(arr);
-        final TTransport in = new TIOStreamTransport(bais);
+        final TTransport in = new TMemoryInputTransport(
+          out.getArray(), 0, out.length()
+        );
         final TProtocol inProtocol = factory.getProtocol(in);
         struct2.read(inProtocol);
       }
@@ -123,26 +132,24 @@ public class SpeedTest extends BaseThriftProtocolTest {
     } catch (InterruptedException e) {}
 
     System.out.printf("Starting test for %s (%s rounds)...%n", name, count);
-    for (int i =0 ; i < count; i++) {
-      final byte[] arr;
+    for (int i = 0 ; i < count; i++) {
+      final TMemoryBuffer out = new TMemoryBuffer(4096);
       {
-        final TByteArrayOutputStream baos = new TByteArrayOutputStream(4096);
-        final TTransport out = new TIOStreamTransport(baos);
         final TProtocol outProtocol = factory.getProtocol(out);
-        arr = baos.get();
 
         final long writeStart = System.nanoTime();
         struct.write(outProtocol);
         writeNanos += System.nanoTime() - writeStart;
       }
-      if (i == 0 && arr.length == 0) {
+      if (i == 0 && out.length() == 0) {
         Assert.fail("array was zero length");
       }
-      //System.out.println(new String(arr)); if (true) return;
+//      System.out.println(new String(arr)); if (true) return;
       {
         final Everything struct2 = new Everything();
-        final ByteArrayInputStream bais = new ByteArrayInputStream(arr);
-        final TTransport in = new TIOStreamTransport(bais);
+        final TTransport in = new TMemoryInputTransport(
+          out.getArray(), 0, out.length()
+        );
         final TProtocol inProtocol = factory.getProtocol(in);
 
         final long readStart = System.nanoTime();

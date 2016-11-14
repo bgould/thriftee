@@ -24,10 +24,6 @@ import org.thriftee.thrift.schema.SchemaContext.SchemaContextCreatedListener;
 
 public final class ThriftSchema extends BaseSchema<ThriftSchema, ThriftSchema> {
 
-  public static final int THRIFT_INDEX_NAME = 1;
-
-  public static final int THRIFT_INDEX_MODULES = THRIFT_INDEX_NAME + 1;
-
   private static final long serialVersionUID = -8572014932719192064L;
 
   private final Map<String, ModuleSchema> modules;

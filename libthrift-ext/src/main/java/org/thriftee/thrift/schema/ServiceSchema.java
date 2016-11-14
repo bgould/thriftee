@@ -36,15 +36,23 @@ public final class ServiceSchema
 
   private final String _parentService;
 
+  private final String _xmlTargetNamespace;
+
   private ServiceSchema(
       final ModuleSchema module,
       final String name,
       final String doc,
       final Collection<ThriftAnnotation> annots,
+      final String _xmlTargetNamespace,
       final String parentService,
       final Collection<MethodSchema.Builder> methods
     ) throws SchemaBuilderException {
     super(ModuleSchema.class, ServiceSchema.class, module, name, doc, annots);
+    if (_xmlTargetNamespace == null) {
+      this._xmlTargetNamespace = getModule().getXmlTargetNamespace()+"/"+name;
+    } else {
+      this._xmlTargetNamespace = _xmlTargetNamespace;
+    }
     this._parentService = parentService;
     this._declaredMethods = toMap(this, methods);
   }
@@ -67,10 +75,6 @@ public final class ServiceSchema
     _allMethods = Collections.unmodifiableMap(methods);
   }
 
-  public ModuleSchema getModule() {
-    return getParent();
-  }
-
   @Override
   public String getName() {
     return super.getName();
@@ -79,6 +83,10 @@ public final class ServiceSchema
   @Override
   public Map<String, ThriftAnnotation> getAnnotations() {
     return super.getAnnotations();
+  }
+
+  public String getXmlTargetNamespace() {
+    return this._xmlTargetNamespace;
   }
 
   public String getParentService() {
@@ -119,6 +127,8 @@ public final class ServiceSchema
 
     private List<MethodSchema.Builder> methods = new LinkedList<>();
 
+    private String xmlTargetNamespace;
+
     Builder(final ModuleSchema.Builder parentBuilder) {
       super(parentBuilder, ServiceSchema.Builder.class);
     }
@@ -134,6 +144,11 @@ public final class ServiceSchema
       return this;
     }
 
+    public Builder xmlTargetNamespace(String namespace) {
+      this.xmlTargetNamespace = namespace;
+      return this;
+    }
+
     @Override
     protected ServiceSchema build(final ModuleSchema _parent)
         throws SchemaBuilderException {
@@ -143,6 +158,7 @@ public final class ServiceSchema
         getName(),
         getDoc(),
         getAnnotations(),
+        this.xmlTargetNamespace,
         this.parentService,
         methods
       );

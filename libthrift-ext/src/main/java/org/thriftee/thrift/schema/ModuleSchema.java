@@ -25,6 +25,8 @@ import java.util.TreeSet;
 
 public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
 
+  public static final String XML_NS_PREFIX = "http://thrift.apache.org/xml/ns";
+
   private static final long serialVersionUID = 1973580748761800425L;
 
   private final Map<String, ExceptionSchema> _exceptions;
@@ -41,19 +43,27 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
 
   private final Set<String> _includes;
 
+  private final String _xmlTargetNamespace;
+
   private ModuleSchema(
       final ThriftSchema parent,
       final String name,
       final String doc,
       final Collection<String> includes,
       final Collection<ExceptionSchema.Builder> exceptions,
-      final Collection<TypedefSchema.Builder> typedefs, 
-      final Collection<ServiceSchema.Builder> services, 
+      final Collection<TypedefSchema.Builder> typedefs,
+      final Collection<ServiceSchema.Builder> services,
       final Collection<StructSchema.Builder> structs,
       final Collection<UnionSchema.Builder> unions,
-      final Collection<EnumSchema.Builder> enums
+      final Collection<EnumSchema.Builder> enums,
+      final String _xmlTargetNamespace
     ) throws SchemaBuilderException {
     super(ThriftSchema.class, ModuleSchema.class, parent, name, doc, null);
+    if (_xmlTargetNamespace == null) {
+      this._xmlTargetNamespace = XML_NS_PREFIX + "/" + name;
+    } else {
+      this._xmlTargetNamespace = _xmlTargetNamespace;
+    }
     this._includes = Collections.unmodifiableSortedSet(new TreeSet<>(includes));
     this._exceptions = toMap(this, exceptions);
     this._typedefs = toMap(this, typedefs);
@@ -63,8 +73,13 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
     this._enums = toMap(this, enums);
   }
 
+  @Override
   public String getName() {
     return super.getName();
+  }
+
+  public String getXmlTargetNamespace() {
+    return this._xmlTargetNamespace;
   }
 
   public Set<String> getIncludes() {
@@ -96,9 +111,9 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
   }
 
   public static final class Builder extends AbstractSchemaBuilder<
-      ThriftSchema, 
-      ModuleSchema, 
-      ThriftSchema.Builder, 
+      ThriftSchema,
+      ModuleSchema,
+      ThriftSchema.Builder,
       ModuleSchema.Builder
     > {
 
@@ -116,8 +131,15 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
 
     private final List<EnumSchema.Builder> enums = new LinkedList<>();
 
+    private String xmlTargetNamespace;
+
     Builder(ThriftSchema.Builder parentBuilder) {
       super(parentBuilder, ModuleSchema.Builder.class);
+    }
+
+    public Builder xmlTargetNamespace(String namespace) {
+      this.xmlTargetNamespace = namespace;
+      return this;
     }
 
     public Builder addInclude(String include) {
@@ -180,21 +202,22 @@ public final class ModuleSchema extends BaseSchema<ThriftSchema, ModuleSchema> {
         services,
         structs,
         unions,
-        enums
+        enums,
+        xmlTargetNamespace
       );
       return result;
     }
 
     @Override
     protected String[] toStringFields() {
-      return new String[] { 
+      return new String[] {
         "name",
         "includes",
-        "annotations", 
+        "annotations",
         "typedefs",
-        "services", 
-        "structs", 
-        "unions", 
+        "services",
+        "structs",
+        "unions",
         "enums"
       };
     }
