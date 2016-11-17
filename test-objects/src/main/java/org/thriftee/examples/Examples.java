@@ -9,6 +9,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.thrift.TApplicationException;
+
 import another.Blotto;
 import everything.EndOfTheUniverseException;
 import everything.Everything;
@@ -32,23 +34,23 @@ public class Examples {
     everything.onion = Sprat.wowzer(1337);
     everything.setReally(true);
 
-    final Map<String, String> str_str_map = new HashMap<String, String>();
+    final Map<String, String> str_str_map = new HashMap<>();
     str_str_map.put("foo", "bar");
     str_str_map.put("graffle", "florp");
     everything.str_str_map = str_str_map;
 
-    final List<String> str_list = new ArrayList<String>();
+    final List<String> str_list = new ArrayList<>();
     str_list.add("wibble");
     str_list.add("snork");
     str_list.add("spiffle");
     everything.str_list = str_list;
 
-    final List<Spinkle> enum_list = new ArrayList<Spinkle>();
+    final List<Spinkle> enum_list = new ArrayList<>();
     enum_list.add(Spinkle.HRRR);
     enum_list.add(Spinkle.REWT);
     everything.enum_list = enum_list;
 
-    final List<Spirfle> obj_list = new ArrayList<Spirfle>();
+    final List<Spirfle> obj_list = new ArrayList<>();
     obj_list.add(new Spirfle("blat", 17, Spinkle.HRRR, 1, null, null));
     obj_list.add(new Spirfle("yarp", 89, Spinkle.REWT, 2, null, null));
     obj_list.add(new Spirfle("trop", 9, null, 3, null, null));
@@ -99,6 +101,11 @@ public class Examples {
 
   public static Blotto blotto() {
     return new Blotto(42, "fish");
+  }
+
+  public static TApplicationException exception() {
+    return new TApplicationException(
+        TApplicationException.INTERNAL_ERROR, "An internal error occurred.");
   }
 
 }
