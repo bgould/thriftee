@@ -34,7 +34,6 @@ import org.thriftee.thrift.schema.AbstractStructSchema;
 import org.thriftee.thrift.schema.ContainerSchemaType;
 import org.thriftee.thrift.schema.ListSchemaType;
 import org.thriftee.thrift.schema.MapSchemaType;
-import org.thriftee.thrift.schema.MethodSchema;
 import org.thriftee.thrift.schema.SchemaException;
 import org.thriftee.thrift.schema.SchemaType;
 import org.thriftee.thrift.schema.ServiceSchema;
@@ -178,7 +177,6 @@ public abstract class AbstractSimpleProtocol extends AbstractContextProtocol {
 
     protected final ServiceSchema svc;
 
-//    private Str method;
     private String name;
     private byte type;
     private int seqid;
@@ -191,9 +189,6 @@ public abstract class AbstractSimpleProtocol extends AbstractContextProtocol {
     protected final String name() {
       return name;
     }
-//    protected final MethodSchema method() {
-//      return this.method;
-//    }
 
     protected final byte messageType() {
       return type;
@@ -210,11 +205,6 @@ public abstract class AbstractSimpleProtocol extends AbstractContextProtocol {
 
     @Override
     public final void set(TMessage msg) throws TException {
-//      try {
-//        this.method = svc.findMethod(msg.name);
-//      } catch (SchemaException e) {
-//        throw ex("Schema error for method named '"+msg.name+"' on "+svc, e);
-//      }
       set(msg.name, msg.type, msg.seqid);
     }
 
@@ -229,18 +219,16 @@ public abstract class AbstractSimpleProtocol extends AbstractContextProtocol {
     @Override
     public final StructContext newStruct() throws TException {
       try {
-        final MethodSchema method = svc.findMethod(name());
         final AbstractStructSchema<?, ?, ?, ?> schema;
         switch (type) {
         case TMessageType.CALL:
-          schema = method.getArgumentStruct(); break;
+          schema = svc.findMethod(name()).getArgumentStruct(); break;
         case TMessageType.REPLY:
-          schema = method.getResultStruct(); break;
+          schema = svc.findMethod(name()).getResultStruct();   break;
         case TMessageType.EXCEPTION:
-          throw new UnsupportedOperationException(
-            "need to make a schema for TApplicationException");
+          schema = svc.getRoot().applicationExceptionSchema(); break;
         case TMessageType.ONEWAY:
-          schema = method.getArgumentStruct(); break;
+          schema = svc.findMethod(name()).getArgumentStruct(); break;
         default:
           throw ex("Unknown message type: " + Integer.toString(type, 16));
         }
