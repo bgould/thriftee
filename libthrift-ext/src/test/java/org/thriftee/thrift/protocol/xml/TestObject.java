@@ -17,19 +17,19 @@ package org.thriftee.thrift.protocol.xml;
 
 import java.io.File;
 
-import org.apache.thrift.TBase;
+import org.apache.thrift.TSerializable;
 
 public class TestObject {
 
   public final String name;
   public final String module;
   public final String struct;
-  public final TBase<?, ?> obj;
+  public final TSerializable obj;
 
   public TestObject(
       String name,
       String module,
-      TBase<?, ?> obj) {
+      TSerializable obj) {
     super();
     this.name = name;
     this.module = module;

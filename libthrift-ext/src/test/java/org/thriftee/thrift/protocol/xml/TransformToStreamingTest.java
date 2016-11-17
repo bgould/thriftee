@@ -22,7 +22,7 @@ import java.util.Collection;
 
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.thrift.TBase;
+import org.apache.thrift.TSerializable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -66,11 +66,11 @@ public class TransformToStreamingTest extends BaseThriftXMLTest {
 
     } else {
       final TestProtocol iprot1 = new TestProtocol(frmtd1);
-      final TBase<?, ?> obj1 = testobj.obj.getClass().newInstance();
+      final TSerializable obj1 = testobj.obj.getClass().newInstance();
       obj1.read(iprot1);
 
       final TestProtocol iprot2 = new TestProtocol(frmtd2);
-      final TBase<?, ?> obj2 = testobj.obj.getClass().newInstance();
+      final TSerializable obj2 = testobj.obj.getClass().newInstance();
       obj2.read(iprot2);
 
       assertEquals(obj1, obj2);

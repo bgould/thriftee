@@ -25,6 +25,9 @@ import java.util.Collection;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TJSONProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.TMemoryBuffer;
@@ -32,7 +35,6 @@ import org.apache.thrift.transport.TMemoryInputTransport;
 import org.apache.thrift.transport.TTransport;
 import org.junit.Assert;
 import org.thriftee.thrift.protocol.xml.BaseThriftProtocolTest;
-import org.thriftee.thrift.protocol.xml.Transforms;
 import org.thriftee.thrift.schema.IdlSchemaBuilder;
 import org.thriftee.thrift.schema.SchemaBuilderException;
 import org.thriftee.thrift.schema.StructSchema;
@@ -52,35 +54,36 @@ public class SpeedTest extends BaseThriftProtocolTest {
     }
   }
 
-  public static final TSoapXmlProtocol.Factory soapFactory; static {
-    final Transforms transforms = new Transforms();
-    soapFactory = new TSoapXmlProtocol.Factory();
-    soapFactory.setTransforms(transforms);
-    soapFactory.setModuleName("everything");
-    soapFactory.setStructName("Everything");
-    soapFactory.setServiceName("Universe");
-  }
+//  public static final TSoapXmlProtocol.Factory soapFactory; static {
+//    final Transforms transforms = new Transforms();
+//    soapFactory = new TSoapXmlProtocol.Factory();
+//    soapFactory.setTransforms(transforms);
+//    soapFactory.setModuleName("everything");
+//    soapFactory.setStructName("Everything");
+//    soapFactory.setServiceName("Universe");
+//  }
 
   public static Collection<TProtocolFactory> data() throws IOException {
     return Arrays.asList(new TProtocolFactory[] {
-//      new TCompactProtocol.Factory(),
-//      new TBinaryProtocol.Factory(),
-//      new TJSONProtocol.Factory(),
-//      new TXMLProtocol.Factory(),
-//      new TJsonApiProtocol.Factory(structSchema()),
-      soapFactory
+      new TCompactProtocol.Factory(),
+      new TBinaryProtocol.Factory(),
+      new TJSONProtocol.Factory(),
+      new TXMLProtocol.Factory(),
+      new TJsonApiProtocol.Factory(structSchema()),
+      new TSOAPProtocol.Factory(structSchema())
+//      soapFactory
     });
   }
 
   public static void main(String[] args) throws Exception {
     System.out.printf("exporting models, etc...");
     beforeClass();
-    soapFactory.setModelFile(modelFor("everything"));
-    try {
-      soapFactory.getTransforms().preload(soapFactory.getModelFile());
-    } catch (IOException e) {
-      throw new RuntimeException();
-    }
+//    soapFactory.setModelFile(modelFor("everything"));
+//    try {
+//      soapFactory.getTransforms().preload(soapFactory.getModelFile());
+//    } catch (IOException e) {
+//      throw new RuntimeException();
+//    }
     System.out.printf("done%n%n");
     for (TProtocolFactory fctry : data()) {
       final SpeedTest test = new SpeedTest(fctry);
@@ -96,14 +99,14 @@ public class SpeedTest extends BaseThriftProtocolTest {
 
   public void testSpeed() throws TException, IOException {
 
-    final int warmup = 0;
-    final int count = 1000;
+    final int warmup = 20000;
+    final int count = 100000;
     final String name = factory.getClass().getEnclosingClass().getSimpleName();
 
     long readNanos = 0;
     long writeNanos = 0;
     //long totalNanos = 0;
-    final Everything struct = everythingStruct();
+    final Everything struct = BaseThriftProtocolTest.filter(everythingStruct());
 
     System.out.printf("Warming up %s%n", name);
     for (int i =0 ; i < warmup; i++) {

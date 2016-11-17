@@ -15,11 +15,7 @@
  */
 package org.thriftee.thrift.protocol.xml;
 
-import static org.thriftee.examples.Examples.blotto;
-import static org.thriftee.examples.Examples.everythingStruct;
-import static org.thriftee.examples.Examples.grokArgs;
-import static org.thriftee.examples.Examples.grokError;
-import static org.thriftee.examples.Examples.grokResult;
+import static org.thriftee.examples.Examples.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,6 +41,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import another.Blotto;
+import everything.Everything;
+import everything.Universe.grok_args;
 
 public class BaseThriftProtocolTest {
 
@@ -69,15 +67,44 @@ public class BaseThriftProtocolTest {
 
   protected static final TestObject[] objs = new TestObject[] {
 
-    new TestObject("everything", "everything", everythingStruct()),
+    new TestObject("everything", "everything", everything()),
     new TestObject("blotto", "nothing_all_at_once", blotto()),
-    new TestObject("control_chars", "nothing_all_at_once", controlChars()),
+//    new TestObject("control_chars", "nothing_all_at_once", controlChars()),
 
-    new TestCall("grok_args",   "everything", "Universe", grokArgs()   ),
+    new TestCall("grok_args",   "everything", "Universe", args()   ),
     new TestCall("grok_result", "everything", "Universe", grokResult() ),
     new TestCall("grok_error",  "everything", "Universe", grokError()  ),
 
+    new TestCall("exception", "everything", "Universe",   exception()  ),
+
   };
+
+  public static Everything everything() {
+    final Everything everything = everythingStruct();
+    return filter(everything);
+  }
+
+  public static grok_args args() {
+    final grok_args args = grokArgs();
+    filter(args.everything);
+    return args;
+  }
+  public static Everything filter(Everything everything) {
+//    everything.obj = null;
+//    everything.smork = null;
+//    everything.onion = null;
+//    everything.str_list = null;
+//    everything.enum_list = null;
+//    everything.str_set = null;
+//    everything.obj_list = null;
+//    everything.obj_set = null;
+//    everything.int_list_list = null;
+//    everything.enum_list_map = null;
+//    everything.str_str_map = null;
+//    everything.int_obj_map = null;
+//    everything.int_str_map = null;
+    return everything;
+  }
 
   public static TBase<?,?> controlChars() {
     final Blotto blotto = blotto();

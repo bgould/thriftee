@@ -26,17 +26,21 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.soap.Detail;
 import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPFault;
+import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
@@ -68,6 +72,7 @@ import org.thriftee.thrift.transport.TTransportInputStream;
 import org.thriftee.thrift.transport.TTransportOutputStream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
@@ -81,6 +86,8 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
   public static final TransformerFactory tf = TransformerFactory.newInstance();
 
   public static final String TXP_NS = "http://thriftee.org/xml/protocol";
+
+  public static final String TAEX_FAULT_ACTOR = "txp:application-exception";
 
   static {
     try {
@@ -153,7 +160,9 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
         AbstractStructSchema<?, ?, ?, ?> schema) throws TException {
       Document doc = isReading() ? parseDocument() : newDocument();
       root = doc;
-      final SoapValueHolder holder = new SoapValueHolder(doc);
+      final SoapValueHolder holder = new SoapValueHolder(
+        isReading() ? it(doc).next() : doc
+      );
       holder.setNamespace(schema.getModule().getXmlTargetNamespace());
       holder.setKey(schema.getName());
       return new SoapStructContext(this, getBaseStruct(), holder);
@@ -215,22 +224,105 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
         );
         soapElement.addAttribute(new QName("method"), name());
         soapElement.addAttribute(new QName("seqid"), seqid()+"");
+        if (messageType() == TMessageType.EXCEPTION) {
+          final SOAPFault fault = msg.getSOAPBody().addFault(
+            new QName("SOAP-ENV:Server"),
+            "An application error occurred."
+          );
+          fault.setFaultActor(TAEX_FAULT_ACTOR);
+          fault.addDetail();
+        }
+        msg.getSOAPHeader().detachNode();
       } catch (SOAPException e) {
         throw ex(e);
       }
+
       return this;
     }
 
     @Override
     public SoapMessageContext readStart() throws TException {
-//      msg.getSOAPHeader().
-//      if (json == null) throw ex("no json in " + type() + " context");
-//      set(
-//        expectString(json, ATTRIBUTE_NAME),
-//        messageTypeToByte(expectString(json, ATTRIBUTE_TYPE)),
-//        json.containsKey(ATTRIBUTE_SEQID) ? expectInt(json, ATTRIBUTE_SEQID) : 1
-//      );
-      return this;
+      // if there is a txp: element in the soap header, use the info from that
+      try {
+        final SOAPHeader soapHeader = msg.getSOAPHeader();
+        if (soapHeader != null) {
+          for (Element el : elements(soapHeader)) {
+            if (TXP_NS.equals(el.getNamespaceURI())) {
+              final byte typeValue = messageTypeToByte(el.getLocalName());
+              final NamedNodeMap attrs = el.getAttributes();
+              final Node nameNode = attrs.getNamedItem("method");
+              if (nameNode != null) {
+                final String method = nameNode.getNodeValue();
+                final Node seqidNode = attrs.getNamedItem("seqid");
+                final int seqid;
+                if (seqidNode == null) {
+                  seqid = 1;
+                } else {
+                  try {
+                    seqid = Integer.parseInt(seqidNode.getNodeValue());
+                  } catch (NumberFormatException e) {
+                    throw ex("Invalid seqid: " + seqidNode.getNodeValue());
+                  }
+                }
+                set(method, typeValue, seqid);
+                return this;
+              } else {
+                throw ex("Method name missing from txp:" + el.getLocalName());
+              }
+            }
+          }
+        }
+        // if there is no txp: element, inspect the SOAP body for message info
+        final SOAPBody soapBody = msg.getSOAPBody();
+        if (msg.getSOAPBody().getFault() == null) {
+          ElementIterator it = it(soapBody);
+          if (!it.hasNext()) {
+            throw ex("SOAPBody had no elements");
+          }
+          final Element firstElement = it.next();
+          final String elName = firstElement.getLocalName();
+          if (elName == null) {
+            throw ex("First element in SOAP body had no local name?");
+          }
+          byte messageType;
+          String methodName;
+          if (elName.endsWith("Request")) {
+            messageType = TMessageType.CALL;
+            methodName = elName.substring(0, elName.length() - 7);
+          } else if (elName.endsWith("Response")) {
+            messageType = TMessageType.REPLY;
+            methodName = elName.substring(0, elName.length() - 8);
+          } else {
+            throw ex("Unrecognized SOAP body element: " + elName);
+          }
+          set(methodName, messageType, 1);
+          return this;
+        } else { // SOAPBody.getFault() != null
+          final String actor = soapBody.getFault().getFaultActor();
+          final Detail detail = soapBody.getFault().getDetail();
+          if (actor == null) {
+            throw ex("fault actor was null");
+          }
+          if (detail == null) {
+            throw ex("fault detail was null");
+          }
+          byte messageType = -1;
+          String methodName;
+          if (TAEX_FAULT_ACTOR.equals(actor)) {
+            messageType = TMessageType.EXCEPTION;
+            methodName = ""; // don't think EXCEPTION needs a method name?
+          } else {
+            throw ex("SOAP faults for user exceptions not implemented yet");
+          }
+          set(methodName, messageType, 1);
+          if (messageType > -1) {
+            return this;
+          }
+        }
+        throw ex("Could not read message information from SOAP body");
+      } catch (SOAPException e) {
+        throw ex(e);
+      }
     }
 
     @Override
@@ -259,14 +351,13 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
           holder.setKey(name() + "Response");
           break;
         case TMessageType.EXCEPTION:
-          final SOAPFault fault = msg.getSOAPBody().addFault(
-            new QName("SOAP-ENV:Server"),
-            "An application error occurred."
-          );
-          fault.setFaultActor("txp:application-exception");
-          holder.setKey("txp:TApplicationException");
-          holder.setParentNode(fault.addDetail());
+          holder.setNamespace(TXP_NS);
+          holder.setKey("TApplicationException");
+          holder.setParentNode(msg.getSOAPBody().getFault().getDetail());
           break;
+        }
+        if (isReading()) {
+          holder.setParentNode(it(holder.getParentNode()).next());
         }
         return new SoapStructContext(this, schema, holder);
       } catch (SOAPException e) {
@@ -285,16 +376,16 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
   protected class SoapStructContext
         extends AbstractSimpleStructContext<SoapFieldContext> {
 
-    private final SoapValueHolder valueHolder;
+    private final SoapValueHolder val;
 
-    private Iterator<String> fieldIterator;
+    private ElementIterator fieldIterator;
 
     public SoapStructContext(
         final Context parent,
         final AbstractStructSchema<?, ?, ?, ?> structSchema,
         final SoapValueHolder holder) {
       super(parent, structSchema);
-      this.valueHolder = requireNonNull(holder, "struct valueHolder was null");
+      this.val = requireNonNull(holder, "struct valueHolder was null");
 //      if (isReading()) {
 //        requireNonNull((JsonObject) this.valueHolder.getValue());
 //      }
@@ -303,7 +394,8 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
     @Override
     protected AbstractFieldSchema<?, ?> nextFieldSchema() throws TException {
       while (fieldIterator.hasNext()) {
-        final String key = this.fieldIterator.next();
+        final Element next = this.fieldIterator.next();
+        final String key = next.getNodeName();
         final AbstractFieldSchema<?, ?> field = schema().getFields().get(key);
         if (field != null) {
           return field;
@@ -314,7 +406,7 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
 
     @Override
     public StructContext writeStart() throws TException {
-      valueHolder.createElement();
+      val.createElement();
       return this;
     }
 
@@ -330,9 +422,15 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
 
     @Override
     public StructContext readStart() throws TException {
-//      this.fieldIterator =
-//        ((JsonObject) this.valueHolder.getValue()).keySet().iterator();
+//      final ElementIterator it = valueHolder.iterator();
+//      if (it.hasNext()) {
+//        structElement = it.next();
+//        this.fieldIterator = it(structElement);
+      this.fieldIterator = val.iterator();
       return this;
+//      } else {
+//        throw ex("Expected at least one element for struct.");
+//      }
     }
 
     @Override
@@ -345,21 +443,11 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
     protected SoapFieldContext newField(AbstractFieldSchema<?, ?> schema)
         throws TException {
       if (isReading()) {
-//        final JsonObject json = (JsonObject) valueHolder.getValue();
-//        if (json == null) {
-//          throw ex("JsonValue should not be null for " + schema);
-//        }
-//        final JsonValue val = json.get(schema.getName());
-//        if (val == null) {
-//          throw ex("JsonValue should not be null for " + schema);
-//        }
-        final SoapValueHolder holder = new SoapValueHolder(null);
+        final SoapValueHolder holder = new SoapValueHolder(val.getParentNode());
         holder.setKey(schema.getName());
-//        holder.setValue(json);
-//        holder.setValue(val);
         return new SoapFieldContext(this, schema, holder);
       } else {
-        return new SoapFieldContext(this, null, valueHolder.fromLastElement());
+        return new SoapFieldContext(this, null, val.fromLastElement());
       }
     }
 
@@ -369,19 +457,19 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
       extends AbstractSimpleFieldContext
       implements FieldContext {
 
-    private final SoapValueHolder valueHolder;
+    private final SoapValueHolder val;
 
     public SoapFieldContext(
         final SoapStructContext parent,
         final AbstractFieldSchema<?, ?> fieldSchema,
         final SoapValueHolder valueHolder) {
       super(parent, fieldSchema);
-      this.valueHolder = requireNonNull(valueHolder);
+      this.val = requireNonNull(valueHolder);
     }
 
     @Override
     public SoapFieldContext writeStart() throws TException {
-      this.valueHolder.setKey(schema().getName());
+      this.val.setKey(schema().getName());
       return this;
     }
 
@@ -392,14 +480,6 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
 
     @Override
     public SoapFieldContext readStart() throws TException {
-      /*
-      final Element element = (Element) valueHolder.getValue();
-      final NodeList children = element.getChildNodes();
-      for (Node child = element.getFirstChild(); child != null;
-            child = element.getNextSibling()) {
-        if (child instanceof Element && )
-      }
-       */
       return this;
     }
 
@@ -410,104 +490,39 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
 
     @Override
     protected SoapValueHolder getValueHolder() {
-//      if (isWriting()) {
-//        valueHolder.setKey(schema().getName());
-//      }
-      return valueHolder;
+      return val;
     }
 
     @Override
     protected StructContext newStruct(
         AbstractStructSchema<?, ?, ?, ?> structSchema) throws TException {
-      SoapValueHolder holder = new SoapValueHolder(valueHolder.getParentNode());
-      holder.setKey(schema().getName());
-      return new SoapStructContext(this, structSchema, holder);
-//      throw new UnsupportedOperationException();
-//      if (isReading()) {
-//        final JsonValue value = valueHolder.valueToRead();
-//        switch (value.getValueType()) {
-//        case OBJECT:
-//          final JsonValueHolder holder = new JsonValueHolder();
-//          holder.setValue(value);
-//          return new SoapStructContext(this, structSchema, holder);
-//        default:
-//          throw ex("Expected JsonObject but was: " + value.getValueType());
-//        }
-//      } else {
-//        return new SoapStructContext(this, structSchema, getValueHolder());
-//      }
+      if (isReading()) {
+        SoapValueHolder holder = new SoapValueHolder(val.readElement());
+        holder.setKey(schema().getName());
+        return new SoapStructContext(this, structSchema, holder);
+      } else {
+        SoapValueHolder holder = new SoapValueHolder(val.getParentNode());
+        holder.setKey(schema().getName());
+        return new SoapStructContext(this, structSchema, holder);
+      }
     }
 
     @Override
     protected ListContext newList(ListSchemaType listSchema) throws TException {
-      final Element element = valueHolder.createElement();
-      return new SoapListContext(
-        this,
-        listSchema,
-        new SoapArrayValueHolder(element, "item")
-      );
-//      if (isReading()) {
-//        final JsonValue value = valueHolder.valueToRead();
-//        switch (value.getValueType()) {
-//        case ARRAY:
-//          return new JsonListContext(
-//            this, listSchema, new JsonArrayValueHolder((JsonArray) value));
-//        default:
-//          throw ex("Expected JsonArray but was: " + value.getValueType());
-//        }
-//      } else {
-//        final JsonArrayValueHolder holder = new JsonArrayValueHolder(null);
-//        holder.setKey(schema().getName());
-//        return new JsonListContext(this, listSchema, holder);
-//      }
+      final Element el = isReading() ? val.readElement() : val.createElement();
+      return new SoapListContext(this, listSchema, new SoapArrayValueHolder(el));
     }
 
     @Override
-    protected SetContext newSet(SetSchemaType setSchema) throws TException {
-      final Element element = valueHolder.createElement();
-      return new SoapSetContext(
-        this,
-        setSchema,
-        new SoapArrayValueHolder(element, "item")
-      );
-//      if (isReading()) {
-//        final JsonValue value = valueHolder.valueToRead();
-//        switch (value.getValueType()) {
-//        case ARRAY:
-//          return new JsonSetContext(
-//            this, setSchema, new JsonArrayValueHolder((JsonArray) value));
-//        default:
-//          throw ex("Expected JsonArray but was: " + value.getValueType());
-//        }
-//      } else {
-//        final JsonArrayValueHolder holder = new JsonArrayValueHolder(null);
-//        holder.setKey(schema().getName());
-//        return new JsonSetContext(this, setSchema, holder);
-//      }
+    protected SetContext newSet(SetSchemaType schema) throws TException {
+      final Element el = isReading() ? val.readElement() : val.createElement();
+      return new SoapSetContext(this, schema, new SoapArrayValueHolder(el));
     }
 
     @Override
     protected MapContext newMap(MapSchemaType mapSchema) throws TException {
-      final Element element = valueHolder.createElement();
-      return new SoapMapContext(
-        this,
-        mapSchema,
-        new SoapArrayValueHolder(element, schema().getName())
-      );
-//      if (isReading()) {
-//        final JsonValue value = valueHolder.valueToRead();
-//        switch (value.getValueType()) {
-//        case ARRAY:
-//          return new JsonMapContext(
-//            this, mapSchema, new JsonArrayValueHolder((JsonArray) value));
-//        default:
-//          throw ex("Expected JsonArray but was: " + value.getValueType());
-//        }
-//      } else {
-//        final JsonArrayValueHolder holder = new JsonArrayValueHolder(null);
-//        holder.setKey(schema().getName());
-//        return new JsonMapContext(this, mapSchema, holder);
-//      }
+      final Element el = isReading() ? val.readElement() : val.createElement();
+      return new SoapMapContext(this, mapSchema, new SoapMapValueHolder(el));
     }
 
     @Override
@@ -526,51 +541,50 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
   protected abstract class SoapContainerContext<T>
       extends AbstractSimpleContainerContext<T> {
 
-    private SoapContainerValueHolder valueHolder;
+    protected SoapContainerValueHolder container;
 
     protected SoapContainerContext(
         final Context parent,
         final ContainerSchemaType schemaType,
         final Class<T> emitType,
         final ContainerType containerType,
-        final SoapContainerValueHolder valueHolder) {
+        final SoapContainerValueHolder container) {
       super(parent, schemaType, emitType, containerType);
-      this.valueHolder = requireNonNull(valueHolder, "valueHolder was null");
+      this.container = requireNonNull(container, "valueHolder was null");
     }
 
     @Override
     public SoapContainerContext<T> writeStart() throws TException {
-      getValueHolder().writeStart();
+      container.writeStart();
       return this;
     }
 
     @Override
     public SoapContainerContext<T> writeEnd() throws TException {
-      getValueHolder().writeEnd();
+      container.writeEnd();
       return this;
     }
 
     @Override
     public SoapContainerContext<T> readStart() throws TException {
+      //container.readStart();  // ??
       return this;
     }
 
     @Override
     public SoapContainerContext<T> readEnd() throws TException {
+      //container.readEnd();  // ??
       return this;
     }
 
     @Override
-    public final SoapContainerValueHolder getValueHolder() {
-      return valueHolder;
+    public SoapValueHolder getValueHolder() {
+      return container;
     }
 
     @Override
     public void beforeRead() throws TException {
-//      if (!
-          getValueHolder().next()
-//        ) throw new IllegalStateException("count: " + getValueHolder().count())
-          ;
+      container.next();
     }
 
     @Override
@@ -580,94 +594,43 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
 
     @Override
     protected int size() throws TException {
-      return getValueHolder().size();
+      return container.size();
     }
 
     @Override
     protected StructContext newStruct(
         AbstractStructSchema<?, ?, ?, ?> structSchema) throws TException {
-      return new SoapStructContext(this, structSchema, getValueHolder());
+      if (isReading()) {
+        final Element element = getValueHolder().readElement();
+        final SoapValueHolder holder = new SoapValueHolder(element);
+        return new SoapStructContext(this, structSchema, holder);
+      } else {
 //      if (isReading()) {
-//        final JsonValue value = valueHolder.valueToRead();
-//        switch (value.getValueType()) {
-//        case OBJECT:
-//          final JsonValueHolder holder = new JsonValueHolder();
-//          holder.setValue(value);
-//          return new SoapStructContext(this, structSchema, holder);
-//        default:
-//          throw ex("Expected JsonObject but was: " + value.getValueType());
-//        }
-//      } else {
-//        return new SoapStructContext(this, structSchema, getValueHolder());
+//        holder.setParentNode(getValueHolder().readElement());
 //      }
+        return new SoapStructContext(this, structSchema, getValueHolder());
+      }
     }
 
     @Override
     protected ListContext newList(ListSchemaType listSchema) throws TException {
-      final Element element = getValueHolder().createElement();
-      return new SoapListContext(
-        this,
-        listSchema,
-        new SoapArrayValueHolder(element, "item")
-      );
-//      if (isReading()) {
-//        final JsonValue value = requireNonNull(valueHolder.valueToRead());
-//        switch (value.getValueType()) {
-//        case ARRAY:
-//          return new JsonListContext(
-//            this, listSchema, new JsonArrayValueHolder((JsonArray) value));
-//        default:
-//          throw ex("Expected JsonArray but was: " + value.getValueType());
-//        }
-//      } else {
-//        final JsonArrayValueHolder holder = new JsonArrayValueHolder(null);
-////        holder.setKey(schema().getName());
-//        return new JsonListContext(this, listSchema, holder);
-//      }
+      final SoapContainerValueHolder val = container;
+      final Element el = isReading() ? val.readElement() : val.createElement();
+      return new SoapListContext(this, listSchema, new SoapArrayValueHolder(el));
     }
 
     @Override
     protected SetContext newSet(SetSchemaType setSchema) throws TException {
-      final Element element = getValueHolder().createElement();
-      return new SoapSetContext(
-        this, setSchema, new SoapArrayValueHolder(element, "item")
-      );
-//      if (isReading()) {
-//        final JsonValue value = requireNonNull(valueHolder.valueToRead());
-//        switch (value.getValueType()) {
-//        case ARRAY:
-//          return new JsonSetContext(
-//            this, setSchema, new JsonArrayValueHolder((JsonArray) value));
-//        default:
-//          throw ex("Expected JsonArray but was: " + value.getValueType());
-//        }
-//      } else {
-//        final JsonArrayValueHolder holder = new JsonArrayValueHolder(null);
-////        holder.setKey(schema().getName());
-//        return new JsonSetContext(this, setSchema, holder);
-//      }
+      final SoapContainerValueHolder val = container;
+      final Element el = isReading() ? val.readElement() : val.createElement();
+      return new SoapSetContext(this, setSchema, new SoapArrayValueHolder(el));
     }
 
     @Override
     protected MapContext newMap(MapSchemaType mapSchema) throws TException {
-      final Element element = getValueHolder().createElement();
-      return new SoapMapContext(
-        this, mapSchema, new SoapArrayValueHolder(element, "entry")
-      );
-//      if (isReading()) {
-//        final JsonValue value = requireNonNull(valueHolder.valueToRead());
-//        switch (value.getValueType()) {
-//        case ARRAY:
-//          return new JsonMapContext(
-//            this, mapSchema, new JsonArrayValueHolder((JsonArray) value));
-//        default:
-//          throw ex("Expected JsonArray but was: " + value.getValueType());
-//        }
-//      } else {
-//        final JsonArrayValueHolder holder = new JsonArrayValueHolder(null);
-////        holder.setKey(schema().getName());
-//        return new JsonMapContext(this, mapSchema, holder);
-//      }
+      final SoapContainerValueHolder val = container;
+      final Element el = isReading() ? val.readElement() : val.createElement();
+      return new SoapMapContext(this, mapSchema, new SoapMapValueHolder(el));
     }
   }
 
@@ -733,15 +696,15 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
 
     protected boolean isKey = false;
 
-    private SoapValueHolder originalValueHolder;
+    private SoapValueHolder _valueHolder;
 
     public SoapMapContext(
         final Context parent,
         final MapSchemaType schema,
-        final SoapArrayValueHolder valueHolder) throws TException {
+        final SoapMapValueHolder valueHolder) throws TException {
       super(parent, schema, TMap.class, ContainerType.MAP, valueHolder);
-      originalValueHolder = new SoapValueHolder(valueHolder.getParentNode());
-      originalValueHolder.setKey("entry");
+      _valueHolder = new SoapValueHolder(valueHolder.getParentNode());
+      _valueHolder.setKey("entry");
     }
 
     @Override
@@ -749,11 +712,6 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
       return isKey
         ? ((MapSchemaType) getContainerSchemaType()).getKeyType()
         : getContainerSchemaType().getValueType();
-    }
-
-    @Override
-    protected int size() throws TException {
-      return getValueHolder().size() / 2;
     }
 
     @Override
@@ -767,27 +725,48 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
     }
 
     @Override
-    public void beforeRead() throws TException {
-      isKey=!isKey;
-      super.beforeRead();
-    }
-
-    @Override
     public void beforeWrite() throws TException {
       isKey=!isKey;
       if (isKey) {
-        final Element element = originalValueHolder.createElement();
+        final Element element = _valueHolder.createElement();
         getValueHolder().setParentNode(element);
         getValueHolder().setKey("key");
       } else {
         getValueHolder().setKey("value");
       }
-//      getValueHolder().createElement();
       super.beforeWrite();
     }
   }
 
-  protected class SoapValueHolder implements ValueHolder {
+  protected class SoapMapValueHolder extends SoapArrayValueHolder {
+
+    private boolean isKey = false;
+
+    public SoapMapValueHolder(Node parentNode) {
+      super(parentNode);
+      setKey("entry");
+    }
+
+    @Override
+    protected boolean advance() throws TException {
+      if (isKey) {
+        isKey = false;
+        return true;
+      } else {
+        isKey = true;
+        return super.advance();
+      }
+    }
+
+    @Override
+    public Element readElement() throws TException {
+      currentValue().setKey(isKey ? "key" : "value");
+      return currentValue.readElement();
+    }
+
+  }
+
+  protected class SoapValueHolder implements ValueHolder, Iterable<Element> {
 
     private Node _parentNode;
 
@@ -814,6 +793,7 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
     }
 
     public void setKey(String key) {
+      this._element = null;
       this._key = key;
     }
 
@@ -870,6 +850,46 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
       write(str);
     }
 
+    @Override
+    public ByteBuffer readBinary() throws TException {
+      return ByteBuffer.wrap(parseBase64Binary(readString()));
+    }
+
+    @Override
+    public boolean readBool() throws TException {
+      return DatatypeConverter.parseBoolean(valueToRead());
+    }
+
+    @Override
+    public byte readByte() throws TException {
+      return DatatypeConverter.parseByte(valueToRead());
+    }
+
+    @Override
+    public double readDouble() throws TException {
+      return DatatypeConverter.parseDouble(valueToRead());
+    }
+
+    @Override
+    public short readI16() throws TException {
+      return DatatypeConverter.parseShort(valueToRead());
+    }
+
+    @Override
+    public int readI32() throws TException {
+      return DatatypeConverter.parseInt(valueToRead());
+    }
+
+    @Override
+    public long readI64() throws TException {
+      return DatatypeConverter.parseLong(valueToRead());
+    }
+
+    @Override
+    public String readString() throws TException {
+      return valueToRead();
+    }
+
     public Element createElement() {
       final Node parentNode = getParentNode();
       final String key = getKey();
@@ -885,7 +905,7 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
       if (getNamespace() != null) {
         newElement = doc.createElementNS(getNamespace(), "svc:"+key);
       } else {
-        newElement = doc.createElement(key);
+        newElement = doc.createElementNS(null, key);
       }
       parentNode.appendChild(newElement);
       this._element = newElement;
@@ -893,228 +913,131 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
     }
 
     protected void write(String str) throws TException {
-      // TODO: tmp
-//      final Node value = getValue();
-//      final String key = getKey();
-//      if (value == null) {
-//        return;
-//      }
-//      if (key == null) {
-//        return;
-//      }
-      // end tmp
       createElement().setTextContent(str);
     }
 
-    @Override
-    public ByteBuffer readBinary() throws TException {
-      return ByteBuffer.wrap(parseBase64Binary(readString()));
-    }
-
-    @Override
-    public boolean readBool() throws TException {
-      throw new UnsupportedOperationException();
-      /*
-      final JsonValue value = valueToRead();
-      switch (value.getValueType()) {
-      case TRUE:
-        return true;
-      case FALSE:
-        return false;
-      default:
-        throw ex("Expected JSON boolean but was " + value.getValueType());
-      }
-      */
-    }
-
-    @Override
-    public byte readByte() throws TException {
-      return (byte) readI32();
-    }
-
-    @Override
-    public double readDouble() throws TException {
-      throw new UnsupportedOperationException();
-      /*
-      final JsonValue value = valueToRead();
-      if (value instanceof JsonNumber) {
-//      switch (value.getValueType()) {
-//      case NUMBER:
-        return ((JsonNumber)value).doubleValue();
-//      default:
-      } else {
-        throw ex("Expected JSON number but was " + value.getValueType());
-      }
-      */
-    }
-
-    @Override
-    public short readI16() throws TException {
-      return (short) readI32();
-    }
-
-    @Override
-    public int readI32() throws TException {
-      throw new UnsupportedOperationException();
-      /*
-      final JsonValue value = valueToRead();
-      if (value instanceof JsonNumber) {
-//      switch (value.getValueType()) {
-//      case NUMBER:
-        try {
-          return ((JsonNumber)value).intValueExact();
-        } catch (ArithmeticException e) {
-          throw ex(
-            "Expected integral JSON number was actually: " +
-              ((JsonNumber)value).toString());
-        }
-      } else {
-//      default:
-        throw ex("Expected JSON number but was " + value.getValueType());
-      }
-      */
-    }
-
-    @Override
-    public long readI64() throws TException {
-      throw new UnsupportedOperationException();
-      /*
-      final JsonValue value = valueToRead();
-      if (value instanceof JsonNumber) {
-//      switch (value.getValueType()) {
-//      case NUMBER:
-        try {
-          return ((JsonNumber)value).longValueExact();
-        } catch (ArithmeticException e) {
-          throw ex(
-            "Expected integral JSON number was actually: " +
-              ((JsonNumber)value).toString());
-        }
-      } else {
-//      default:
-        throw ex("Expected JSON number but was " + value.getValueType());
-      }
-      */
-    }
-
-    @Override
-    public String readString() throws TException {
-      throw new UnsupportedOperationException();
-/*      final JsonValue value = valueToRead();
-      if (value instanceof JsonString) {
-        return ((JsonString)value).getString();
-      }
-//      final ValueType type = value.getValueType();
-//      switch (type) {
-//      case STRING:
-//        return ((JsonString)value).getString();
-//      default:
-        throw ex("Expected JSON string but was " + value.getValueType());
-//      }*/
-    }
-
     protected String valueToRead() throws TException {
-      throw new UnsupportedOperationException();
-//      final JsonValue value = getValue();
-//      switch (value.getValueType()) {
-//      case OBJECT:
-//        final String key = getKey();
-//        if (key == null) {
-//          throw ex("No key set to read for JsonObject");
-//        }
-//        final JsonValue result = ((JsonObject)value).get(key);
-//        if (result == null) {
-//          throw ex("No mapping for key: " + key);
-//        }
-//        return result;
-//      case ARRAY:
-//      case NULL:
-//        throw ex(new IllegalStateException("Should not be ARRAY or NULL"));
-//      default:
-//        return value;
-//      }
+      return readElement().getTextContent();
     }
 
-    protected Element lastElementCreated() {
-      return this._element;
-      /*
+    public Element readElement() throws TException {
+      final Node parentNode = getParentNode();
       final String key = getKey();
       if (key == null) {
-        return null;
-//        throw new IllegalStateException();
+        throw new IllegalStateException("key should not be null");
       }
-      for (Node node = getValue().getFirstChild();
-            node != null; node = node.getNextSibling()) {
-        final String localName = node.getNodeName();
-        if (node.getNodeType() == Node.ELEMENT_NODE && localName.equals(key)) {
-          return (Element) node;
+      if (parentNode == null) {
+        throw new IllegalStateException("value should not be null");
+      }
+      if (lastElement() != null) {
+        throw new UnsupportedOperationException();
+//        return lastElement();
+      } else {
+        for (Element el : this) {
+          if (key.equals(el.getNodeName())) {
+            this._element = el;
+            return el;
+          }
         }
       }
-//      throw new IllegalStateException("no element for key: " + key);
-      return null;
-      */
+      throw ex("No mapping for key: " + key);
+    }
+
+    protected Element lastElement() {
+      return this._element;
     }
 
     public SoapValueHolder fromLastElement() {
-      final SoapValueHolder holder = new SoapValueHolder(lastElementCreated());
+      final SoapValueHolder holder = new SoapValueHolder(lastElement());
       return holder;
     }
 
+    @Override
+    public ElementIterator iterator() {
+      return it(getParentNode());
+    }
   }
 
   protected abstract class SoapContainerValueHolder extends SoapValueHolder {
-    private int _count = 0;
-
     public SoapContainerValueHolder(Node value) {
       super(value);
     }
     final boolean next() throws TException {
       if (advance()) {
-        _count++;
         return true;
       } else {
         return false;
       }
     }
-    final int count() {
-      return _count;
-    }
     protected abstract int size() throws TException;
     protected abstract boolean advance() throws TException;
+    protected abstract void readStart() throws TException;
+    protected abstract void readEnd() throws TException;
     protected abstract void writeStart() throws TException;
     protected abstract void writeEnd() throws TException;
+    protected abstract SoapValueHolder currentValue() throws TException;
   }
 
   protected class SoapArrayValueHolder extends SoapContainerValueHolder {
-//    private Element lastElement;
-    public SoapArrayValueHolder(Node parentNode, String key) {
+
+    private Integer _size = null;
+    private ElementIterator iterator;
+    protected final SoapValueHolder currentValue = new SoapValueHolder(null);
+
+    public SoapArrayValueHolder(Node parentNode) {
       super(parentNode);
-      setKey(key);
+      setKey("item");
     }
+
     @Override
     protected int size() throws TException {
-//      try {
-//        return this.jsonArray.size();
-//      } catch (NullPointerException e) {
-//        return -1;
-//      }
-      return -1;
+      if (this._size == null) {
+        int size = 0;
+        for (ElementIterator it = it(getParentNode()); it.hasNext(); ) {
+          it.next();
+          size++;
+        }
+        this._size = size;
+      }
+      return this._size;
     }
+
     @Override
     protected boolean advance() throws TException {
-//      return (count()) < this.jsonArray.size();
-      return false;
+      if (this.iterator == null) {
+        this.iterator = it(getParentNode());
+      }
+      currentValue.setKey(null);
+      if (this.iterator.hasNext()) {
+        currentValue.setParentNode(this.iterator.next());
+        return true;
+      } else {
+        currentValue.setParentNode(null);
+        return false;
+      }
     }
+
+    @Override
+    protected SoapValueHolder currentValue() throws TException {
+      return this.currentValue;
+    }
+
+    @Override
+    public Element readElement() throws TException {
+      return (Element) currentValue.getParentNode();
+    }
+
     @Override
     protected String valueToRead() throws TException {
-      throw new UnsupportedOperationException();
-//      final int index = count() - 1;
-//      if (index < 0) {
-//        throw ex("index is less than 0; has next() been called at least once?");
-//      }
-//      final JsonValue result = this.jsonArray.get(index);
-//      return result;
+      if (this.iterator == null) {
+        throw ex("iterator not initialized");
+      }
+      if (this.currentValue.getParentNode() == null) {
+        throw ex("no lastElement");
+      }
+      return readElement().getTextContent();
     }
+
     @Override
     protected void writeStart() throws TException {
 //      this.createElement();
@@ -1125,37 +1048,20 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
 //        writeStartArray();
 //      }
     }
+
     @Override
     protected void writeEnd() throws TException {
-//      TSOAPProtocol.this.writeEnd();
     }
-  }
 
-//  protected class JsonObjectValueHolder extends JsonContainerValueHolder {
-//    private final Iterator<String> iterator;
-//    public JsonObjectValueHolder(final JsonObject object) {
-//      setValue(requireNonNull(object, "jsonObject was null"));
-//      this.iterator = object.keySet().iterator();
-//    }
-//    @Override
-//    protected int size() throws TException {
-//      return ((JsonObject) getValue()).size();
-//    }
-//    @Override
-//    protected boolean advance() throws TException {
-//      if (this.iterator.hasNext()) {
-//        setKey(this.iterator.next());
-//        return true;
-//      } else {
-//        setKey(null);
-//        return false;
-//      }
-//    }
-//    @Override
-//    protected JsonValue valueToRead() throws TException {
-//      return super.valueToRead();
-//    }
-//  }
+    @Override
+    protected void readStart() throws TException {
+    }
+
+    @Override
+    protected void readEnd() throws TException {
+    }
+
+  }
 
   static final byte messageTypeToByte(String element) throws TException {
     for (int i = 1; i < 5; i++) {
@@ -1230,53 +1136,6 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
       throw new TApplicationException(INTERNAL_ERROR, e.getMessage());
     }
   }
-//
-//  private static String expectString(JsonObject json, String key)
-//      throws TException {
-//    return ((JsonString) expectValue(json, key, ValueType.STRING)).getString();
-//  }
-//
-//  private static int expectInt(JsonObject json, String key)
-//      throws TException {
-//    final JsonValue val = expectValue(json, key, ValueType.NUMBER);
-//    try {
-//      return ((JsonNumber) val).intValueExact();
-//    } catch (ArithmeticException e) {
-//      throw ex("Expected exact int value", e);
-//    }
-//  }
-//
-//  private static JsonObject expectObject(JsonObject json, String key)
-//      throws TException {
-//    return (JsonObject) expectValue(json, key, ValueType.OBJECT);
-//  }
-//
-//  private static JsonValue expectValue(
-//      JsonObject json, String key, ValueType type) throws TException {
-//    final JsonValue val = expectValue(json, key);
-//    final boolean matches;
-//    switch (type) {
-//    case STRING:
-//      matches = (val instanceof JsonString); break;
-//    case NUMBER:
-//      matches = (val instanceof JsonNumber); break;
-//    default:
-//      matches = val.getValueType().equals(type); break;
-//    }
-//    if (!matches) {
-//      throw ex("Expected " + type + " but was actually: " + val.getClass());
-//    }
-//    return val;
-//  }
-//
-//  private static JsonValue expectValue(JsonObject json, String key)
-//      throws TException {
-//    final JsonValue val = json.get(key);
-//    if (val == null) {
-//      throw ex("Expected value for key: " + key);
-//    }
-//    return val;
-//  }
 
   private static final String[] MESSAGE_TYPES = new String[5]; static {
     try {
@@ -1288,6 +1147,63 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
     } catch (final IllegalAccessException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static Iterable<Element> elements(final Node node) {
+    return new Iterable<Element>() {
+      @Override
+      public Iterator<Element> iterator() {
+        return it(node);
+      }
+    };
+  }
+
+  public static ElementIterator it(Node node) {
+    return new ElementIterator(node);
+  }
+
+  public static class ElementIterator implements Iterator<Element>{
+
+    private Element __next;
+
+    public ElementIterator(Node node) {
+      for (Node child = node.getFirstChild();
+                child != null;
+                child = child.getNextSibling()) {
+        if (child.getNodeType() == Node.ELEMENT_NODE) {
+          __next = (Element) child;
+          return;
+        }
+      }
+    }
+
+    @Override
+    public boolean hasNext() {
+      return __next != null;
+    }
+
+    @Override
+    public Element next() {
+      if (__next == null) {
+        throw new NoSuchElementException();
+      }
+      final Element result = __next;
+      __next = null;
+      for (Node sib = result.getNextSibling();
+                sib != null; sib = sib.getNextSibling()) {
+        if (sib.getNodeType() == Node.ELEMENT_NODE) {
+          __next = (Element) sib;
+          break;
+        }
+      }
+      return result;
+    }
+
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException();
+    }
+
   }
 
 }

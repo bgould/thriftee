@@ -22,8 +22,9 @@ import java.util.Collection;
 
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.thrift.TBase;
+import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
+import org.apache.thrift.TSerializable;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.transport.TMemoryBuffer;
 import org.apache.thrift.transport.TMemoryInputTransport;
@@ -31,7 +32,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.thriftee.thrift.protocol.TJsonApiProtocol;
 import org.thriftee.thrift.protocol.xml.BaseThriftProtocolTest;
 import org.thriftee.thrift.protocol.xml.TestCall;
 import org.thriftee.thrift.protocol.xml.TestObject;
@@ -90,7 +90,7 @@ public class SimpleJsonProtocolTest extends BaseThriftProtocolTest {
     final TMemoryInputTransport readBuffer = new TMemoryInputTransport(
       writeBuffer.getArray(), 0, writeBuffer.length()
     );
-    final TBase<?, ?> newobj = testobj.obj.getClass().newInstance();
+    final TSerializable newobj = testobj.obj.getClass().newInstance();
     if (testobj instanceof TestCall) {
       final TestCall call = (TestCall) testobj;
       final ServiceSchema svc = schema.findService(call.module, call.service);
@@ -109,7 +109,14 @@ public class SimpleJsonProtocolTest extends BaseThriftProtocolTest {
     }
     LOG.debug("Completed read: " + newobj);
 
-    assertEquals(testobj.obj, newobj);
+    if (newobj instanceof TApplicationException) {
+      final TApplicationException exObj = (TApplicationException) testobj.obj;
+      final TApplicationException exNew = (TApplicationException) newobj;
+      assertEquals(exObj.getType(), exNew.getType());
+      assertEquals(exObj.getMessage(), exNew.getMessage());
+    } else {
+      assertEquals(testobj.obj, newobj);
+    }
   }
 
   public ThriftSchema schema(String model) {

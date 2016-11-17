@@ -15,7 +15,8 @@
  */
 package org.thriftee.thrift.protocol.xml;
 
-import org.apache.thrift.TBase;
+import org.apache.thrift.TApplicationException;
+import org.apache.thrift.TSerializable;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
 import org.thriftee.thrift.schema.MethodIdentifier;
@@ -32,11 +33,14 @@ public class TestCall extends TestObject {
         final String name,
         final String module,
         final String service,
-        final TBase<?, ?> obj
+        final TSerializable obj
       ) {
     super(name, module, obj);
     this.service = service;
-    if (struct.endsWith("_args")) {
+    if (obj instanceof TApplicationException) {
+      this.method = "";
+      this.type = TMessageType.EXCEPTION;
+    } else if (struct.endsWith("_args")) {
       this.method = struct.substring(0, struct.length() - 5);
       this.type = TMessageType.CALL;
     } else if (struct.endsWith("_result")) {
