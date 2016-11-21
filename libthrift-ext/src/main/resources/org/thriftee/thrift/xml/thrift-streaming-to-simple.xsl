@@ -33,7 +33,7 @@
     <xsl:variable name="data" select="*[1]/*[1]" />
     <soap:Envelope>
       <soap:Header>
-        <exception name="{$name}" seqid="{$seqid}" />
+        <txp:exception name="{$name}" seqid="{$seqid}" />
       </soap:Header>
       <soap:Body>
         <soap:Fault>
@@ -69,9 +69,14 @@
     <xsl:if test="not($typeinfo)">
       <xsl:message terminate="yes">no schema definition found for <xsl:value-of select="concat($root_module, '.', $root_struct)" /></xsl:message>
     </xsl:if>
-    <xsl:apply-templates mode="transform-thrift-id-type" select="$typeinfo">
-      <xsl:with-param name="data" select="current()" />
-    </xsl:apply-templates>
+    <xsl:variable name="ns">
+      <xsl:apply-templates mode="namespace-for-type" select="$typeinfo" />
+    </xsl:variable>
+    <xsl:element name="{$typeinfo/@name}" namespace="{$ns}">
+      <xsl:apply-templates mode="transform-thrift-id-type" select="$typeinfo">
+        <xsl:with-param name="data" select="current()" />
+      </xsl:apply-templates>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match="/*" priority="-1">
@@ -141,7 +146,7 @@
     </xsl:variable>
     <soap:Envelope>
       <soap:Header>
-        <call method="{$method/@name}" seqid="{$seqid}" />
+        <txp:call method="{$method/@name}" seqid="{$seqid}" />
       </soap:Header>
       <soap:Body>
         <xsl:element name="{$method/@name}Request" namespace="{string($ns)}">
@@ -170,7 +175,7 @@
     </xsl:variable>
     <soap:Envelope>
       <soap:Header>
-        <reply method="{$method/@name}" seqid="{$seqid}" />
+        <txp:reply method="{$method/@name}" seqid="{$seqid}" />
       </soap:Header>
       <soap:Body>
         <xsl:element name="{$method/@name}Response" namespace="{string($ns)}">
@@ -218,7 +223,7 @@
     </xsl:variable>
     <soap:Envelope>
       <soap:Header>
-        <exception method="{$method/@name}" seqid="{$seqid}" />
+        <txp:exception method="{$method/@name}" seqid="{$seqid}" />
       </soap:Header>
       <soap:Body>
         <soap:Fault>
@@ -290,11 +295,9 @@
     <xsl:variable name="ns">
       <xsl:apply-templates mode="namespace-for-type" select="$typeinfo" />
     </xsl:variable>
-    <xsl:element name="{$typeinfo/@name}" namespace="{string($ns)}">
-      <xsl:apply-templates mode="transform-fields" select="$data/*">
-        <xsl:with-param name="typeinfo" select="$typeinfo" />
-      </xsl:apply-templates>
-    </xsl:element>
+    <xsl:apply-templates mode="transform-fields" select="$data/*">
+      <xsl:with-param name="typeinfo" select="$typeinfo" />
+    </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="idl:union" mode="transform-thrift-id-type">
@@ -303,11 +306,9 @@
     <xsl:variable name="ns">
       <xsl:apply-templates mode="namespace-for-type" select="$typeinfo" />
     </xsl:variable>
-    <xsl:element name="{$typeinfo/@name}" namespace="{string($ns)}">
-      <xsl:apply-templates mode="transform-fields" select="$data/*[1]">
-        <xsl:with-param name="typeinfo" select="$typeinfo" />
-      </xsl:apply-templates>
-    </xsl:element>
+    <xsl:apply-templates mode="transform-fields" select="$data/*[1]">
+      <xsl:with-param name="typeinfo" select="$typeinfo" />
+    </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="*" mode="transform-fields">
@@ -328,7 +329,7 @@
     <xsl:variable name="ns">
       <xsl:apply-templates mode="namespace-for-type" select="$typeinfo" />
     </xsl:variable>
-    <xsl:element name="{$elemname}" namespace="{string($ns)}">
+    <xsl:element name="{$elemname}">
       <xsl:apply-templates select="$typeinfo" mode="transform-thrift-type">
         <xsl:with-param name="elemname" select="$elemname" />
         <xsl:with-param name="data" select="$data" />
@@ -376,7 +377,7 @@
     <xsl:variable name="ns">
       <xsl:apply-templates mode="namespace-for-type" select="$typeinfo" />
     </xsl:variable>
-    <xsl:element name="entry" namespace="{string($ns)}">
+    <xsl:element name="item">
       <xsl:apply-templates mode="transform-thrift-type" select="$typeinfo/idl:elemType">
         <xsl:with-param name="elemname" select="'entry'" />
         <xsl:with-param name="data" select="$data" />
@@ -399,17 +400,19 @@
     <xsl:variable name="ns">
       <xsl:apply-templates mode="namespace-for-type" select="$typeinfo" />
     </xsl:variable>
-    <xsl:element name="key" namespace="{string($ns)}">
-      <xsl:apply-templates mode="transform-thrift-type" select="$typeinfo/idl:keyType">
-        <xsl:with-param name="elemname" select="'key'" />
-        <xsl:with-param name="data" select="$data" />
-      </xsl:apply-templates>
-    </xsl:element>
-    <xsl:element name="value" namespace="{string($ns)}">
-      <xsl:apply-templates mode="transform-thrift-type" select="$typeinfo/idl:valueType">
-        <xsl:with-param name="elemname" select="'value'" />
-        <xsl:with-param name="data" select="$data/following-sibling::*[1]" />
-      </xsl:apply-templates>
+    <xsl:element name="entry">
+      <xsl:element name="key">
+        <xsl:apply-templates mode="transform-thrift-type" select="$typeinfo/idl:keyType">
+          <xsl:with-param name="elemname" select="'key'" />
+          <xsl:with-param name="data" select="$data" />
+        </xsl:apply-templates>
+      </xsl:element>
+      <xsl:element name="value">
+        <xsl:apply-templates mode="transform-thrift-type" select="$typeinfo/idl:valueType">
+          <xsl:with-param name="elemname" select="'value'" />
+          <xsl:with-param name="data" select="$data/following-sibling::*[1]" />
+        </xsl:apply-templates>
+      </xsl:element>
     </xsl:element>
   </xsl:template>
 

@@ -42,9 +42,11 @@ import org.restlet.representation.Representation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thriftee.core.ThriftEE;
+import org.thriftee.thrift.protocol.TSOAPProtocol;
+import org.thriftee.thrift.protocol.TSoapXmlProtocol;
 import org.thriftee.thrift.protocol.TXMLProtocol;
-import org.thriftee.thrift.protocol.xml.Transforms;
 import org.thriftee.thrift.protocol.xml.Transformation.RootType;
+import org.thriftee.thrift.protocol.xml.Transforms;
 
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.XdmAtomicValue;
@@ -79,14 +81,29 @@ public class SoapResource extends AbstractProcessorResource {
 
   @Override
   public AbstractProcessorRepresentation processorFor(Representation entity) {
-    return new Processor(
-      entity,
-      thrift().xmlTransforms(),
-      thrift().globalXmlFile(),
-      getModule().getName(),
-      getService().getName(),
-      getProcessor()
-    );
+    String q = getQuery().getValues("new");
+    if (q != null) {
+      final TSOAPProtocol.Factory fct = new TSOAPProtocol.Factory(getService());
+      return new ThriftProcessorRepresentation(entity, fct, fct, getProcessor());
+    } else {
+      final TSoapXmlProtocol.Factory fct = new TSoapXmlProtocol.Factory(
+        thrift().xmlTransforms()
+      );
+      fct.setModelFile(thrift().globalXmlFile());
+      fct.setModuleName(getModule().getName());
+      fct.setServiceName(getService().getName());
+      return new ThriftProcessorRepresentation(entity, fct, fct, getProcessor());
+      /*
+      return new Processor(
+        entity,
+        thrift().xmlTransforms(),
+        thrift().globalXmlFile(),
+        getModule().getName(),
+        getService().getName(),
+        getProcessor()
+      );
+      */
+    }
   }
 
   protected Representation listFiles() {

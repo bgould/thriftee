@@ -55,8 +55,14 @@ public class TransformToStreamingTest extends BaseThriftXMLTest {
     final File trnsfrmd = testobj.streamingXml();
     final String frmtd2 = Transforms.formatXml(new StreamSource(trnsfrmd));
 
+    System.out.println("\n------------------------------------");
+    System.out.println("Before round trip:");
+    System.out.println("------------------------------------");
     System.out.println(frmtd1);
+    System.out.println("After round trip:");
+    System.out.println("------------------");
     System.out.println(frmtd2);
+    System.out.println("------------------------------------\n");
 
     assertEquals("formatted XML should equal after round trip", frmtd1, frmtd2);
 

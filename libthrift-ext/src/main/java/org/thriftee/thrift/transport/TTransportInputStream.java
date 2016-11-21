@@ -17,11 +17,33 @@ package org.thriftee.thrift.transport;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 
+import org.apache.thrift.transport.TIOStreamTransport;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
 public class TTransportInputStream extends InputStream {
+
+//  private static final Field inputStreamField_; static {
+//    try {
+//      inputStreamField_ = TIOStreamTransport.class.getDeclaredField("inputStream_");
+//    } catch (Exception e) {
+//      throw new RuntimeException(e);
+//    }
+//  }
+
+  public static InputStream inputStreamFor(TTransport trans) {
+//    if (!(trans instanceof TIOStreamTransport)) {
+      return new TTransportInputStream(trans);
+//    }
+//    try {
+//      return (InputStream) inputStreamField_.get(trans);
+//    } catch (IllegalAccessException e) {
+//      System.err.println("[WARN]: could not get inputStream for TIOStreamTrans");
+//      return new TTransportInputStream(trans);
+//    }
+  }
 
   private final TTransport __transport;
 

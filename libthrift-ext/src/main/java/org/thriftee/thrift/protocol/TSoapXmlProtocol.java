@@ -211,7 +211,8 @@ public class TSoapXmlProtocol extends TProtocolDecorator {
 
   protected TXMLProtocol makeConcreteProtocol(
       final RootType rootType, final String rootName) throws TException {
-    final InputStream in = new TTransportInputStream(getTransport());
+//    final InputStream in = new TTransportInputStream(getTransport());
+    final InputStream in = TTransportInputStream.inputStreamFor(getTransport());
     final TByteArrayOutputStream out = new TByteArrayOutputStream(4096);
     final StreamSource source = new StreamSource(in);
     final StreamResult result = new StreamResult(out);
@@ -239,7 +240,8 @@ public class TSoapXmlProtocol extends TProtocolDecorator {
       final RootType rootType, final String rootName) throws TException {
     final TMemoryBuffer buffer = ((TMemoryBuffer) concreteProtocol_.getTransport());
     final InputStream in = new ByteArrayInputStream(buffer.getArray(), 0, buffer.length());
-    final OutputStream out = new TTransportOutputStream(getTransport());
+//    final OutputStream out = new TTransportOutputStream(getTransport());
+    final OutputStream out = TTransportOutputStream.outputStreamFor(getTransport());
     final StreamSource source = new StreamSource(in);
     final StreamResult result = new StreamResult(out);
     final StreamingToSimpleTransformation trns;

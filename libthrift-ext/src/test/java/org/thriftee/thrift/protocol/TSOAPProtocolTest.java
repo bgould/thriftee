@@ -21,12 +21,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.util.Collection;
 
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.thrift.TApplicationException;
@@ -35,12 +31,11 @@ import org.apache.thrift.TSerializable;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.transport.TMemoryBuffer;
 import org.apache.thrift.transport.TMemoryInputTransport;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.thriftee.thrift.protocol.xml.BaseThriftProtocolTest;
+import org.thriftee.thrift.protocol.xml.BaseThriftXMLTest;
 import org.thriftee.thrift.protocol.xml.TestCall;
 import org.thriftee.thrift.protocol.xml.TestObject;
 import org.thriftee.thrift.schema.IdlSchemaBuilder;
@@ -52,7 +47,7 @@ import org.thriftee.thrift.schema.ThriftSchema;
 import org.xml.sax.SAXException;
 
 @RunWith(Parameterized.class)
-public class TSOAPProtocolTest extends BaseThriftProtocolTest {
+public class TSOAPProtocolTest extends BaseThriftXMLTest {
 
   @Parameters
   public static Collection<Object[]> data() {
@@ -92,7 +87,7 @@ public class TSOAPProtocolTest extends BaseThriftProtocolTest {
       proto.setBaseStruct(struct);
       testobj.obj.write(proto);
 
-      final File xsd = new File(testDir, module.getName() + ".xsd");
+      final File xsd = schemaFor(module.getName());
       TXMLProtocol.XML.validate(xsd.toURI().toURL(), new StreamSource(
           new ByteArrayInputStream(
               writeBuffer.getArray(), 0, writeBuffer.length())));
@@ -161,58 +156,6 @@ public class TSOAPProtocolTest extends BaseThriftProtocolTest {
       return thriftSchema;
     } catch (SchemaBuilderException sbe) {
       throw new RuntimeException(sbe);
-    }
-  }
-
-  @BeforeClass
-  public static void makeXsd() throws Exception {
-
-    final TransformerFactory fctry = TransformerFactory.newInstance();
-
-    final URL xsdTransform = TSOAPProtocol.class.getClassLoader().getResource(
-      "org/thriftee/thrift/xml/thrift-model-to-xsd2.xsl"
-    );
-    final Transformer xsdTransformer = fctry.newTransformer(
-      new StreamSource(xsdTransform.openStream())
-    );
-
-    final File wsdlTransform = new File("src/main/resources",
-        "org/thriftee/thrift/xml/thrift-model-to-wsdl2.xsl");
-//    final URL wsdlTransform = TSOAPProtocol.class.getClassLoader().getResource(
-//      "org/thriftee/thrift/xml/thrift-model-to-wsdl2.xsl"
-//    );
-    final Transformer wsdlTransformer = fctry.newTransformer(
-      new StreamSource(wsdlTransform)
-    );
-
-    {
-      final StreamSource src = new StreamSource(modelFor("everything"));
-      final StreamResult res = new StreamResult(new File(testDir, "everything.xsd"));
-      xsdTransformer.setParameter("root_module", "everything");
-      xsdTransformer.transform(src, res);
-    }
-
-    {
-      final StreamSource src2 = new StreamSource(modelFor("nothing_all_at_once"));
-      final StreamResult res2 = new StreamResult(new File(testDir, "nothing_all_at_once.xsd"));
-      xsdTransformer.setParameter("root_module", "nothing_all_at_once");
-      xsdTransformer.transform(src2, res2);
-    }
-
-    {
-      final StreamSource src = new StreamSource(modelFor("everything"));
-      final StreamResult res = new StreamResult(new File(testDir, "everything.Universe.wsdl"));
-      wsdlTransformer.setParameter("service_module", "everything");
-      wsdlTransformer.setParameter("service_name", "Universe");
-      wsdlTransformer.transform(src, res);
-    }
-
-    {
-      final StreamSource src = new StreamSource(modelFor("everything"));
-      final StreamResult res = new StreamResult(new File(testDir, "nothing_all_at_once.Metaverse.wsdl"));
-      wsdlTransformer.setParameter("service_module", "nothing_all_at_once");
-      wsdlTransformer.setParameter("service_name", "Metaverse");
-      wsdlTransformer.transform(src, res);
     }
   }
 

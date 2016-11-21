@@ -15,7 +15,12 @@
  */
 package org.thriftee.thrift.protocol.xml;
 
-import static org.thriftee.examples.Examples.*;
+import static org.thriftee.examples.Examples.blotto;
+import static org.thriftee.examples.Examples.everythingStruct;
+import static org.thriftee.examples.Examples.exception;
+import static org.thriftee.examples.Examples.grokArgs;
+import static org.thriftee.examples.Examples.grokError;
+import static org.thriftee.examples.Examples.grokResult;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -92,7 +97,7 @@ public class BaseThriftProtocolTest {
   public static Everything filter(Everything everything) {
 //    everything.obj = null;
 //    everything.smork = null;
-//    everything.onion = null;
+//    everything.onion = new Sprat();
 //    everything.str_list = null;
 //    everything.enum_list = null;
 //    everything.str_set = null;

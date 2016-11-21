@@ -36,24 +36,24 @@ public class OrderSessionBean implements OrderService {
   @Override
   public Order findOrderById(int orderNumber) {
     final Order order = em.find(Order.class, orderNumber);
-    LOG.debug("retrieved order.");
+//    LOG.debug("retrieved order.");
     if (order == null) {
       return null;
     }
-    if (order.getCustomer() != null) {
-      LOG.debug("also retrieved customer number: {}",
-        order.getCustomer().getCustomerNumber());
-    } else {
-      LOG.debug("customer was null");
-    }
-    if (order.getOrderDetails() != null) {
-      LOG.debug(
-        "also retrieved order details: {}",
-        order.getOrderDetails().size()
-      );
-    } else {
-      LOG.debug("order details were null");
-    }
+//    if (order.getCustomer() != null) {
+//      LOG.debug("also retrieved customer number: {}",
+//        order.getCustomer().getCustomerNumber());
+//    } else {
+//      LOG.debug("customer was null");
+//    }
+//    if (order.getOrderDetails() != null) {
+//      LOG.debug(
+//        "also retrieved order details: {}",
+//        order.getOrderDetails().size()
+//      );
+//    } else {
+//      LOG.debug("order details were null");
+//    }
     return order;
   }
 

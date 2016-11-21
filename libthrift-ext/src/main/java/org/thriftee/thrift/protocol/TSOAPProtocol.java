@@ -42,10 +42,8 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPFault;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -182,20 +180,22 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
     public void popped() throws TException {
       if (isWriting()) {
         try {
-          final OutputStream out = new TTransportOutputStream(getTransport());
-          final StreamResult result = new StreamResult(out);
           final Source source;
           if (root instanceof SOAPMessage) {
             source = ((SOAPMessage)root).getSOAPPart().getContent();
+//            ((SOAPMessage)root).writeTo(out);
           } else if (root instanceof Document) {
             source = new DOMSource((Document)root);
           } else {
             throw new IllegalStateException();
           }
+          final TTransport trans = getTransport();
+          final OutputStream out = TTransportOutputStream.outputStreamFor(trans);
+          final StreamResult result = new StreamResult(out);
           final Transformer transformer = tf.newTransformer();
-          transformer.setOutputProperty(OutputKeys.INDENT, "true");
+//          transformer.setOutputProperty(OutputKeys.INDENT, "true");
           transformer.transform(source, result);
-        } catch (TransformerException|SOAPException e) {
+        } catch (Exception e) {
           throw ex(e);
         }
       }
@@ -1093,7 +1093,7 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
   }
 
   protected SOAPMessage parseSoapMessage() throws TException {
-    final InputStream in = new TTransportInputStream(getTransport());
+    final InputStream in = TTransportInputStream.inputStreamFor(getTransport());
     try {
       final SOAPMessage msg = soapMessageFactory.createMessage(null, in);
       return msg;
@@ -1114,9 +1114,10 @@ public class TSOAPProtocol extends AbstractSimpleProtocol {
   }
 
   protected Document parseDocument() throws TException {
+    final InputStream in = TTransportInputStream.inputStreamFor(getTransport());
     try {
       final DocumentBuilder b = documentBuilderFactory.newDocumentBuilder();
-      final Document doc = b.parse(new TTransportInputStream(getTransport()));
+      final Document doc = b.parse(in);
       return doc;
     } catch (final ParserConfigurationException e) {
       throw new TApplicationException(INTERNAL_ERROR, e.getMessage());

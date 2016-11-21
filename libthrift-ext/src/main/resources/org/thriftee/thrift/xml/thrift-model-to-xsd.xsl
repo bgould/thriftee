@@ -15,7 +15,7 @@
   <xsl:variable name="tns" select="$doc/namespace::*[name()=$root_module]" />
 
   <xsl:template match="/">
-    <xsd:schema targetNamespace="{string($tns)}" elementFormDefault="qualified">
+    <xsd:schema targetNamespace="{string($tns)}" elementFormDefault="unqualified">
       <xsl:copy-of select="$tns"/>
       <xsl:apply-templates mode="copy-included-namespaces" select="$doc/idl:include" />
       <xsl:apply-templates mode="process-includes-as-imports" select="$doc/idl:include" />
@@ -116,7 +116,7 @@
     <xsd:element name="{@name}" type="{name($tns)}:{@name}" />
     <xsd:complexType name="{@name}">
       <xsl:apply-templates mode="process-documentation" select="current()" />
-      <xsd:choice>
+      <xsd:choice minOccurs="1" maxOccurs="1">
         <xsl:apply-templates mode="field-schema" />
       </xsd:choice>
     </xsd:complexType>
@@ -139,7 +139,7 @@
       <xsl:apply-templates mode="process-documentation" select="current()" />
       <xsd:sequence minOccurs="0" maxOccurs="unbounded">
         <xsl:apply-templates mode="element-for-type" select="idl:elemType">
-          <xsl:with-param name="element-name" select="'entry'" />
+          <xsl:with-param name="element-name" select="'item'" />
         </xsl:apply-templates>
       </xsd:sequence>
     </xsd:complexType>
@@ -155,12 +155,18 @@
       </xsl:if>
       <xsl:apply-templates mode="process-documentation" select="current()" />
       <xsd:sequence minOccurs="0" maxOccurs="unbounded">
-        <xsl:apply-templates mode="element-for-type" select="idl:keyType">
-          <xsl:with-param name="element-name" select="'key'" />
-        </xsl:apply-templates>
-        <xsl:apply-templates mode="element-for-type" select="idl:valueType">
-          <xsl:with-param name="element-name" select="'value'" />
-        </xsl:apply-templates>
+        <xsd:element name="entry">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsl:apply-templates mode="element-for-type" select="idl:keyType">
+                <xsl:with-param name="element-name" select="'key'" />
+              </xsl:apply-templates>
+              <xsl:apply-templates mode="element-for-type" select="idl:valueType">
+                <xsl:with-param name="element-name" select="'value'" />
+              </xsl:apply-templates>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
       </xsd:sequence>
     </xsd:complexType>
   </xsl:template>
@@ -233,15 +239,9 @@
           <xsl:value-of select="'1'" />
         </xsl:attribute>
       </xsl:if>
-      <xsd:complexType>
-        <xsd:sequence>
-          <xsd:element>
-            <xsl:attribute name="ref">
-              <xsl:apply-templates mode="xsd-type-name" select="$typeinfo" />
-            </xsl:attribute>
-          </xsd:element>
-        </xsd:sequence>
-      </xsd:complexType>
+      <xsl:attribute name="type">
+        <xsl:apply-templates mode="xsd-type-name" select="$typeinfo" />
+      </xsl:attribute>
     </xsd:element>
   </xsl:template>
 

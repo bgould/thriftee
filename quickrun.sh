@@ -1,3 +1,3 @@
 #!/bin/bash
-mvn install -DskipTests=true -Dfindbugs.skip=true && (cd thriftee-examples-war && mvn tomee:run)
+mvn install -DskipTests=true -Dfindbugs.skip=true && (cd examples && mvn tomee:run)
 

@@ -13,6 +13,7 @@
   <xsl:variable name="idl" select="document($schema)/idl:idl" />
 
   <xsl:variable name="txp_ns" select="''" />
+  <xsl:variable name="metadata_ns" select="'http://thriftee.org/xml/protocol'" />
   <xsl:variable name="include_names" select="false()" />
 
   <xsl:variable name="key_attr"   select="'k'" />
@@ -49,7 +50,7 @@
 
   <xsl:template mode="resolve" match="soap:Envelope">
     <xsl:apply-templates mode="resolve-service" select="soap:Body/*[1]">
-      <xsl:with-param name="metadata" select="current()/soap:Header/*[namespace-uri()=$txp_ns][1]" />
+      <xsl:with-param name="metadata" select="current()/soap:Header/*[namespace-uri()=$metadata_ns][1]" />
     </xsl:apply-templates>
   </xsl:template>
 
@@ -70,7 +71,7 @@
     </xsl:variable>
     <xsl:element name="{$typename}" namespace="{$txp_ns}">
       <xsl:apply-templates mode="transform-thrift-id-type" select="$typeinfo">
-        <xsl:with-param name="data" select="$data/.." />
+        <xsl:with-param name="data" select="$data" />
       </xsl:apply-templates>
     </xsl:element>
   </xsl:template>
@@ -252,7 +253,7 @@
         <xsl:value-of select="$typeinfo/@name" />
       </xsl:attribute>
     </xsl:if>
-    <xsl:apply-templates mode="transform-fields" select="$data/*/*">
+    <xsl:apply-templates mode="transform-fields" select="$data/*">
       <xsl:with-param name="typeinfo" select="$typeinfo" />
     </xsl:apply-templates>
     <xsl:element name="{$stop}" namespace="{$txp_ns}" />
@@ -266,7 +267,7 @@
         <xsl:value-of select="$typeinfo/@name" />
       </xsl:attribute>
     </xsl:if>
-    <xsl:apply-templates mode="transform-fields" select="$data/*[1]/*">
+    <xsl:apply-templates mode="transform-fields" select="$data/*[1]">
       <xsl:with-param name="typeinfo" select="$typeinfo" />
     </xsl:apply-templates>
     <xsl:element name="{$stop}" namespace="{$txp_ns}" />
@@ -360,7 +361,7 @@
       <xsl:apply-templates mode="typename-for-typeinfo" select="$typeinfo/idl:valueType" />
     </xsl:variable>
     <xsl:attribute name="{$size_attr}">
-      <xsl:value-of select="count($data/*) div 2" />
+      <xsl:value-of select="count($data/*)" />
     </xsl:attribute>
     <xsl:attribute name="{$value_attr}">
       <xsl:value-of select="$valuetypename" />
@@ -368,7 +369,7 @@
     <xsl:attribute name="{$key_attr}">
       <xsl:value-of select="$keytypename" />
     </xsl:attribute>
-    <xsl:apply-templates mode="transform-map-entry" select="$data/*[position() mod 2 = 1]">
+    <xsl:apply-templates mode="transform-map-entry" select="$data/*">
       <xsl:with-param name="typeinfo" select="$typeinfo"/>
       <xsl:with-param name="keytypename" select="$keytypename" />
       <xsl:with-param name="valuetypename" select="$valuetypename" />
@@ -382,12 +383,12 @@
     <xsl:param name="valuetypename" />
     <xsl:element name="{$keytypename}" namespace="{$txp_ns}">
       <xsl:apply-templates mode="transform-thrift-type" select="$typeinfo/idl:keyType">
-        <xsl:with-param name="data" select="$data" />
+        <xsl:with-param name="data" select="$data/*[1]" />
       </xsl:apply-templates>
     </xsl:element>
     <xsl:element name="{$valuetypename}" namespace="{$txp_ns}">
       <xsl:apply-templates mode="transform-thrift-type" select="$typeinfo/idl:valueType">
-        <xsl:with-param name="data" select="$data/following-sibling::*[1]" />
+        <xsl:with-param name="data" select="$data/*[2]" />
       </xsl:apply-templates>
     </xsl:element>
   </xsl:template>

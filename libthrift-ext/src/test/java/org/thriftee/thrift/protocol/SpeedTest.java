@@ -15,8 +15,6 @@
  */
 package org.thriftee.thrift.protocol;
 
-import static org.thriftee.examples.Examples.everythingStruct;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -28,40 +26,49 @@ import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TJSONProtocol;
+import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.TMemoryBuffer;
 import org.apache.thrift.transport.TMemoryInputTransport;
 import org.apache.thrift.transport.TTransport;
 import org.junit.Assert;
+import org.thriftee.examples.Examples;
 import org.thriftee.thrift.protocol.xml.BaseThriftProtocolTest;
+import org.thriftee.thrift.protocol.xml.Transforms;
 import org.thriftee.thrift.schema.IdlSchemaBuilder;
 import org.thriftee.thrift.schema.SchemaBuilderException;
-import org.thriftee.thrift.schema.StructSchema;
+import org.thriftee.thrift.schema.ServiceSchema;
 
-import everything.Everything;
+import everything.Universe.grok_args;
 
 public class SpeedTest extends BaseThriftProtocolTest {
 
-  public static StructSchema structSchema() throws IOException {
-    final File modelFile = new File("target/tests/models/everything.xml");
-    final IdlSchemaBuilder bldr = new IdlSchemaBuilder();
+  public static final ServiceSchema schema = serviceSchema();
+
+  public static ServiceSchema serviceSchema() {
     try {
-      return bldr.buildFromXml(new StreamSource(modelFile)).
-        findModule("everything").getStructs().get("Everything");
-    } catch (SchemaBuilderException e) {
-      throw new IOException(e);
+      final File modelFile = new File("target/tests/models/everything.xml");
+      final IdlSchemaBuilder bldr = new IdlSchemaBuilder();
+      try {
+        return bldr.buildFromXml(new StreamSource(modelFile)).
+          findModule("everything").getServices().get("Universe");
+      } catch (SchemaBuilderException e) {
+        throw new IOException(e);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
-//  public static final TSoapXmlProtocol.Factory soapFactory; static {
-//    final Transforms transforms = new Transforms();
-//    soapFactory = new TSoapXmlProtocol.Factory();
-//    soapFactory.setTransforms(transforms);
-//    soapFactory.setModuleName("everything");
-//    soapFactory.setStructName("Everything");
-//    soapFactory.setServiceName("Universe");
-//  }
+  public static final TSoapXmlProtocol.Factory soapFactory; static {
+    final Transforms transforms = new Transforms();
+    soapFactory = new TSoapXmlProtocol.Factory();
+    soapFactory.setTransforms(transforms);
+    soapFactory.setModuleName("everything");
+    soapFactory.setStructName("Everything");
+    soapFactory.setServiceName("Universe");
+  }
 
   public static Collection<TProtocolFactory> data() throws IOException {
     return Arrays.asList(new TProtocolFactory[] {
@@ -69,8 +76,8 @@ public class SpeedTest extends BaseThriftProtocolTest {
       new TBinaryProtocol.Factory(),
       new TJSONProtocol.Factory(),
       new TXMLProtocol.Factory(),
-      new TJsonApiProtocol.Factory(structSchema()),
-      new TSOAPProtocol.Factory(structSchema())
+      new TJsonApiProtocol.Factory(schema),
+      new TSOAPProtocol.Factory(schema),
 //      soapFactory
     });
   }
@@ -78,12 +85,12 @@ public class SpeedTest extends BaseThriftProtocolTest {
   public static void main(String[] args) throws Exception {
     System.out.printf("exporting models, etc...");
     beforeClass();
-//    soapFactory.setModelFile(modelFor("everything"));
-//    try {
-//      soapFactory.getTransforms().preload(soapFactory.getModelFile());
-//    } catch (IOException e) {
-//      throw new RuntimeException();
-//    }
+    soapFactory.setModelFile(modelFor("everything"));
+    try {
+      soapFactory.getTransforms().preload(soapFactory.getModelFile());
+    } catch (IOException e) {
+      throw new RuntimeException();
+    }
     System.out.printf("done%n%n");
     for (TProtocolFactory fctry : data()) {
       final SpeedTest test = new SpeedTest(fctry);
@@ -99,33 +106,38 @@ public class SpeedTest extends BaseThriftProtocolTest {
 
   public void testSpeed() throws TException, IOException {
 
-    final int warmup = 20000;
-    final int count = 100000;
+    final int warmup = 10000;
+    final int count = 200000;
     final String name = factory.getClass().getEnclosingClass().getSimpleName();
 
     long readNanos = 0;
     long writeNanos = 0;
     //long totalNanos = 0;
-    final Everything struct = BaseThriftProtocolTest.filter(everythingStruct());
+    final grok_args struct = Examples.grokArgs();
+    BaseThriftProtocolTest.filter(struct.everything);
 
     System.out.printf("Warming up %s%n", name);
     for (int i =0 ; i < warmup; i++) {
       final TMemoryBuffer out = new TMemoryBuffer(4096);
       {
         final TProtocol outProtocol = factory.getProtocol(out);
+        outProtocol.writeMessageBegin(new TMessage("grok", (byte)1, 1));
         struct.write(outProtocol);
+        outProtocol.writeMessageEnd();
       }
       if (i == 0 && out.length() == 0) {
         Assert.fail("array was zero length");
       }
 //      System.out.println(new String(arr)); if (true) return;
       {
-        final Everything struct2 = new Everything();
+        final grok_args struct2 = new grok_args();
         final TTransport in = new TMemoryInputTransport(
           out.getArray(), 0, out.length()
         );
         final TProtocol inProtocol = factory.getProtocol(in);
+        inProtocol.readMessageBegin();
         struct2.read(inProtocol);
+        inProtocol.readMessageEnd();
       }
     }
 
@@ -141,7 +153,9 @@ public class SpeedTest extends BaseThriftProtocolTest {
         final TProtocol outProtocol = factory.getProtocol(out);
 
         final long writeStart = System.nanoTime();
+        outProtocol.writeMessageBegin(new TMessage("grok", (byte)1, 1));
         struct.write(outProtocol);
+        outProtocol.writeMessageEnd();
         writeNanos += System.nanoTime() - writeStart;
       }
       if (i == 0 && out.length() == 0) {
@@ -149,14 +163,16 @@ public class SpeedTest extends BaseThriftProtocolTest {
       }
 //      System.out.println(new String(arr)); if (true) return;
       {
-        final Everything struct2 = new Everything();
+        final grok_args struct2 = new grok_args();
         final TTransport in = new TMemoryInputTransport(
           out.getArray(), 0, out.length()
         );
         final TProtocol inProtocol = factory.getProtocol(in);
 
         final long readStart = System.nanoTime();
+        inProtocol.readMessageBegin();
         struct2.read(inProtocol);
+        inProtocol.readMessageEnd();
         readNanos += System.nanoTime() - readStart;
       }
     }

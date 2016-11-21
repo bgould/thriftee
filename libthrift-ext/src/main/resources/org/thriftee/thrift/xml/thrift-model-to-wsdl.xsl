@@ -29,7 +29,7 @@
       <xsl:copy-of select="$doc/namespace::*[name()=$doc/@name]" />
       <xsl:apply-templates mode="copy-included-namespaces" select="$doc/idl:include" />
       <wsdl:types>
-        <xsd:schema targetNamespace="{string($tns)}" elementFormDefault="qualified">
+        <xsd:schema targetNamespace="{string($tns)}" elementFormDefault="unqualified">
           <xsl:apply-templates mode="process-includes-as-imports" select="$doc/idl:include" />
           <xsd:import schemaLocation="{$doc/@name}.xsd" namespace="{string($doc/@targetNamespace)}" />
           <xsl:apply-templates select="$svc/*" mode="wsdl-method-types" />
