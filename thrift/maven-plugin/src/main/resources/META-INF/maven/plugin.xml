@@ -3,7 +3,7 @@
   <description></description>
   <groupId>org.thriftee</groupId>
   <artifactId>thrift-maven-plugin</artifactId>
-  <version>0.10.0-SNAPSHOT</version>
+  <version>0.10.0</version>
   <goalPrefix>thrift</goalPrefix>
   <isolatedRealm>false</isolatedRealm>
   <inheritedByDefault>true</inheritedByDefault>
@@ -280,10 +280,10 @@ embedded pure Java version of the compiler will be used.</description>
   </mojos>
   <dependencies>
     <dependency>
-      <groupId>org.thrifteet</groupId>
+      <groupId>org.thriftee</groupId>
       <artifactId>thrift-compiler</artifactId>
       <type>jar</type>
-      <version>0.10.0-SNAPSHOT</version>
+      <version>0.10.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
