@@ -312,7 +312,7 @@
     <junit.version>4.11</junit.version>
     <slf4j.version>1.7.5</slf4j.version>
     <tomee.version>7.0.1</tomee.version>
-    <thrift.version>0.10.0-SNAPSHOT</thrift.version>
+    <thrift.version>0.10.0</thrift.version>
     <restlet.version>2.2.2</restlet.version>
     <eclipselink.version>2.5.2</eclipselink.version>
     <scannotation.version>1.0.2</scannotation.version>
